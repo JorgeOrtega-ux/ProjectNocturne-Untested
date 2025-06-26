@@ -4,13 +4,39 @@ import { prepareAlarmForEdit } from './menu-interactions.js';
 
 // ========== CONFIGURACIÓN Y CONSTANTES ==========
 const ALARMS_STORAGE_KEY = 'user-alarms';
-const ALARM_SOUND_FREQUENCIES = {
-    'classic-beep': [800, 1000],
-    'gentle-chime': [523.25, 659.25, 783.99], // C5, E5, G5
-    'digital-alarm': [1200, 800, 1200, 800],
-    'peaceful-tone': [440, 554.37, 659.25], // A4, C#5, E5
-    'urgent-beep': [1600, 400, 1600, 400]
+const ALARM_SOUND_PATTERNS = {
+    'classic-beep': {
+        frequencies: [800],
+        beepDuration: 150, // ms
+        pauseDuration: 150, // ms
+        type: 'square'
+    },
+    'gentle-chime': {
+        frequencies: [523.25, 659.25, 783.99],
+        beepDuration: 300,
+        pauseDuration: 500,
+        type: 'sine'
+    },
+    'digital-alarm': {
+        frequencies: [1200, 800],
+        beepDuration: 100,
+        pauseDuration: 100,
+        type: 'square'
+    },
+    'peaceful-tone': {
+        frequencies: [440, 554.37, 659.25],
+        beepDuration: 400,
+        pauseDuration: 600,
+        type: 'sine'
+    },
+    'urgent-beep': {
+        frequencies: [1600, 1600],
+        beepDuration: 80,
+        pauseDuration: 80,
+        type: 'sawtooth'
+    }
 };
+
 const DEFAULT_ALARMS = [
     { id: 'default-1', title: 'Limpiar cuarto', hour: 10, minute: 0, sound: 'gentle-chime', enabled: false },
     { id: 'default-2', title: 'Hacer ejercicio', hour: 18, minute: 0, sound: 'digital-alarm', enabled: false },
@@ -23,6 +49,7 @@ let userAlarms = [];
 let activeAlarmTimers = new Map();
 let isPlayingSound = false;
 let audioContext = null;
+let activeSoundSource = null;
 
 // ========== INICIALIZACIÓN DEL AUDIO ==========
 function initializeAudioContext() {
@@ -38,46 +65,52 @@ function initializeAudioContext() {
 }
 
 // ========== GENERACIÓN DE SONIDOS ==========
-function playAlarmSound(soundType = 'classic-beep', duration = 2000) {
+function playAlarmSound(soundType = 'classic-beep') {
     if (isPlayingSound || !initializeAudioContext()) return;
 
+    stopAlarmSound(); // Detiene cualquier sonido anterior
+
     isPlayingSound = true;
-    const frequencies = ALARM_SOUND_FREQUENCIES[soundType] || ALARM_SOUND_FREQUENCIES['classic-beep'];
-    
-    const playFrequency = (freq, startTime, noteDuration) => {
+    const pattern = ALARM_SOUND_PATTERNS[soundType] || ALARM_SOUND_PATTERNS['classic-beep'];
+    let freqIndex = 0;
+
+    const playBeep = () => {
+        if (!isPlayingSound) return;
+
+        const freq = pattern.frequencies[freqIndex % pattern.frequencies.length];
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
-        oscillator.type = soundType === 'peaceful-tone' ? 'sine' : 'square';
-        oscillator.frequency.setValueAtTime(freq, startTime);
-        
-        // Envelope para suavizar el sonido
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + noteDuration);
-        
-        oscillator.start(startTime);
-        oscillator.stop(startTime + noteDuration);
+
+        oscillator.type = pattern.type;
+        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + (pattern.beepDuration / 1000));
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + (pattern.beepDuration / 1000));
+
+        freqIndex++;
     };
 
-    const noteDuration = duration / (frequencies.length * 2);
-    let currentTime = audioContext.currentTime;
-
-    frequencies.forEach((freq) => {
-        playFrequency(freq, currentTime, noteDuration);
-        currentTime += noteDuration;
-        
-        // Pausa entre notas
-        currentTime += noteDuration * 0.1;
-    });
-
-    setTimeout(() => {
-        isPlayingSound = false;
-    }, duration);
+    playBeep(); // Reproduce el primer beep inmediatamente
+    const intervalId = setInterval(playBeep, pattern.beepDuration + pattern.pauseDuration);
+    activeSoundSource = { intervalId: intervalId };
 }
+
+
+function stopAlarmSound() {
+    if (activeSoundSource && activeSoundSource.intervalId) {
+        clearInterval(activeSoundSource.intervalId);
+    }
+    activeSoundSource = null;
+    isPlayingSound = false;
+}
+
 
 // ========== GESTIÓN DE ALARMAS ==========
 function createAlarm(title, hour, minute, sound) {
@@ -138,7 +171,15 @@ function scheduleAlarm(alarm) {
 
 function triggerAlarm(alarm) {
     // Reproducir sonido
-    playAlarmSound(alarm.sound, 5000);
+    playAlarmSound(alarm.sound);
+
+    const alarmCard = document.getElementById(alarm.id);
+    if (alarmCard) {
+        const optionsContainer = alarmCard.querySelector('.card-options-container');
+        if (optionsContainer) {
+            optionsContainer.classList.add('active');
+        }
+    }
     
     // Mostrar notificación del navegador si está disponible
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -151,6 +192,24 @@ function triggerAlarm(alarm) {
     // Re-programar para el siguiente día
     scheduleAlarm(alarm);
 }
+
+function dismissAlarm(alarmId) {
+    stopAlarmSound();
+    const alarmCard = document.getElementById(alarmId);
+    if (alarmCard) {
+        const optionsContainer = alarmCard.querySelector('.card-options-container');
+        if (optionsContainer) {
+            optionsContainer.classList.remove('active');
+        }
+    }
+    
+    // Desactivar la alarma
+    const alarmToToggle = userAlarms.find(a => a.id === alarmId);
+    if (alarmToToggle && alarmToToggle.enabled) {
+        toggleAlarm(alarmId);
+    }
+}
+
 
 // ========== INTERFAZ DE USUARIO ==========
 function createAlarmCard(alarm, type = 'user') {
@@ -171,6 +230,12 @@ function createAlarmCard(alarm, type = 'user') {
                 </div>
             </div>
             
+            <div class="card-options-container">
+                <button class="dismiss-alarm-btn" data-action="dismiss-alarm">
+                    <span data-translate="dismiss" data-translate-category="alarms">Dismiss</span>
+                </button>
+            </div>
+
             <div class="card-menu-container disabled">
                 <div class="card-menu-btn-wrapper">
                     <button class="card-menu-btn" data-action="toggle-alarm-menu"
@@ -236,6 +301,11 @@ function createAlarmCard(alarm, type = 'user') {
                 menuContainer?.classList.add('disabled');
             }
         });
+        
+        const dismissButton = newCard.querySelector('[data-action="dismiss-alarm"]');
+        if(dismissButton) {
+            dismissButton.addEventListener('click', () => dismissAlarm(alarm.id));
+        }
 
         setTimeout(() => {
             applyTranslationsToAlarmCard(newCard);
@@ -531,7 +601,7 @@ function setupEventListeners() {
             } else if (action === 'test-alarm') {
                 const alarm = userAlarms.find(a => a.id === alarmId) || DEFAULT_ALARMS.find(a => a.id === alarmId);
                 if (alarm) {
-                    playAlarmSound(alarm.sound, 3000);
+                    playAlarmSound(alarm.sound);
                 }
 
             } else if (action === 'edit-alarm') {
@@ -585,7 +655,8 @@ export function initializeAlarmClock() {
         deleteAlarm,
         updateAlarm: updateAlarmCard,
         toggleAlarmsSection,
-        playAlarmSound
+        playAlarmSound,
+        dismissAlarm
     };
 }
 

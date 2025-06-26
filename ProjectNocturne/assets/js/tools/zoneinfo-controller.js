@@ -12,11 +12,20 @@ function updateZoneInfo(timezone = null) {
         const userFriendlyTimeZone = finalTimeZone.replace(/_/g, ' ');
 
         zoneInfoTools.forEach(tool => {
-            tool.textContent = userFriendlyTimeZone;
+            // Busca o crea el span interno
+            let span = tool.querySelector('span');
+            if (!span) {
+                span = document.createElement('span');
+                tool.textContent = ''; // Limpia cualquier texto previo en el div
+                tool.appendChild(span);
+            }
+
+            // Actualiza el contenido del span y el tooltip del div
+            span.textContent = userFriendlyTimeZone;
             tool.setAttribute('data-tooltip', `Timezone: ${userFriendlyTimeZone}`);
         });
 
-        // If the tooltip system is ready, refresh tooltips for these elements
+        // Si el sistema de tooltips está listo, actualiza los tooltips para estos elementos
         if (window.tooltipManager && typeof window.tooltipManager.attachTooltipsToNewElements === 'function') {
             zoneInfoTools.forEach(tool => {
                 window.tooltipManager.attachTooltipsToNewElements(tool.parentElement);
@@ -26,11 +35,16 @@ function updateZoneInfo(timezone = null) {
     } catch (error) {
         console.error("Error getting user's time zone:", error);
         zoneInfoTools.forEach(tool => {
-            tool.textContent = "Time Zone Unavailable";
+            let span = tool.querySelector('span');
+            if (!span) {
+                span = document.createElement('span');
+                tool.textContent = '';
+                tool.appendChild(span);
+            }
+            span.textContent = "Time Zone Unavailable";
         });
     }
 }
-
 
 function initializeZoneInfoTool() {
     updateZoneInfo();

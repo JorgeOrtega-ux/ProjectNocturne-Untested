@@ -642,6 +642,7 @@
 }
 
 .zoneInfoTool {
+    /* Estilos del contenedor principal */
     width: auto;
     padding: 0 12px;
     flex: 0 0 auto;
@@ -653,8 +654,19 @@
     height: 40px;
     border: 1px solid #00000020;
     border-radius: 8px;
+    min-width: 120px;
+    /* IMPORTANTE: overflow hidden aquí para contener al span */
+    overflow: hidden;
 }
 
+.zoneInfoTool span {
+    /* Estilos para el texto y la elipsis */
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center; /* Opcional, para centrar el texto si no se desborda */
+}
 .pinned-clock-display {
     text-align: center;
 }

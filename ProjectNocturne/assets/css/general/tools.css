@@ -733,7 +733,7 @@
     border-radius: 50%;
     cursor: pointer;
     color: #000000;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.3s ease;
 }
 
 .dark-mode .collapse-alarms-btn {
@@ -752,6 +752,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 12px;
+    max-height: 0;
+    transition: max-height 0.5s ease-in-out;
+}
+
+.alarms-grid.expanded {
+    max-height: 1000px; /* Un valor grande para permitir la expansión completa */
 }
 
 /* ========== ALARM CARDS ========== */

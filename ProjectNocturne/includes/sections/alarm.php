@@ -66,7 +66,24 @@
             </div>
         </div>
     </div>
-    <div class="section-bottom" style="display: none;">
-        <!-- El contenedor de alarmas se creará dinámicamente desde JavaScript -->
+    <div class="section-bottom">
+        <div class="alarms-container">
+            <div class="alarms-header">
+                <h3 data-translate="my_alarms" data-translate-category="alarms">Mis Alarmas</h3>
+                <button class="collapse-alarms-btn" onclick="window.alarmManager.toggleAlarmsSection('user')">
+                    <span class="material-symbols-rounded">expand_less</span>
+                </button>
+            </div>
+            <div class="alarms-grid expanded" data-alarm-grid="user"></div>
+        </div>
+        <div class="alarms-container">
+            <div class="alarms-header">
+                <h3 data-translate="default_alarms" data-translate-category="alarms">Alarmas Predeterminadas</h3>
+                <button class="collapse-alarms-btn" onclick="window.alarmManager.toggleAlarmsSection('default')">
+                    <span class="material-symbols-rounded">expand_less</span>
+                </button>
+            </div>
+            <div class="alarms-grid expanded" data-alarm-grid="default"></div>
+        </div>
     </div>
 </div>

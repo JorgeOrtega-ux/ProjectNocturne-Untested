@@ -66,5 +66,7 @@
             </div>
         </div>
     </div>
-    <div class="section-bottom">3</div>
+    <div class="section-bottom" style="display: none;">
+        <!-- El contenedor de alarmas se creará dinámicamente desde JavaScript -->
+    </div>
 </div>

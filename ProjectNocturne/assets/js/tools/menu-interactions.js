@@ -130,7 +130,7 @@ const resetWorldClockMenu = (menuElement) => {
     // ================================================================
     // FIN DE LA CORRECCIÓN
     // ================================================================
-    
+
     state.worldClock = JSON.parse(JSON.stringify(initialState.worldClock));
     const titleInput = menuElement.querySelector('#worldclock-title');
     if (titleInput) titleInput.value = '';
@@ -155,7 +155,7 @@ const resetWorldClockMenu = (menuElement) => {
     }
 
     const createButton = menuElement.querySelector('.create-tool');
-    if(createButton) {
+    if (createButton) {
         if (createButton.classList.contains('disabled-interactive')) {
             removeSpinnerFromCreateButton(createButton);
         }
@@ -336,7 +336,7 @@ const renderCalendar = (timerMenu) => {
         if (state.timer.countTo.selectedDate && i === new Date(state.timer.countTo.selectedDate).getDate() && date.getMonth() === new Date(state.timer.countTo.selectedDate).getMonth()) dayEl.classList.add('selected');
         daysContainer.appendChild(dayEl);
     }
-    
+
     // --- Lógica para el límite de año ---
     const currentYear = new Date().getFullYear();
     const minYear = currentYear - 265;
@@ -353,7 +353,7 @@ const renderCalendar = (timerMenu) => {
             prevButton.classList.remove('disabled-interactive');
         }
     }
-    
+
     if (nextButton) {
         nextButton.disabled = false; // No hay límite máximo
         nextButton.classList.remove('disabled-interactive');
@@ -446,7 +446,40 @@ async function populateTimezoneDropdown(parentMenu, countryCode) {
         timezoneSelector.classList.add('disabled-interactive');
     }
 }
+export function prepareAlarmForEdit(alarmData) {
+    const menuElement = getMenuElement('menuAlarm');
+    if (!menuElement) return;
 
+    // Actualizar el estado con los datos de la alarma
+    state.alarm.hour = alarmData.hour;
+    state.alarm.minute = alarmData.minute;
+    state.alarm.sound = alarmData.sound;
+
+    // Llenar el campo de título
+    const titleInput = menuElement.querySelector('#alarm-title');
+    if (titleInput) titleInput.value = alarmData.title;
+
+    // Actualizar la visualización de hora y minuto
+    updateAlarmDisplay(menuElement);
+
+    // Actualizar el sonido seleccionado
+    updateDisplay('#alarm-selected-sound', getTranslation(alarmData.sound, 'sounds'), menuElement);
+
+    // Cambiar el botón para modo edición
+    const createButton = menuElement.querySelector('.create-tool');
+    if (createButton) {
+        createButton.dataset.action = 'saveAlarmChanges';
+        const buttonText = createButton.querySelector('span');
+        if (buttonText) {
+            buttonText.setAttribute('data-translate', 'save_changes');
+            buttonText.setAttribute('data-translate-category', 'alarms');
+            buttonText.textContent = getTranslation('save_changes', 'alarms');
+        }
+    }
+
+    // Marcar el menú como en modo edición
+    menuElement.setAttribute('data-editing-id', alarmData.id);
+}
 function setupGlobalEventListeners() {
     document.addEventListener('click', (event) => {
         const isClickInsideDropdown = event.target.closest('.dropdown-menu-container');
@@ -561,12 +594,81 @@ function setupGlobalEventListeners() {
                 state.worldClock.timezone = actionTarget.getAttribute('data-timezone');
                 break;
 
-            case 'createAlarm': {
+          case 'createAlarm': {
+    const alarmTitleInput = parentMenu.querySelector('#alarm-title');
+    const alarmTitle = alarmTitleInput ? alarmTitleInput.value.trim() : '';
+    
+    if (!alarmTitle) { 
+        console.warn('⚠️ Se bloqueó la creación de la alarma: falta el título.'); 
+        return; 
+    }
+
+    const createButton = actionTarget;
+    const menuId = parentMenu.dataset.menu;
+    addSpinnerToCreateButton(createButton);
+
+    if (menuTimeouts[menuId]) {
+        clearTimeout(menuTimeouts[menuId]);
+    }
+
+    menuTimeouts[menuId] = setTimeout(() => {
+        if (window.alarmManager && typeof window.alarmManager.createAlarm === 'function') {
+            const success = window.alarmManager.createAlarm(
+                alarmTitle,
+                state.alarm.hour,
+                state.alarm.minute,
+                state.alarm.sound
+            );
+
+            if (success && deactivateModule) {
+                deactivateModule('overlayContainer', { source: 'create-alarm' });
+            }
+        } else {
+            console.error('El alarmManager no está disponible.');
+        }
+
+        resetAlarmMenu(parentMenu);
+        delete menuTimeouts[menuId];
+    }, 500);
+    break;
+
+            } case 'saveAlarmChanges': {
+                const editingId = parentMenu.getAttribute('data-editing-id');
                 const alarmTitleInput = parentMenu.querySelector('#alarm-title');
                 const alarmTitle = alarmTitleInput ? alarmTitleInput.value.trim() : '';
-                if (!alarmTitle) { console.warn('⚠️ Se bloqueó la creación de la alarma: falta el título.'); return; }
-                const alarmData = { title: alarmTitle, ...state.alarm };
-                console.group("⏰ Alarma Creada (Datos)"); console.log("Datos:", alarmData); console.groupEnd();
+
+                if (!editingId || !alarmTitle) {
+                    console.warn('⚠️ Faltan datos para guardar los cambios de la alarma.');
+                    return;
+                }
+
+                const saveButton = actionTarget;
+                const menuId = parentMenu.dataset.menu;
+                addSpinnerToCreateButton(saveButton);
+
+                if (menuTimeouts[menuId]) {
+                    clearTimeout(menuTimeouts[menuId]);
+                }
+
+                menuTimeouts[menuId] = setTimeout(() => {
+                    if (window.alarmManager && typeof window.alarmManager.updateAlarm === 'function') {
+                        window.alarmManager.updateAlarm(editingId, {
+                            title: alarmTitle,
+                            hour: state.alarm.hour,
+                            minute: state.alarm.minute,
+                            sound: state.alarm.sound
+                        });
+                    } else {
+                        console.error('El alarmManager no está disponible.');
+                    }
+
+                    if (deactivateModule) {
+                        deactivateModule('overlayContainer', { source: 'save-alarm' });
+                    }
+
+                    resetAlarmMenu(parentMenu);
+                    delete menuTimeouts[menuId];
+                }, 500);
                 break;
             }
             case 'createTimer': {
@@ -584,7 +686,7 @@ function setupGlobalEventListeners() {
                     const eventTitle = eventTitleInput ? eventTitleInput.value.trim() : '';
                     const { selectedDate, selectedHour, selectedMinute } = state.timer.countTo;
                     if (!eventTitle) { console.warn('⚠️ Se bloqueó la creación del evento: falta el título.'); return; }
-                    if (selectedDate == null) {  console.warn('⚠️ Se bloqueó la creación del evento: falta seleccionar la fecha.'); return; }
+                    if (selectedDate == null) { console.warn('⚠️ Se bloqueó la creación del evento: falta seleccionar la fecha.'); return; }
                     if (typeof selectedHour !== 'number' || typeof selectedMinute !== 'number') { console.warn('⚠️ Se bloqueó la creación del evento: falta seleccionar la hora y los minutos.'); return; }
                     const eventData = { type: 'count_to_date', title: eventTitle, ...state.timer.countTo };
                     console.group("📅 Temporizador Creado (Conteo a Fecha)"); console.log("Datos:", eventData); console.groupEnd();
@@ -598,31 +700,31 @@ function setupGlobalEventListeners() {
                 const clockTitleInput = parentMenu.querySelector('#worldclock-title');
                 const clockTitle = clockTitleInput ? clockTitleInput.value.trim() : '';
                 const { country, timezone } = state.worldClock;
-            
+
                 if (!clockTitle || !country || !timezone) {
                     console.warn('⚠️ Faltan datos (título, país o zona horaria), no se inicia la animación.');
-                    return; 
+                    return;
                 }
-            
+
                 const createButton = actionTarget;
                 const menuId = parentMenu.dataset.menu;
                 addSpinnerToCreateButton(createButton);
-            
+
                 if (menuTimeouts[menuId]) {
                     clearTimeout(menuTimeouts[menuId]);
                 }
-            
+
                 menuTimeouts[menuId] = setTimeout(() => {
                     if (window.worldClockManager && typeof window.worldClockManager.createAndStartClockCard === 'function') {
                         window.worldClockManager.createAndStartClockCard(clockTitle, country, timezone);
                     } else {
                         console.error('El worldClockManager no está disponible.');
                     }
-            
+
                     if (deactivateModule) {
                         deactivateModule('overlayContainer', { source: 'add-world-clock' });
                     }
-                    
+
                     resetWorldClockMenu(parentMenu);
                     delete menuTimeouts[menuId];
                 }, 500);
@@ -640,31 +742,31 @@ function setupGlobalEventListeners() {
                 const clockTitleInput = parentMenu.querySelector('#worldclock-title');
                 const clockTitle = clockTitleInput ? clockTitleInput.value.trim() : '';
                 const { country, timezone } = state.worldClock;
-            
+
                 if (!editingId || !clockTitle || !country || !timezone) {
                     console.warn('⚠️ Faltan datos para guardar los cambios, no se inicia la animación.');
                     return;
                 }
-            
+
                 const saveButton = actionTarget;
                 const menuId = parentMenu.dataset.menu;
                 addSpinnerToCreateButton(saveButton);
-            
+
                 if (menuTimeouts[menuId]) {
                     clearTimeout(menuTimeouts[menuId]);
                 }
-            
+
                 menuTimeouts[menuId] = setTimeout(() => {
                     if (window.worldClockManager && typeof window.worldClockManager.updateClockCard === 'function') {
                         window.worldClockManager.updateClockCard(editingId, { title: clockTitle, country, timezone });
                     } else {
                         console.error('El worldClockManager o la función updateClockCard no están disponibles.');
                     }
-            
+
                     if (deactivateModule) {
                         deactivateModule('overlayContainer', { source: 'save-world-clock' });
                     }
-            
+
                     resetWorldClockMenu(parentMenu);
                     delete menuTimeouts[menuId];
                 }, 500);
@@ -675,6 +777,43 @@ function setupGlobalEventListeners() {
             // ================================================================
         }
     });
+    const resetAlarmMenu = (menuElement) => {
+        state.alarm = JSON.parse(JSON.stringify(initialState.alarm));
+
+        const titleInput = menuElement.querySelector('#alarm-title');
+        if (titleInput) titleInput.value = '';
+
+        const searchInput = menuElement.querySelector('.search-content-text input');
+        if (searchInput) searchInput.value = '';
+
+        updateAlarmDisplay(menuElement);
+        resetDropdownDisplay(menuElement, '#alarm-selected-sound', 'classic_beep', 'sounds');
+
+        // Resetear el botón a modo creación
+        const createButton = menuElement.querySelector('.create-tool');
+        if (createButton) {
+            if (createButton.classList.contains('disabled-interactive')) {
+                removeSpinnerFromCreateButton(createButton);
+            }
+            createButton.dataset.action = 'createAlarm';
+            const buttonText = createButton.querySelector('span');
+            if (buttonText) {
+                buttonText.setAttribute('data-translate', 'create_alarm');
+                buttonText.setAttribute('data-translate-category', 'alarms');
+                buttonText.textContent = getTranslation('create_alarm', 'alarms');
+            }
+        }
+
+        menuElement.removeAttribute('data-editing-id');
+
+        // Cancelar timeout si existe
+        const menuId = menuElement.dataset.menu;
+        if (menuTimeouts[menuId]) {
+            clearTimeout(menuTimeouts[menuId]);
+            delete menuTimeouts[menuId];
+        }
+    };
+
 }
 
 initMenuInteractions();

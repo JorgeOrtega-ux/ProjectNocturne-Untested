@@ -373,8 +373,9 @@
 
 .world-clocks-grid {
     display: grid;
+    padding: 8px;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
+    gap: 8px;
 }
 
 .world-clock-card {
@@ -444,7 +445,7 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    color: #ffffff;
+    color: #000000;
     background-color: transparent;
     border: none;
     border-radius: 8px;
@@ -454,15 +455,35 @@
     padding: 0;
 }
 
+.dark-mode .card-pin-btn {
+    color: #ffffff;
+}
+.dark-mode .card-menu-btn {
+      color: #ffffff;
+}
+
+
+.dark-mode .card-menu-container {
+    filter: unset;
+    border-color: #ffffff20;
+    background-color: #252627;
+}
+
+.dark-mode .card-pin-btn:hover {
+    background-color: #ffffff20;
+}
+.dark-mode .card-pin-btn.active {
+    background-color: #ffffff20;
+}
 .card-fullscreen-btn:hover,
 .card-pin-btn:hover,
 .card-menu-btn:hover {
-    background-color: #ffffff20;
+    background-color: #f5f5fa;
 }
 
 .card-pin-btn.active {
     color: #ffffff;
-    background-color: #ffffff20;
+    background-color: #f5f5fa;
 }
 
 .card-menu-container {
@@ -472,9 +493,10 @@
     padding: 2px;
     z-index: 5;
     border-radius: 8px;
-    background: #252627;
+    background: #ffffff;
     display: flex;
-    border: 1px solid #ffffff20;
+    border: 1px solid transparent;
+    filter: drop-shadow(0 4px 12px #00000020);
     gap: 4px;
     transition: opacity 0.2s ease-in-out;
 }

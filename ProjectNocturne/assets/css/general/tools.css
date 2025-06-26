@@ -482,9 +482,15 @@
 }
 
 .card-pin-btn.active {
-    color: #ffffff;
+    color: #000000;
     background-color: #f5f5fa;
 }
+
+.dark-mode .card-pin-btn.active {
+    color: #ffffff;
+    background-color: #ffffff20;
+}
+
 
 .card-menu-container {
     position: absolute;
@@ -557,17 +563,18 @@
 .card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-text span,
 .card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-icon span {
     font-weight: 500;
-    color: #c62828;
+    color: #d32f2f; /* Slightly less intense red */
 }
 
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover {
-    background-color: #c62828;
+    background-color: rgba(229, 57, 53, 0.08); /* Light, transparent red */
 }
 
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-text span,
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-icon span {
-    color: #ffffff;
+    color: #b71c1c; /* Darker red on hover */
 }
+
 
 /* Badge Styles */
 .badges-container {

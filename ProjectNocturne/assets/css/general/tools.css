@@ -458,8 +458,9 @@
 .dark-mode .card-pin-btn {
     color: #ffffff;
 }
+
 .dark-mode .card-menu-btn {
-      color: #ffffff;
+    color: #ffffff;
 }
 
 
@@ -472,9 +473,11 @@
 .dark-mode .card-pin-btn:hover {
     background-color: #ffffff20;
 }
+
 .dark-mode .card-pin-btn.active {
     background-color: #ffffff20;
 }
+
 .card-fullscreen-btn:hover,
 .card-pin-btn:hover,
 .card-menu-btn:hover {
@@ -563,16 +566,19 @@
 .card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-text span,
 .card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-icon span {
     font-weight: 500;
-    color: #d32f2f; /* Slightly less intense red */
+    color: #d32f2f;
+    /* Slightly less intense red */
 }
 
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover {
-    background-color: rgba(229, 57, 53, 0.08); /* Light, transparent red */
+    background-color: rgba(229, 57, 53, 0.08);
+    /* Light, transparent red */
 }
 
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-text span,
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-icon span {
-    color: #b71c1c; /* Darker red on hover */
+    color: #b71c1c;
+    /* Darker red on hover */
 }
 
 
@@ -665,8 +671,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: center; /* Opcional, para centrar el texto si no se desborda */
+    text-align: center;
+    /* Opcional, para centrar el texto si no se desborda */
 }
+
 .pinned-clock-display {
     text-align: center;
 }
@@ -690,21 +698,26 @@
     margin-top: 8px;
     font-size: 1rem;
     opacity: 0.7;
-}/* Agregar estos estilos al archivo tools.css */
+}
 
-/* ========== ALARMAS SECTION ========== */
+/* ====================================== */
+/* ========== ALARMAS SECTION =========== */
+/* ====================================== */
+
 .alarms-container {
     width: 100%;
-    padding: 16px;
+    display: flex;
+    flex-direction: column;
 }
 
 .alarms-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #00000020;
+    background: #fff;
+    border: 1px solid #00000020;
+    border-radius: 8px;
+    padding: 8px;
 }
 
 .dark-mode .alarms-header {
@@ -733,7 +746,15 @@
     border-radius: 50%;
     cursor: pointer;
     color: #000000;
-    transition: background-color 0.2s ease, transform 0.3s ease;
+    transition: background-color 0.2s ease;
+}
+
+.collapse-alarms-btn .expand-icon {
+    transition: transform 0.3s ease;
+}
+
+.collapse-alarms-btn.expanded .expand-icon {
+    transform: rotate(180deg);
 }
 
 .dark-mode .collapse-alarms-btn {
@@ -751,13 +772,16 @@
 .alarms-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
+    gap: 8px;
     max-height: 0;
-    transition: max-height 0.5s ease-in-out;
+    opacity: 0;
+    margin-top: 8px;
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
 }
 
 .alarms-grid.expanded {
-    max-height: 1000px; /* Un valor grande para permitir la expansión completa */
+    max-height: 1000px;
+    opacity: 1;
 }
 
 /* ========== ALARM CARDS ========== */
@@ -770,13 +794,14 @@
     background-color: #ffffff;
     border: 1px solid #00000020;
     border-radius: 12px;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.3s;
 }
 
 .dark-mode .alarm-card {
     background-color: #2e2f31;
     border-color: #ffffff18;
 }
+
 /* ========== ALARM CARD OPTIONS ========== */
 .card-options-container {
     display: none;
@@ -813,26 +838,13 @@
     background-color: #ef9a9a;
 }
 
-
-/* ========== ALARM CARDS ========== */
-.alarm-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    gap: 12px;
-    background-color: #ffffff;
-    border: 1px solid #00000020;
-    border-radius: 12px;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
 .alarm-card:hover {
-    box-shadow: 0 4px 8px #00000030;
+    box-shadow: 0 4px 8px #0000001a;
+    transform: translateY(-2px);
 }
 
 .dark-mode .alarm-card:hover {
-    box-shadow: 0 4px 8px #00000030;
+    box-shadow: 0 4px 12px #00000030;
 }
 
 .alarm-card.alarm-disabled {
@@ -876,60 +888,6 @@
 
 .dark-mode .alarm-card .alarm-time {
     color: #ffffff;
-}
-
-.card-toggle-container {
-    flex-shrink: 0;
-}
-
-/* ========== TOGGLE SWITCH ========== */
-.alarm-toggle {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
-    cursor: pointer;
-}
-
-.alarm-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.3s;
-    border-radius: 24px;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.3s;
-    border-radius: 50%;
-}
-
-.alarm-toggle input:checked + .toggle-slider {
-    background-color: #2196F3;
-}
-
-.alarm-toggle input:checked + .toggle-slider:before {
-    transform: translateX(20px);
-}
-
-.dark-mode .alarm-toggle input:checked + .toggle-slider {
-    background-color: #64b5f6;
 }
 
 /* ========== ALARM CARD FOOTER ========== */
@@ -1086,12 +1044,19 @@
     .alarms-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .alarm-card {
         padding: 14px;
     }
-    
+
     .alarm-card .alarm-time {
         font-size: 1.2rem;
     }
+}
+
+.alarms-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
 }

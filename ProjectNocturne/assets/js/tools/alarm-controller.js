@@ -534,15 +534,23 @@ function applyTranslationsToAlarmCard(card) {
 }
 
 function toggleAlarmsSection(type) {
-    const alarmsGrid = document.querySelector(`.alarms-grid[data-alarm-grid="${type}"]`);
-    const collapseBtn = document.querySelector(`.alarms-grid[data-alarm-grid="${type}"]`).previousElementSibling.querySelector('.collapse-alarms-btn span');
+    // Busca el contenedor principal de la sección de alarmas (user o default)
+    const gridSelector = `.alarms-grid[data-alarm-grid="${type}"]`;
+    const alarmsGrid = document.querySelector(gridSelector);
+    if (!alarmsGrid) return;
+    
+    const container = alarmsGrid.closest('.alarms-container');
+    if (!container) return;
+
+    const collapseBtn = container.querySelector('.collapse-alarms-btn');
     
     if (alarmsGrid && collapseBtn) {
-        alarmsGrid.classList.toggle('expanded');
-        if (alarmsGrid.classList.contains('expanded')) {
-            collapseBtn.textContent = 'expand_less';
-        } else {
-            collapseBtn.textContent = 'expand_more';
+        const isExpanded = alarmsGrid.classList.toggle('expanded');
+        collapseBtn.classList.toggle('expanded', isExpanded);
+        
+        const icon = collapseBtn.querySelector('.expand-icon');
+        if (icon) {
+             // El ícono ahora rota usando solo CSS, no es necesario cambiar el texto.
         }
     }
 }

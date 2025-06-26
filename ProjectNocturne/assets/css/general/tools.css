@@ -461,8 +461,8 @@
 }
 
 .card-pin-btn.active {
-    color: #000000;
-    background-color: #ffffff;
+    color: #ffffff;
+    background-color: #ffffff20;
 }
 
 .card-menu-container {
@@ -615,6 +615,7 @@
 .zoneInfoTool {
     width: auto;
     padding: 0 12px;
+    flex: 0 0 auto;
     max-width: 185px;
     display: flex;
     justify-content: center;

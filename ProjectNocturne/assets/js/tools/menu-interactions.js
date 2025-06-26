@@ -316,6 +316,28 @@ const renderCalendar = (timerMenu) => {
         if (state.timer.countTo.selectedDate && i === new Date(state.timer.countTo.selectedDate).getDate() && date.getMonth() === new Date(state.timer.countTo.selectedDate).getMonth()) dayEl.classList.add('selected');
         daysContainer.appendChild(dayEl);
     }
+    
+    // --- Lógica para el límite de año ---
+    const currentYear = new Date().getFullYear();
+    const minYear = currentYear - 265;
+
+    const prevButton = timerMenu.querySelector('[data-action="prev-month"]');
+    const nextButton = timerMenu.querySelector('[data-action="next-month"]');
+
+    if (prevButton) {
+        if (date.getFullYear() < minYear || (date.getFullYear() === minYear && date.getMonth() === 0)) {
+            prevButton.disabled = true;
+            prevButton.classList.add('disabled-interactive');
+        } else {
+            prevButton.disabled = false;
+            prevButton.classList.remove('disabled-interactive');
+        }
+    }
+    
+    if (nextButton) {
+        nextButton.disabled = false; // No hay límite máximo
+        nextButton.classList.remove('disabled-interactive');
+    }
 };
 
 const selectCalendarDate = (day, timerMenu) => {

@@ -1,20 +1,12 @@
 // /assets/js/tools/worldClock-controller.js
-// ================================================================
-// INICIO DE LA CORRECCIÓN
-// Se importan las funciones necesarias, incluyendo la que comprueba el overlay activo.
-// ================================================================
 import { PREMIUM_FEATURES, use24HourFormat, activateModule, getCurrentActiveOverlay } from '../general/main.js';
 import { prepareWorldClockForEdit } from './menu-interactions.js';
 import { updateZoneInfo } from './zoneinfo-controller.js';
-// ================================================================
-// FIN DE LA CORRECCIÓN
-// ================================================================
 
 const clockIntervals = new Map();
 const CLOCKS_STORAGE_KEY = 'world-clocks';
 let userClocks = [];
 let mainDisplayInterval = null;
-
 
 const loadCountriesAndTimezones = () => new Promise((resolve, reject) => {
     if (window.ct) return resolve(window.ct);
@@ -38,10 +30,8 @@ function updateDateTime(element, timezone) {
             timeZone: timezone
         };
 
-        // Usa el idioma de la aplicación, no del navegador
         const currentAppLanguage = typeof window.getCurrentLanguage === 'function' ? window.getCurrentLanguage() : 'en-US';
-
-        const timeString = now.toLocaleTimeString(currentAppLanguage, timeOptions); // <--- LÍNEA CORREGIDA
+        const timeString = now.toLocaleTimeString(currentAppLanguage, timeOptions);
 
         if (element.tagName === 'SPAN') {
             element.textContent = timeString;
@@ -57,7 +47,7 @@ function updateDateTime(element, timezone) {
             }
 
             if (dateElement) {
-                dateElement.textContent = now.toLocaleDateString(currentAppLanguage, { // <--- LÍNEA CORREGIDA
+                dateElement.textContent = now.toLocaleDateString(currentAppLanguage, {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric',
@@ -104,14 +94,10 @@ async function loadClocksFromStorage() {
         if (storedClocks) {
             userClocks = JSON.parse(storedClocks);
             
-            // ================================================================
-            // CORRECCIÓN: Crear las cards una por una con un pequeño delay 
-            // para asegurar que las traducciones se apliquen correctamente
-            // ================================================================
             userClocks.forEach((clock, index) => {
                 setTimeout(() => {
                     createAndStartClockCard(clock.title, clock.country, clock.timezone, clock.id, false);
-                }, index * 10); // 10ms de delay entre cada card
+                }, index * 10);
             });
         }
     } catch (error) {
@@ -120,13 +106,9 @@ async function loadClocksFromStorage() {
     }
 }
 
-// ================================================================
-// NUEVA FUNCIÓN PARA APLICAR TRADUCCIONES A ELEMENTO ESPECÍFICO
-// ================================================================
 function applyTranslationsToSpecificElement(element) {
     if (!element) return;
     
-    // Función auxiliar para obtener traducciones
     const getTranslationSafe = (key, category) => {
         if (typeof window.getTranslation === 'function') {
             const text = window.getTranslation(key, category);
@@ -135,7 +117,6 @@ function applyTranslationsToSpecificElement(element) {
         return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     };
 
-    // Buscar todos los elementos con data-translate dentro del elemento específico
     const elementsToTranslate = element.querySelectorAll('[data-translate]');
     
     elementsToTranslate.forEach(targetElement => {
@@ -211,12 +192,6 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
                         data-translate-target="tooltip">
                     <span class="material-symbols-rounded">push_pin</span>
                 </button>
-                <button class="card-fullscreen-btn" data-action="fullscreen-clock"
-                        data-translate="fullscreen"
-                        data-translate-category="tooltips"
-                        data-translate-target="tooltip">
-                    <span class="material-symbols-rounded">fullscreen</span>
-                </button>
                 <div class="card-menu-btn-wrapper">
                     <button class="card-menu-btn" data-action="toggle-card-menu"
                             data-translate="options"
@@ -224,7 +199,7 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
                             data-translate-target="tooltip">
                         <span class="material-symbols-rounded">more_horiz</span>
                     </button>
-                    <div class="card-dropdown-menu disabled">
+                    <div class="card-dropdown-menu disabled body-title">
                         <div class="menu-link" data-action="edit-clock">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                             <div class="menu-link-text">
@@ -268,15 +243,8 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
             }
         });
         
-        // ================================================================
-        // CORRECCIÓN PRINCIPAL: Aplicar traducciones específicamente
-        // al elemento recién creado usando el sistema mejorado
-        // ================================================================
         setTimeout(() => {
-            // 1. Aplicar traducciones específicamente a este elemento
             applyTranslationsToSpecificElement(newCardElement);
-            
-            // 2. Aplicar tooltips específicamente a este elemento
             if (window.attachTooltipsToNewElements) {
                 window.attachTooltipsToNewElements(newCardElement);
             }
@@ -321,12 +289,8 @@ function updateClockCard(id, newData) {
         saveClocksToStorage();
     }
 
-    // ================================================================
-    // CORRECCIÓN: Aplicar traducciones al card actualizado
-    // ================================================================
     setTimeout(() => {
         applyTranslationsToSpecificElement(card);
-        
         if (window.attachTooltipsToNewElements) {
             window.attachTooltipsToNewElements(card);
         }
@@ -341,13 +305,9 @@ function getTranslation(key, category) {
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-// ================================================================
-// CORRECCIÓN: Función mejorada para actualizar traducciones existentes
-// ================================================================
 function updateExistingCardsTranslations() {
     const cards = document.querySelectorAll('.world-clock-card');
     cards.forEach(card => {
-        // Usar la nueva función específica para cada card
         applyTranslationsToSpecificElement(card);
     });
 }
@@ -375,9 +335,20 @@ function initializeLocalClock() {
         offsetText.textContent = `UTC ${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`;
     }
 
+    const menuContainer = localClockCard.querySelector('.card-menu-container');
+
+    localClockCard.addEventListener('mouseenter', () => {
+        menuContainer?.classList.add('active');
+        menuContainer?.classList.remove('disabled');
+    });
+
+    localClockCard.addEventListener('mouseleave', () => {
+        menuContainer?.classList.remove('active');
+        menuContainer?.classList.add('disabled');
+    });
+
     startClockForElement(localClockCard, localTimezone);
     
-    // Pin local clock by default
     const localPinBtn = localClockCard.querySelector('.card-pin-btn');
     pinClock(localPinBtn);
 }
@@ -398,7 +369,7 @@ function initializeSortable() {
     if (grid && typeof Sortable !== 'undefined') {
         new Sortable(grid, {
             animation: 150,
-            filter: '.local-clock-card, .card-menu-btn, .card-dropdown-menu, .card-fullscreen-btn, .card-pin-btn',
+            filter: '.local-clock-card, .card-menu-btn, .card-dropdown-menu, .card-pin-btn',
             draggable: '.world-clock-card',
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
@@ -435,22 +406,11 @@ function updateMainPinnedDisplay(card) {
         clearInterval(mainDisplayInterval);
     }
 
-    const pinnedDisplay = document.querySelector('.pinned-clock-display');
+    const pinnedDisplay = document.querySelector('.tool-worldClock');
     if (!pinnedDisplay) return;
 
-    const titleEl = pinnedDisplay.querySelector('.pinned-clock-title');
-    const dateEl = pinnedDisplay.querySelector('.pinned-clock-date');
-    const timeEl = pinnedDisplay.querySelector('.tool-worldClock span');
-    const offsetEl = pinnedDisplay.querySelector('.pinned-clock-offset');
-
-    const title = card.dataset.title || card.querySelector('.location-text').textContent;
+    const timeEl = pinnedDisplay.querySelector('span');
     const timezone = card.dataset.timezone;
-    const offset = card.querySelector('.clock-offset').textContent;
-    const date = card.querySelector('.clock-date').textContent;
-
-    titleEl.textContent = title;
-    dateEl.textContent = date;
-    offsetEl.textContent = offset;
     
     function update() {
         if (!timeEl) return;
@@ -464,28 +424,17 @@ function updateMainPinnedDisplay(card) {
         };
         const currentAppLanguage = typeof window.getCurrentLanguage === 'function' ? window.getCurrentLanguage() : 'en-US';
         timeEl.textContent = now.toLocaleTimeString(currentAppLanguage, timeOptions);
-
-        const newDate = now.toLocaleDateString(currentAppLanguage, {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            timeZone: timezone
-        });
-        dateEl.textContent = newDate;
     }
 
     update();
     mainDisplayInterval = setInterval(update, 1000);
 }
 
-// ================================================================
-// CORRECCIÓN: Mejores event listeners para cambios de idioma
-// ================================================================
 document.addEventListener('languageChanged', (e) => {
     console.log('🌐 Language changed detected in WorldClock controller:', e.detail);
     setTimeout(() => {
         updateLocalClockTranslation();
-        updateExistingCardsTranslations(); // Ahora usa la función mejorada
+        updateExistingCardsTranslations();
         
         if (typeof window.forceRefresh === 'function') {
             window.forceRefresh({ source: 'worldClockLanguageChange', preset: 'TOOLTIPS_ONLY' });
@@ -496,7 +445,7 @@ document.addEventListener('languageChanged', (e) => {
 document.addEventListener('translationsApplied', (e) => {
     setTimeout(() => {
         updateLocalClockTranslation();
-        updateExistingCardsTranslations(); // Ahora usa la función mejorada
+        updateExistingCardsTranslations();
     }, 100);
 });
 
@@ -545,10 +494,6 @@ if (sectionBottom) {
             }
 
         } else if (action === 'edit-clock') {
-            // ================================================================
-            // INICIO DE LA CORRECCIÓN
-            // Lógica modificada para manejar el caso de menú ya abierto.
-            // ================================================================
             e.stopPropagation();
             const clockData = {
                 id: card.dataset.id,
@@ -558,20 +503,11 @@ if (sectionBottom) {
                 countryCode: card.dataset.countryCode
             };
             
-            // Primero, siempre preparamos el formulario con los datos correctos.
             prepareWorldClockForEdit(clockData);
             
-            // Luego, solo activamos el módulo si el menú de WorldClock no es ya el activo.
-            // Esto previene que se reinicie el formulario innecesariamente.
             if (getCurrentActiveOverlay() !== 'menuWorldClock') {
                 activateModule('toggleMenuWorldClock');
             }
-            // ================================================================
-            // FIN DE LA CORRECCIÓN
-            // ================================================================
-        } else if (action === 'fullscreen-clock') {
-            const fullscreenNotImplementedMessage = getTranslation('fullscreen_not_implemented', 'world_clock_options');
-            console.log(fullscreenNotImplementedMessage);
         } else if (action === 'pin-clock') {
             pinClock(actionTarget);
         }

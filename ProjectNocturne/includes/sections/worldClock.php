@@ -60,15 +60,10 @@
         </div>
     </div>
     <div class="section-center">
-        <div class="tool-content pinned-clock-display">
-            <div class="pinned-clock-info">
-                <span class="pinned-clock-title"></span>
-                <span class="pinned-clock-date"></span>
-            </div>
+        <div class="tool-content">
             <div class="tool-worldClock">
                 <span>00:00:00</span>
             </div>
-            <div class="pinned-clock-offset"></div>
         </div>
     </div>
     <div class="section-bottom">
@@ -88,7 +83,7 @@
                         <span class="badge clock-offset">UTC</span>
                     </div>
                 </div>
-                <div class="card-menu-container">
+                <div class="card-menu-container disabled">
                     <button class="card-pin-btn active" data-action="pin-clock"
                             data-translate="pin_clock"
                             data-translate-category="tooltips"

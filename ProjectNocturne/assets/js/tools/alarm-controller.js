@@ -533,27 +533,30 @@ function applyTranslationsToAlarmCard(card) {
     });
 }
 
+// ================================================================
+// INICIO DE LA CORRECCIÓN
+// ================================================================
 function toggleAlarmsSection(type) {
-    // Busca el contenedor principal de la sección de alarmas (user o default)
     const gridSelector = `.alarms-grid[data-alarm-grid="${type}"]`;
     const alarmsGrid = document.querySelector(gridSelector);
     if (!alarmsGrid) return;
-    
+
     const container = alarmsGrid.closest('.alarms-container');
     if (!container) return;
 
     const collapseBtn = container.querySelector('.collapse-alarms-btn');
-    
+
     if (alarmsGrid && collapseBtn) {
-        const isExpanded = alarmsGrid.classList.toggle('expanded');
-        collapseBtn.classList.toggle('expanded', isExpanded);
-        
-        const icon = collapseBtn.querySelector('.expand-icon');
-        if (icon) {
-             // El ícono ahora rota usando solo CSS, no es necesario cambiar el texto.
-        }
+        // En lugar de 'expanded', usamos 'active' para controlar el display
+        const isActive = alarmsGrid.classList.toggle('active');
+        // Mantenemos 'expanded' en el botón para la rotación del ícono
+        collapseBtn.classList.toggle('expanded', isActive);
     }
 }
+// ================================================================
+// FIN DE LA CORRECCIÓN
+// ================================================================
+
 
 // ========== RELOJ PRINCIPAL ==========
 function updateLocalTime() {

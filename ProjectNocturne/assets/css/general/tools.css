@@ -388,6 +388,7 @@
     border: 1px solid #00000020;
     border-radius: 12px;
     transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: grab;
 }
 
 
@@ -545,22 +546,6 @@
 .card-dropdown-menu .menu-link {
     height: 36px;
     font-size: 0.875rem;
-}
-
-.world-clock-card.dragging,
-.world-clock-card.sortable-chosen {
-    opacity: 0.8;
-    background-color: #fff;
-    filter: drop-shadow(0 4px 12px #00000020);
-    transform: scale(1.02);
-    border: none;
-    cursor: grabbing;
-}
-
-.world-clock-card.drag-over {
-    background-color: #f5f8ff;
-    border-style: dashed;
-    border-color: #005fcc;
 }
 
 .card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-text span,
@@ -782,9 +767,6 @@
 
 
 /* ========== ALARM CARDS ========== */
-/* ================================================================ */
-/* INICIO DE LA CORRECCIÓN */
-/* ================================================================ */
 .alarm-card {
     position: relative;
     display: flex;
@@ -794,11 +776,9 @@
     background-color: #ffffff;
     border: 1px solid #00000020;
     border-radius: 12px;
-    transition: opacity 0.3s; /* Solo transicionamos la opacidad */
+    transition: opacity 0.3s;
 }
-/* ================================================================ */
-/* FIN DE LA CORRECCIÓN */
-/* ================================================================ */
+
 
 .dark-mode .alarm-card {
     background-color: #2e2f31;
@@ -841,9 +821,6 @@
     background-color: #ef9a9a;
 }
 
-/* ================================================================ */
-/* INICIO DE LA CORRECCIÓN - Se eliminan los estilos de hover */
-/* ================================================================ */
 .alarm-card:hover {
     /* No hay estilos de sombra ni transformación aquí */
 }
@@ -851,9 +828,7 @@
 .dark-mode .alarm-card:hover {
     /* No hay estilos de sombra ni transformación aquí */
 }
-/* ================================================================ */
-/* FIN DE LA CORRECCIÓN */
-/* ================================================================ */
+
 
 
 .alarm-card.alarm-disabled {
@@ -1158,46 +1133,30 @@
 
 .dark-mode .alarms-header:hover {
     background-color: #ffffff20;
-}/* ========== ALARM CARDS ========== */
-.alarm-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    gap: 12px;
-    background-color: #ffffff;
-    border: 1px solid #00000020;
-    border-radius: 12px;
-    transition: opacity 0.3s, transform 0.2s ease;
-    cursor: grab; /* <-- AÑADIDO: Cursor para indicar que es movible */
 }
 
-/* --- AÑADIDO: ESTILOS PARA DRAG & DROP --- */
-.alarm-card.sortable-ghost {
-    opacity: 0.4;
-    background-color: #e0e8ff;
-}
-.dark-mode .alarm-card.sortable-ghost {
-    background-color: #2c3e50;
+/* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
+.alarm-card,
+.world-clock-card {
+    cursor: grab;
 }
 
-.alarm-card.sortable-chosen {
+.alarm-card.sortable-drag,
+.world-clock-card.sortable-drag {
+    cursor: grabbing;
+}
+
+.alarm-card.sortable-chosen,
+.world-clock-card.sortable-chosen {
     opacity: 0.9;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     transform: scale(1.03);
     cursor: grabbing;
 }
-.dark-mode .alarm-card.sortable-chosen {
-    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-}
 
-.alarm-card.sortable-drag {
-    cursor: grabbing;
-}
-/* --- FIN DE ESTILOS DRAG & DROP --- */
-
-
-.dark-mode .alarm-card {
-    background-color: #2e2f31;
-    border-color: #ffffff18;
+.alarm-card.sortable-ghost,
+.world-clock-card.sortable-ghost {
+    opacity: 0.4;
+    background-color: #e0e8ff;
+    border: 1px dashed #a0b3d7;
 }

@@ -374,6 +374,7 @@ function initializeSortable() {
             draggable: '.world-clock-card',
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag', // =====> MODIFICACIÓN: Clase añadida
             onMove: function(evt) {
                 return !evt.related.classList.contains('local-clock-card');
             },

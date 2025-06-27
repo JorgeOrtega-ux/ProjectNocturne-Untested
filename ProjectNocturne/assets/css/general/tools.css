@@ -387,8 +387,8 @@
     background-color: #ffffff;
     border: 1px solid #00000020;
     border-radius: 12px;
-
     cursor: grab;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 
@@ -776,7 +776,7 @@
     background-color: #ffffff;
     border: 1px solid #00000020;
     border-radius: 12px;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 
@@ -1154,9 +1154,11 @@
     cursor: grabbing;
 }
 
+/* ================== CORRECCIÓN APLICADA AQUÍ ================== */
 .alarm-card.sortable-ghost,
 .world-clock-card.sortable-ghost {
     opacity: 0.4;
-    background-color: #e0e8ff;
-    border: 1px dashed #a0b3d7;
+    background-color: #f5f5fa; /* Color de fondo neutro */
+    border: 1px solid #d0d0d0;   /* Borde sólido y sutil */
 }
+/* ============================================================= */

@@ -533,9 +533,6 @@ function applyTranslationsToAlarmCard(card) {
     });
 }
 
-// ================================================================
-// INICIO DE LA CORRECCIÓN
-// ================================================================
 function toggleAlarmsSection(type) {
     const gridSelector = `.alarms-grid[data-alarm-grid="${type}"]`;
     const alarmsGrid = document.querySelector(gridSelector);
@@ -547,15 +544,32 @@ function toggleAlarmsSection(type) {
     const collapseBtn = container.querySelector('.collapse-alarms-btn');
 
     if (alarmsGrid && collapseBtn) {
-        // En lugar de 'expanded', usamos 'active' para controlar el display
         const isActive = alarmsGrid.classList.toggle('active');
-        // Mantenemos 'expanded' en el botón para la rotación del ícono
         collapseBtn.classList.toggle('expanded', isActive);
     }
 }
-// ================================================================
-// FIN DE LA CORRECCIÓN
-// ================================================================
+
+// ========== DRAG AND DROP (SORTABLE) ==========
+function initializeSortableAlarms() {
+    const grid = document.querySelector('.alarms-grid[data-alarm-grid="user"]');
+    if (grid && typeof Sortable !== 'undefined') {
+        new Sortable(grid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onEnd: function (evt) {
+                const newOrderIds = Array.from(evt.to.children).map(card => card.id);
+
+                userAlarms.sort((a, b) => {
+                    return newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id);
+                });
+
+                saveAlarmsToStorage();
+            }
+        });
+    }
+}
 
 
 // ========== RELOJ PRINCIPAL ==========
@@ -658,6 +672,7 @@ export function initializeAlarmClock() {
     loadDefaultAlarms();
     setupEventListeners();
     requestNotificationPermission();
+    initializeSortableAlarms(); // <-- AÑADIDO
 
     // Exponer funciones globalmente
     window.alarmManager = {

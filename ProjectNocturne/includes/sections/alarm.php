@@ -69,20 +69,36 @@
     <div class="section-bottom">
         <div class="alarms-list-wrapper">
             <div class="alarms-container">
-                <div class="alarms-header">
-                    <h3 data-translate="my_alarms" data-translate-category="alarms">Mis Alarmas</h3>
-                    <button class="collapse-alarms-btn" onclick="window.alarmManager.toggleAlarmsSection('user')">
-                        <span class="material-symbols-rounded expand-icon">expand_more</span>
-                    </button>
+                <div class="alarms-header" onclick="window.alarmManager.toggleAlarmsSection('user')">
+                    <div class="alarms-header-left">
+                        <div class="alarms-header-icon">
+                            <span class="material-symbols-rounded">alarm</span>
+                        </div>
+                        <h3 data-translate="my_alarms" data-translate-category="alarms">Mis Alarmas</h3>
+                    </div>
+                    <div class="alarms-header-right">
+                        <span class="alarm-count-badge">3</span>
+                        <button class="collapse-alarms-btn">
+                            <span class="material-symbols-rounded expand-icon">expand_more</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="alarms-grid" data-alarm-grid="user"></div>
             </div>
             <div class="alarms-container">
-                <div class="alarms-header">
-                    <h3 data-translate="default_alarms" data-translate-category="alarms">Alarmas Predeterminadas</h3>
-                    <button class="collapse-alarms-btn" onclick="window.alarmManager.toggleAlarmsSection('default')">
-                        <span class="material-symbols-rounded expand-icon">expand_more</span>
-                    </button>
+                <div class="alarms-header" onclick="window.alarmManager.toggleAlarmsSection('default')">
+                    <div class="alarms-header-left">
+                        <div class="alarms-header-icon">
+                            <span class="material-symbols-rounded">alarm_on</span>
+                        </div>
+                        <h3 data-translate="default_alarms" data-translate-category="alarms">Alarmas Predeterminadas</h3>
+                    </div>
+                    <div class="alarms-header-right">
+                        <span class="alarm-count-badge">5</span>
+                        <button class="collapse-alarms-btn">
+                            <span class="material-symbols-rounded expand-icon">expand_more</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="alarms-grid" data-alarm-grid="default"></div>
             </div>

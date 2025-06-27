@@ -1068,4 +1068,136 @@
     flex-direction: column;
     padding: 8px;
     gap: 8px;
+}/* ====================================== */
+/* ESTILOS AÑADIDOS PARA ALARMS HEADER  */
+/* ====================================== */
+
+/* Contenedor principal del header */
+.alarms-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #00000020;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 0 8px; /* Ajuste de padding */
+    height: 55px; /* Altura fija para consistencia */
+}
+
+/* Parte izquierda del header (ícono y título) */
+.alarms-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espacio entre ícono y texto */
+}
+
+/* Contenedor del ícono */
+.alarms-header-icon {
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    border-radius: 8px;
+    border: 1px solid #00000020;
+    height: 40px;
+}
+.alarms-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Parte derecha del header (badge y botón) */
+.alarms-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espacio entre badge y botón */
+}
+
+/* Estilos para el badge de número de alarmas */
+.alarm-count-badge {
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #000000;
+    background-color: #f5f5fa;
+    border-radius: 12px;
+}
+
+/* --- Dark Mode --- */
+.dark-mode .alarms-header {
+    background: #252627;
+    border-color: #ffffff20;
+}
+
+.dark-mode .alarms-header h3 {
+    color: #ffffff;
+}
+
+.dark-mode .alarm-count-badge {
+    color: #ffffff;
+    background-color: #ffffff20;
+}
+
+.dark-mode .alarms-header-icon {
+    color: #ffffff;
+    border-color: #ffffff20;
+}
+
+.alarms-header:hover {
+    background-color: #f5f5fa;
+}
+
+.dark-mode .alarms-header:hover {
+    background-color: #ffffff20;
+}/* ========== ALARM CARDS ========== */
+.alarm-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+    background-color: #ffffff;
+    border: 1px solid #00000020;
+    border-radius: 12px;
+    transition: opacity 0.3s, transform 0.2s ease;
+    cursor: grab; /* <-- AÑADIDO: Cursor para indicar que es movible */
+}
+
+/* --- AÑADIDO: ESTILOS PARA DRAG & DROP --- */
+.alarm-card.sortable-ghost {
+    opacity: 0.4;
+    background-color: #e0e8ff;
+}
+.dark-mode .alarm-card.sortable-ghost {
+    background-color: #2c3e50;
+}
+
+.alarm-card.sortable-chosen {
+    opacity: 0.9;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    transform: scale(1.03);
+    cursor: grabbing;
+}
+.dark-mode .alarm-card.sortable-chosen {
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+
+.alarm-card.sortable-drag {
+    cursor: grabbing;
+}
+/* --- FIN DE ESTILOS DRAG & DROP --- */
+
+
+.dark-mode .alarm-card {
+    background-color: #2e2f31;
+    border-color: #ffffff18;
 }

@@ -480,3 +480,8 @@
 }.dark-mode .zoneInfoTool {
     border-color: #ffffff20;
 }
+
+.dark-mode .alarms-header {
+    background-color: transparent;
+    border-color: #ffffff20;
+}

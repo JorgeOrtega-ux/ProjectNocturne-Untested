@@ -3,6 +3,7 @@ import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOver
 import { prepareAlarmForEdit } from './menu-interactions.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
+const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order'; // Nueva clave para el orden de alarmas predeterminadas
 const ALARM_SOUND_PATTERNS = {
     'classic-beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
     'gentle-chime': { frequencies: [523.25, 659.25, 783.99], beepDuration: 300, pauseDuration: 500, type: 'sine' },
@@ -88,7 +89,6 @@ function updateAlarmCounts() {
     if (userContainer) userContainer.style.display = userAlarmsCount > 0 ? 'flex' : 'none';
     if (defaultContainer) defaultContainer.style.display = defaultAlarmsCount > 0 ? 'flex' : 'none';
 }
-
 
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = PREMIUM_FEATURES ? 100 : 10;
@@ -252,6 +252,9 @@ function toggleAlarm(alarmId) {
     alarm.enabled = !alarm.enabled;
     if (alarm.type === 'user') {
         saveAlarmsToStorage();
+    } else if (alarm.type === 'default') {
+        // Guardar el orden de las alarmas predeterminadas cuando se modifica una
+        saveDefaultAlarmsOrder();
     }
     if (alarm.enabled) {
         scheduleAlarm(alarm);
@@ -278,6 +281,7 @@ function deleteAlarm(alarmId) {
         saveAlarmsToStorage();
     } else {
         defaultAlarmsState = defaultAlarmsState.filter(a => a.id !== alarmId);
+        saveDefaultAlarmsOrder();
     }
 
     const alarmCard = document.getElementById(alarmId);
@@ -295,6 +299,8 @@ function updateAlarm(alarmId, newData) {
 
     if (alarm.type === 'user') {
         saveAlarmsToStorage();
+    } else if (alarm.type === 'default') {
+        saveDefaultAlarmsOrder();
     }
 
     if (activeAlarmTimers.has(alarmId)) {
@@ -337,6 +343,38 @@ function saveAlarmsToStorage() {
     localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(userAlarms));
 }
 
+// Nueva función para guardar el orden de las alarmas predeterminadas
+function saveDefaultAlarmsOrder() {
+    localStorage.setItem(DEFAULT_ALARMS_STORAGE_KEY, JSON.stringify(defaultAlarmsState));
+}
+
+// Nueva función para cargar el orden de las alarmas predeterminadas
+function loadDefaultAlarmsOrder() {
+    const stored = localStorage.getItem(DEFAULT_ALARMS_STORAGE_KEY);
+    if (stored) {
+        try {
+            defaultAlarmsState = JSON.parse(stored);
+            // Verificar que todas las alarmas por defecto estén presentes
+            const defaultIds = new Set(defaultAlarmsState.map(alarm => alarm.id));
+            const originalIds = new Set(DEFAULT_ALARMS.map(alarm => alarm.id));
+            
+            // Si faltan alarmas por defecto, agregar las que faltan
+            DEFAULT_ALARMS.forEach(defaultAlarm => {
+                if (!defaultIds.has(defaultAlarm.id)) {
+                    defaultAlarmsState.push({...defaultAlarm});
+                }
+            });
+        } catch (error) {
+            console.warn('Error loading default alarms order:', error);
+            // Si hay error, usar el orden por defecto
+            defaultAlarmsState = JSON.parse(JSON.stringify(DEFAULT_ALARMS));
+        }
+    } else {
+        // Si no hay orden guardado, usar el orden por defecto
+        defaultAlarmsState = JSON.parse(JSON.stringify(DEFAULT_ALARMS));
+    }
+}
+
 function loadAlarmsFromStorage() {
     const stored = localStorage.getItem(ALARMS_STORAGE_KEY);
     if (stored) {
@@ -350,7 +388,9 @@ function loadAlarmsFromStorage() {
 }
 
 function loadDefaultAlarms() {
-    defaultAlarmsState = JSON.parse(JSON.stringify(DEFAULT_ALARMS));
+    // Cargar el orden guardado de las alarmas predeterminadas
+    loadDefaultAlarmsOrder();
+    
     defaultAlarmsState.forEach(alarm => {
         createAlarmCard(alarm);
         if (alarm.enabled) scheduleAlarm(alarm);
@@ -400,10 +440,19 @@ function startClock() {
     clockInterval = setInterval(updateLocalTime, 1000);
 }
 
+// Función mejorada para inicializar el sortable en ambas grillas
 function initializeSortableAlarms() {
-    const grid = document.querySelector('.alarms-grid[data-alarm-grid="user"]');
-    if (grid && typeof Sortable !== 'undefined') {
-        new Sortable(grid, {
+    const userGrid = document.querySelector('.alarms-grid[data-alarm-grid="user"]');
+    const defaultGrid = document.querySelector('.alarms-grid[data-alarm-grid="default"]');
+    
+    if (typeof Sortable === 'undefined') {
+        console.warn('SortableJS no está disponible. La funcionalidad de arrastrar y soltar no funcionará.');
+        return;
+    }
+
+    // Configuración para la grilla de alarmas de usuario
+    if (userGrid) {
+        new Sortable(userGrid, {
             animation: 150,
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
@@ -414,6 +463,25 @@ function initializeSortableAlarms() {
                     return newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id);
                 });
                 saveAlarmsToStorage();
+                console.log('📝 Nuevo orden de alarmas de usuario guardado');
+            }
+        });
+    }
+
+    // Configuración para la grilla de alarmas predeterminadas
+    if (defaultGrid) {
+        new Sortable(defaultGrid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onEnd: function (evt) {
+                const newOrderIds = Array.from(evt.to.children).map(card => card.id);
+                defaultAlarmsState.sort((a, b) => {
+                    return newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id);
+                });
+                saveDefaultAlarmsOrder();
+                console.log('📝 Nuevo orden de alarmas predeterminadas guardado');
             }
         });
     }
@@ -478,5 +546,13 @@ export function initializeAlarmClock() {
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
     }
-    window.alarmManager = { createAlarm, toggleAlarm, deleteAlarm, updateAlarm, toggleAlarmsSection, playAlarmSound, dismissAlarm };
+    window.alarmManager = { 
+        createAlarm, 
+        toggleAlarm, 
+        deleteAlarm, 
+        updateAlarm, 
+        toggleAlarmsSection, 
+        playAlarmSound, 
+        dismissAlarm 
+    };
 }

@@ -1,5 +1,5 @@
 // /assets/js/tools/alarm-controller.js
-import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay } from '../general/main.js';
+import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
@@ -442,6 +442,8 @@ function startClock() {
 
 // Función mejorada para inicializar el sortable en ambas grillas
 function initializeSortableAlarms() {
+    if (!allowCardMovement) return;
+
     const userGrid = document.querySelector('.alarms-grid[data-alarm-grid="user"]');
     const defaultGrid = document.querySelector('.alarms-grid[data-alarm-grid="default"]');
     

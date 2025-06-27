@@ -2,56 +2,29 @@
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 
-// ========== CONFIGURACIÓN Y CONSTANTES ==========
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const ALARM_SOUND_PATTERNS = {
-    'classic-beep': {
-        frequencies: [800],
-        beepDuration: 150, // ms
-        pauseDuration: 150, // ms
-        type: 'square'
-    },
-    'gentle-chime': {
-        frequencies: [523.25, 659.25, 783.99],
-        beepDuration: 300,
-        pauseDuration: 500,
-        type: 'sine'
-    },
-    'digital-alarm': {
-        frequencies: [1200, 800],
-        beepDuration: 100,
-        pauseDuration: 100,
-        type: 'square'
-    },
-    'peaceful-tone': {
-        frequencies: [440, 554.37, 659.25],
-        beepDuration: 400,
-        pauseDuration: 600,
-        type: 'sine'
-    },
-    'urgent-beep': {
-        frequencies: [1600, 1600],
-        beepDuration: 80,
-        pauseDuration: 80,
-        type: 'sawtooth'
-    }
+    'classic-beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
+    'gentle-chime': { frequencies: [523.25, 659.25, 783.99], beepDuration: 300, pauseDuration: 500, type: 'sine' },
+    'digital-alarm': { frequencies: [1200, 800], beepDuration: 100, pauseDuration: 100, type: 'square' },
+    'peaceful-tone': { frequencies: [440, 554.37, 659.25], beepDuration: 400, pauseDuration: 600, type: 'sine' },
+    'urgent-beep': { frequencies: [1600, 1600], beepDuration: 80, pauseDuration: 80, type: 'sawtooth' }
 };
 
 const DEFAULT_ALARMS = [
-    { id: 'default-1', title: 'Limpiar cuarto', hour: 10, minute: 0, sound: 'gentle-chime', enabled: false },
-    { id: 'default-2', title: 'Hacer ejercicio', hour: 18, minute: 0, sound: 'digital-alarm', enabled: false },
-    { id: 'default-3', title: 'Leer un libro', hour: 21, minute: 0, sound: 'peaceful-tone', enabled: false }
+    { id: 'default-1', title: 'Limpiar cuarto', hour: 10, minute: 0, sound: 'gentle-chime', enabled: false, type: 'default' },
+    { id: 'default-2', title: 'Hacer ejercicio', hour: 18, minute: 0, sound: 'digital-alarm', enabled: false, type: 'default' },
+    { id: 'default-3', title: 'Leer un libro', hour: 21, minute: 0, sound: 'peaceful-tone', enabled: false, type: 'default' }
 ];
 
-// ========== ESTADO DEL SISTEMA ==========
 let clockInterval = null;
 let userAlarms = [];
+let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
 let isPlayingSound = false;
 let audioContext = null;
 let activeSoundSource = null;
 
-// ========== INICIALIZACIÓN DEL AUDIO ==========
 function initializeAudioContext() {
     if (!audioContext) {
         try {
@@ -64,44 +37,32 @@ function initializeAudioContext() {
     return true;
 }
 
-// ========== GENERACIÓN DE SONIDOS ==========
 function playAlarmSound(soundType = 'classic-beep') {
     if (isPlayingSound || !initializeAudioContext()) return;
-
-    stopAlarmSound(); // Detiene cualquier sonido anterior
-
+    stopAlarmSound();
     isPlayingSound = true;
     const pattern = ALARM_SOUND_PATTERNS[soundType] || ALARM_SOUND_PATTERNS['classic-beep'];
     let freqIndex = 0;
-
     const playBeep = () => {
         if (!isPlayingSound) return;
-
         const freq = pattern.frequencies[freqIndex % pattern.frequencies.length];
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-
         oscillator.type = pattern.type;
         oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-
         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
         gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
         gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + (pattern.beepDuration / 1000));
-
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + (pattern.beepDuration / 1000));
-
         freqIndex++;
     };
-
-    playBeep(); // Reproduce el primer beep inmediatamente
+    playBeep();
     const intervalId = setInterval(playBeep, pattern.beepDuration + pattern.pauseDuration);
     activeSoundSource = { intervalId: intervalId };
 }
-
 
 function stopAlarmSound() {
     if (activeSoundSource && activeSoundSource.intervalId) {
@@ -111,68 +72,148 @@ function stopAlarmSound() {
     isPlayingSound = false;
 }
 
+function updateAlarmCounts() {
+    const userAlarmsCount = userAlarms.length;
+    const defaultAlarmsCount = defaultAlarmsState.length;
 
-// ========== GESTIÓN DE ALARMAS ==========
+    const userCountBadge = document.querySelector('.alarm-count-badge[data-count-for="user"]');
+    const defaultCountBadge = document.querySelector('.alarm-count-badge[data-count-for="default"]');
+
+    if (userCountBadge) userCountBadge.textContent = userAlarmsCount;
+    if (defaultCountBadge) defaultCountBadge.textContent = defaultAlarmsCount;
+
+    const userContainer = document.querySelector('.alarms-container[data-container="user"]');
+    const defaultContainer = document.querySelector('.alarms-container[data-container="default"]');
+
+    if (userContainer) userContainer.style.display = userAlarmsCount > 0 ? 'flex' : 'none';
+    if (defaultContainer) defaultContainer.style.display = defaultAlarmsCount > 0 ? 'flex' : 'none';
+}
+
+
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = PREMIUM_FEATURES ? 100 : 10;
-    
     if (userAlarms.length >= alarmLimit) {
         const limitMessage = getTranslation('alarm_limit_reached', 'alarms').replace('{limit}', alarmLimit);
         alert(limitMessage);
         return false;
     }
-
-    const alarmId = `alarm-${Date.now()}`;
     const alarm = {
-        id: alarmId,
-        title: title,
-        hour: hour,
-        minute: minute,
-        sound: sound,
+        id: `alarm-${Date.now()}`,
+        title,
+        hour,
+        minute,
+        sound,
         enabled: true,
+        type: 'user',
         created: new Date().toISOString()
     };
-
     userAlarms.push(alarm);
     saveAlarmsToStorage();
-    showAlarmsSection('user');
-    createAlarmCard(alarm, 'user');
+    createAlarmCard(alarm);
     scheduleAlarm(alarm);
-    
+    updateAlarmCounts();
     return true;
+}
+
+function createAlarmCard(alarm) {
+    const grid = document.querySelector(`.alarms-grid[data-alarm-grid="${alarm.type}"]`);
+    if (!grid) return;
+
+    const cardHTML = `
+        <div class="alarm-card ${!alarm.enabled ? 'alarm-disabled' : ''}" id="${alarm.id}" data-id="${alarm.id}" data-type="${alarm.type}">
+            <div class="card-header">
+                <div class="card-alarm-details">
+                    <span class="alarm-title" title="${alarm.title}">${alarm.title}</span>
+                    <span class="alarm-time">${formatTime(alarm.hour, alarm.minute)}</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="alarm-info">
+                    <span class="alarm-sound-name">${getTranslation(alarm.sound, 'sounds')}</span>
+                </div>
+            </div>
+            <div class="card-options-container">
+                <button class="dismiss-alarm-btn" data-action="dismiss-alarm">
+                    <span data-translate="dismiss" data-translate-category="alarms">Dismiss</span>
+                </button>
+            </div>
+            <div class="card-menu-container disabled">
+                <div class="card-menu-btn-wrapper">
+                    <button class="card-menu-btn" data-action="toggle-alarm-menu"
+                            data-translate="options"
+                            data-translate-category="world_clock_options"
+                            data-translate-target="tooltip">
+                        <span class="material-symbols-rounded">more_horiz</span>
+                    </button>
+                    <div class="card-dropdown-menu disabled body-title">
+                        <div class="menu-link" data-action="toggle-alarm">
+                            <div class="menu-link-icon"><span class="material-symbols-rounded">${alarm.enabled ? 'toggle_on' : 'toggle_off'}</span></div>
+                            <div class="menu-link-text"><span data-translate="${alarm.enabled ? 'deactivate_alarm' : 'activate_alarm'}" data-translate-category="alarms">${alarm.enabled ? 'Deactivate Alarm' : 'Activate Alarm'}</span></div>
+                        </div>
+                        <div class="menu-link" data-action="test-alarm">
+                            <div class="menu-link-icon"><span class="material-symbols-rounded">volume_up</span></div>
+                            <div class="menu-link-text"><span data-translate="test_alarm" data-translate-category="alarms">Test Alarm</span></div>
+                        </div>
+                        <div class="menu-link" data-action="edit-alarm">
+                            <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
+                            <div class="menu-link-text"><span data-translate="edit_alarm" data-translate-category="alarms">Edit Alarm</span></div>
+                        </div>
+                        <div class="menu-link" data-action="delete-alarm">
+                            <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+                            <div class="menu-link-text"><span data-translate="delete_alarm" data-translate-category="alarms">Delete Alarm</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    grid.insertAdjacentHTML('beforeend', cardHTML);
+    const newCard = document.getElementById(alarm.id);
+    if (newCard) {
+        addCardEventListeners(newCard);
+    }
+}
+
+function addCardEventListeners(card) {
+    const menuContainer = card.querySelector('.card-menu-container');
+    card.addEventListener('mouseenter', () => {
+        menuContainer?.classList.add('active');
+        menuContainer?.classList.remove('disabled');
+    });
+    card.addEventListener('mouseleave', () => {
+        const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
+        if (dropdown?.classList.contains('disabled')) {
+            menuContainer?.classList.remove('active');
+            menuContainer?.classList.add('disabled');
+        }
+    });
+    const dismissButton = card.querySelector('[data-action="dismiss-alarm"]');
+    if(dismissButton) {
+        dismissButton.addEventListener('click', () => dismissAlarm(card.id));
+    }
 }
 
 function scheduleAlarm(alarm) {
     if (!alarm.enabled) return;
-
     const now = new Date();
     const alarmTime = new Date();
     alarmTime.setHours(alarm.hour, alarm.minute, 0, 0);
-
-    // Si la hora ya pasó hoy, programar para mañana
     if (alarmTime <= now) {
         alarmTime.setDate(alarmTime.getDate() + 1);
     }
-
     const timeUntilAlarm = alarmTime.getTime() - now.getTime();
-    
-    // Limpiar timer existente si existe
     if (activeAlarmTimers.has(alarm.id)) {
         clearTimeout(activeAlarmTimers.get(alarm.id));
     }
-
     const timerId = setTimeout(() => {
         triggerAlarm(alarm);
         activeAlarmTimers.delete(alarm.id);
     }, timeUntilAlarm);
-
     activeAlarmTimers.set(alarm.id, timerId);
 }
 
 function triggerAlarm(alarm) {
-    // Reproducir sonido
     playAlarmSound(alarm.sound);
-
     const alarmCard = document.getElementById(alarm.id);
     if (alarmCard) {
         const optionsContainer = alarmCard.querySelector('.card-options-container');
@@ -180,16 +221,9 @@ function triggerAlarm(alarm) {
             optionsContainer.classList.add('active');
         }
     }
-    
-    // Mostrar notificación del navegador si está disponible
     if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(`Alarma: ${alarm.title}`, {
-            body: `${formatTime(alarm.hour, alarm.minute)}`,
-            icon: '/favicon.ico'
-        });
+        new Notification(`Alarma: ${alarm.title}`, { body: `${formatTime(alarm.hour, alarm.minute)}`, icon: '/favicon.ico' });
     }
-
-    // Re-programar para el siguiente día
     scheduleAlarm(alarm);
 }
 
@@ -202,149 +236,23 @@ function dismissAlarm(alarmId) {
             optionsContainer.classList.remove('active');
         }
     }
-    
-    // Desactivar la alarma
-    const alarmToToggle = userAlarms.find(a => a.id === alarmId);
-    if (alarmToToggle && alarmToToggle.enabled) {
+    const alarm = findAlarmById(alarmId);
+    if (alarm && alarm.enabled) {
         toggleAlarm(alarmId);
     }
 }
 
-
-// ========== INTERFAZ DE USUARIO ==========
-function createAlarmCard(alarm, type = 'user') {
-    const alarmsGrid = document.querySelector(`.alarms-grid[data-alarm-grid="${type}"]`);
-    if (!alarmsGrid) return;
-
-    const cardHTML = `
-        <div class="alarm-card ${!alarm.enabled ? 'alarm-disabled' : ''}" id="${alarm.id}" data-id="${alarm.id}">
-            <div class="card-header">
-                <div class="card-alarm-details">
-                    <span class="alarm-title" title="${alarm.title}">${alarm.title}</span>
-                    <span class="alarm-time">${formatTime(alarm.hour, alarm.minute)}</span>
-                </div>
-            </div>
-            <div class="card-footer">
-                <div class="alarm-info">
-                    <span class="alarm-sound-name">${getTranslation(alarm.sound, 'sounds')}</span>
-                </div>
-            </div>
-            
-            <div class="card-options-container">
-                <button class="dismiss-alarm-btn" data-action="dismiss-alarm">
-                    <span data-translate="dismiss" data-translate-category="alarms">Dismiss</span>
-                </button>
-            </div>
-
-            <div class="card-menu-container disabled">
-                <div class="card-menu-btn-wrapper">
-                    <button class="card-menu-btn" data-action="toggle-alarm-menu"
-                            data-translate="options"
-                            data-translate-category="world_clock_options"
-                            data-translate-target="tooltip">
-                        <span class="material-symbols-rounded">more_horiz</span>
-                    </button>
-                    <div class="card-dropdown-menu disabled body-title">
-                        <div class="menu-link" data-action="toggle-alarm">
-                            <div class="menu-link-icon"><span class="material-symbols-rounded">${alarm.enabled ? 'toggle_on' : 'toggle_off'}</span></div>
-                            <div class="menu-link-text">
-                                <span data-translate="${alarm.enabled ? 'deactivate_alarm' : 'activate_alarm'}" 
-                                      data-translate-category="alarms" 
-                                      data-translate-target="text">${alarm.enabled ? 'Deactivate Alarm' : 'Activate Alarm'}</span>
-                            </div>
-                        </div>
-                        <div class="menu-link" data-action="test-alarm">
-                            <div class="menu-link-icon"><span class="material-symbols-rounded">volume_up</span></div>
-                            <div class="menu-link-text">
-                                <span data-translate="test_alarm" 
-                                      data-translate-category="alarms" 
-                                      data-translate-target="text">Test Alarm</span>
-                            </div>
-                        </div>
-                        <div class="menu-link" data-action="edit-alarm">
-                            <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
-                            <div class="menu-link-text">
-                                <span data-translate="edit_alarm" 
-                                      data-translate-category="alarms" 
-                                      data-translate-target="text">Edit Alarm</span>
-                            </div>
-                        </div>
-                        <div class="menu-link" data-action="delete-alarm">
-                            <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
-                            <div class="menu-link-text">
-                                <span data-translate="delete_alarm" 
-                                      data-translate-category="alarms" 
-                                      data-translate-target="text">Delete Alarm</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    alarmsGrid.insertAdjacentHTML('beforeend', cardHTML);
-
-    const newCard = document.getElementById(alarm.id);
-    if (newCard) {
-        const menuContainer = newCard.querySelector('.card-menu-container');
-
-        newCard.addEventListener('mouseenter', () => {
-            menuContainer?.classList.add('active');
-            menuContainer?.classList.remove('disabled');
-        });
-
-        newCard.addEventListener('mouseleave', () => {
-            const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
-            if (dropdown?.classList.contains('disabled')) {
-                menuContainer?.classList.remove('active');
-                menuContainer?.classList.add('disabled');
-            }
-        });
-        
-        const dismissButton = newCard.querySelector('[data-action="dismiss-alarm"]');
-        if(dismissButton) {
-            dismissButton.addEventListener('click', () => dismissAlarm(alarm.id));
-        }
-
-        setTimeout(() => {
-            applyTranslationsToAlarmCard(newCard);
-            if (window.attachTooltipsToNewElements) {
-                window.attachTooltipsToNewElements(newCard);
-            }
-        }, 0);
-    }
+function findAlarmById(alarmId) {
+    return userAlarms.find(a => a.id === alarmId) || defaultAlarmsState.find(a => a.id === alarmId);
 }
 
-function showAlarmsSection(type = 'user') {
-    const sectionBottom = document.querySelector('.section-alarm .section-bottom');
-    if (!sectionBottom) return;
-
-    const alarms = type === 'user' ? userAlarms : DEFAULT_ALARMS;
-    
-    if (alarms.length > 0) {
-        sectionBottom.style.display = 'block';
-    } else {
-        const grid = document.querySelector(`.alarms-grid[data-alarm-grid="${type}"]`);
-        if (grid) {
-            const container = grid.closest('.alarms-container');
-            if (container) {
-                container.style.display = 'none';
-            }
-        }
-    }
-}
-
-// ========== FUNCIONES DE GESTIÓN ==========
 function toggleAlarm(alarmId) {
-    const alarm = userAlarms.find(a => a.id === alarmId) || DEFAULT_ALARMS.find(a => a.id === alarmId);
+    const alarm = findAlarmById(alarmId);
     if (!alarm) return;
-
     alarm.enabled = !alarm.enabled;
-    if (userAlarms.find(a => a.id === alarmId)) {
+    if (alarm.type === 'user') {
         saveAlarmsToStorage();
     }
-    
     if (alarm.enabled) {
         scheduleAlarm(alarm);
     } else {
@@ -353,151 +261,110 @@ function toggleAlarm(alarmId) {
             activeAlarmTimers.delete(alarmId);
         }
     }
-
     updateAlarmCardVisuals(alarm);
 }
 
 function deleteAlarm(alarmId) {
-    const alarmIndex = userAlarms.findIndex(a => a.id === alarmId);
-    if (alarmIndex === -1) return;
+    const alarm = findAlarmById(alarmId);
+    if (!alarm) return;
 
-    // Limpiar timer si existe
     if (activeAlarmTimers.has(alarmId)) {
         clearTimeout(activeAlarmTimers.get(alarmId));
         activeAlarmTimers.delete(alarmId);
     }
 
-    // Remover de array y localStorage
-    userAlarms.splice(alarmIndex, 1);
-    saveAlarmsToStorage();
+    if (alarm.type === 'user') {
+        userAlarms = userAlarms.filter(a => a.id !== alarmId);
+        saveAlarmsToStorage();
+    } else {
+        defaultAlarmsState = defaultAlarmsState.filter(a => a.id !== alarmId);
+    }
 
-    // Remover tarjeta del DOM
     const alarmCard = document.getElementById(alarmId);
     if (alarmCard) {
         alarmCard.remove();
     }
-
-    // Ocultar sección si no hay más alarmas
-    showAlarmsSection('user');
+    updateAlarmCounts();
 }
 
-function updateAlarmCard(alarmId, newData) {
-    const alarmIndex = userAlarms.findIndex(a => a.id === alarmId);
-    if (alarmIndex === -1) return;
+function updateAlarm(alarmId, newData) {
+    const alarm = findAlarmById(alarmId);
+    if (!alarm) return;
 
-    const alarm = userAlarms[alarmIndex];
     Object.assign(alarm, newData);
-    saveAlarmsToStorage();
 
-    // Re-programar alarma
+    if (alarm.type === 'user') {
+        saveAlarmsToStorage();
+    }
+
     if (activeAlarmTimers.has(alarmId)) {
         clearTimeout(activeAlarmTimers.get(alarmId));
         activeAlarmTimers.delete(alarmId);
     }
-    
+
     if (alarm.enabled) {
         scheduleAlarm(alarm);
     }
 
-    // Actualizar tarjeta visual
     updateAlarmCardVisuals(alarm);
 }
 
 function updateAlarmCardVisuals(alarm) {
-    const alarmCard = document.getElementById(alarm.id);
-    if (!alarmCard) return;
-
-    const titleElement = alarmCard.querySelector('.alarm-title');
-    const timeElement = alarmCard.querySelector('.alarm-time');
-    const soundElement = alarmCard.querySelector('.alarm-sound-name');
-    const toggleLink = alarmCard.querySelector('[data-action="toggle-alarm"]');
-    const toggleIcon = toggleLink?.querySelector('.menu-link-icon span');
+    const card = document.getElementById(alarm.id);
+    if (!card) return;
+    const title = card.querySelector('.alarm-title');
+    const time = card.querySelector('.alarm-time');
+    const sound = card.querySelector('.alarm-sound-name');
+    const toggleLink = card.querySelector('[data-action="toggle-alarm"]');
+    const toggleIcon = toggleLink?.querySelector('.material-symbols-rounded');
     const toggleText = toggleLink?.querySelector('.menu-link-text span');
 
-    if (titleElement) {
-        titleElement.textContent = alarm.title;
-        titleElement.setAttribute('title', alarm.title);
-    }
-    if (timeElement) {
-        timeElement.textContent = formatTime(alarm.hour, alarm.minute);
-    }
-    if (soundElement) {
-        soundElement.textContent = getTranslation(alarm.sound, 'sounds');
-    }
+    if (title) title.textContent = alarm.title;
+    if (time) time.textContent = formatTime(alarm.hour, alarm.minute);
+    if (sound) sound.textContent = getTranslation(alarm.sound, 'sounds');
 
-    if (toggleIcon) {
-        toggleIcon.textContent = alarm.enabled ? 'toggle_on' : 'toggle_off';
-    }
-
+    if (toggleIcon) toggleIcon.textContent = alarm.enabled ? 'toggle_on' : 'toggle_off';
     if (toggleText) {
-        const translationKey = alarm.enabled ? 'deactivate_alarm' : 'activate_alarm';
-        toggleText.setAttribute('data-translate', translationKey);
-        toggleText.textContent = getTranslation(translationKey, 'alarms');
-    }
-    
-    // Cambiar apariencia visual según estado
-    if (alarm.enabled) {
-        alarmCard.classList.remove('alarm-disabled');
-    } else {
-        alarmCard.classList.add('alarm-disabled');
+        const key = alarm.enabled ? 'deactivate_alarm' : 'activate_alarm';
+        toggleText.setAttribute('data-translate', key);
+        toggleText.textContent = getTranslation(key, 'alarms');
     }
 
-    setTimeout(() => {
-        applyTranslationsToAlarmCard(alarmCard);
-        if (window.attachTooltipsToNewElements) {
-            window.attachTooltipsToNewElements(alarmCard);
-        }
-    }, 0);
+    card.classList.toggle('alarm-disabled', !alarm.enabled);
 }
 
-// ========== ALMACENAMIENTO ==========
 function saveAlarmsToStorage() {
-    try {
-        localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(userAlarms));
-    } catch (error) {
-        console.error('Error guardando alarmas:', error);
-    }
+    localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(userAlarms));
 }
 
 function loadAlarmsFromStorage() {
-    try {
-        const storedAlarms = localStorage.getItem(ALARMS_STORAGE_KEY);
-        if (storedAlarms) {
-            userAlarms = JSON.parse(storedAlarms);
-            
-            if (userAlarms.length > 0) {
-                showAlarmsSection('user');
-                userAlarms.forEach(alarm => {
-                    createAlarmCard(alarm, 'user');
-                    if (alarm.enabled) {
-                        scheduleAlarm(alarm);
-                    }
-                });
-            }
-        }
-    } catch (error) {
-        console.error('Error cargando alarmas:', error);
-        userAlarms = [];
+    const stored = localStorage.getItem(ALARMS_STORAGE_KEY);
+    if (stored) {
+        userAlarms = JSON.parse(stored);
     }
+    userAlarms.forEach(alarm => {
+        alarm.type = 'user';
+        createAlarmCard(alarm);
+        if (alarm.enabled) scheduleAlarm(alarm);
+    });
 }
 
 function loadDefaultAlarms() {
-    DEFAULT_ALARMS.forEach(alarm => {
-        createAlarmCard(alarm, 'default');
+    defaultAlarmsState = JSON.parse(JSON.stringify(DEFAULT_ALARMS));
+    defaultAlarmsState.forEach(alarm => {
+        createAlarmCard(alarm);
+        if (alarm.enabled) scheduleAlarm(alarm);
     });
-    showAlarmsSection('default');
 }
 
-// ========== UTILIDADES ==========
 function formatTime(hour, minute) {
     if (use24HourFormat) {
         return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-    } else {
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        let hour12 = hour % 12;
-        hour12 = hour12 ? hour12 : 12;
-        return `${hour12}:${String(minute).padStart(2, '0')} ${ampm}`;
     }
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    let h12 = hour % 12;
+    h12 = h12 ? h12 : 12;
+    return `${h12}:${String(minute).padStart(2, '0')} ${ampm}`;
 }
 
 function getTranslation(key, category) {
@@ -508,48 +375,31 @@ function getTranslation(key, category) {
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-function applyTranslationsToAlarmCard(card) {
-    const elementsToTranslate = card.querySelectorAll('[data-translate]');
-    
-    elementsToTranslate.forEach(element => {
-        const translateKey = element.getAttribute('data-translate');
-        const translateCategory = element.getAttribute('data-translate-category') || 'alarms';
-        const translateTarget = element.getAttribute('data-translate-target') || 'text';
-
-        if (!translateKey) return;
-
-        const translatedText = getTranslation(translateKey, translateCategory);
-
-        switch (translateTarget) {
-            case 'text':
-                element.textContent = translatedText;
-                break;
-            case 'tooltip':
-                element.setAttribute('data-tooltip', translatedText);
-                break;
-            default:
-                element.textContent = translatedText;
-        }
-    });
+function toggleAlarmsSection(type) {
+    const grid = document.querySelector(`.alarms-grid[data-alarm-grid="${type}"]`);
+    if (!grid) return;
+    const container = grid.closest('.alarms-container');
+    if (!container) return;
+    const btn = container.querySelector('.collapse-alarms-btn');
+    const isActive = grid.classList.toggle('active');
+    btn.classList.toggle('expanded', isActive);
 }
 
-function toggleAlarmsSection(type) {
-    const gridSelector = `.alarms-grid[data-alarm-grid="${type}"]`;
-    const alarmsGrid = document.querySelector(gridSelector);
-    if (!alarmsGrid) return;
-
-    const container = alarmsGrid.closest('.alarms-container');
-    if (!container) return;
-
-    const collapseBtn = container.querySelector('.collapse-alarms-btn');
-
-    if (alarmsGrid && collapseBtn) {
-        const isActive = alarmsGrid.classList.toggle('active');
-        collapseBtn.classList.toggle('expanded', isActive);
+function updateLocalTime() {
+    const el = document.querySelector('.tool-alarm span');
+    if (el) {
+        const now = new Date();
+        const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !use24HourFormat };
+        el.textContent = now.toLocaleTimeString(navigator.language, options);
     }
 }
 
-// ========== DRAG AND DROP (SORTABLE) ==========
+function startClock() {
+    if (clockInterval) return;
+    updateLocalTime();
+    clockInterval = setInterval(updateLocalTime, 1000);
+}
+
 function initializeSortableAlarms() {
     const grid = document.querySelector('.alarms-grid[data-alarm-grid="user"]');
     if (grid && typeof Sortable !== 'undefined') {
@@ -560,141 +410,73 @@ function initializeSortableAlarms() {
             dragClass: 'sortable-drag',
             onEnd: function (evt) {
                 const newOrderIds = Array.from(evt.to.children).map(card => card.id);
-
                 userAlarms.sort((a, b) => {
                     return newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id);
                 });
-
                 saveAlarmsToStorage();
             }
         });
     }
 }
 
-
-// ========== RELOJ PRINCIPAL ==========
-function updateLocalTime() {
-    const alarmClockElement = document.querySelector('.tool-alarm span');
-
-    if (alarmClockElement) {
-        const now = new Date();
-        const options = {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: !use24HourFormat
-        };
-        alarmClockElement.textContent = now.toLocaleTimeString(navigator.language, options);
-    }
-}
-
-function startClock() {
-    if (clockInterval) return;
-    
-    updateLocalTime();
-    clockInterval = setInterval(updateLocalTime, 1000);
-}
-
-// ========== EVENT LISTENERS ==========
 function setupEventListeners() {
     const sectionBottom = document.querySelector('.section-alarm .section-bottom');
     if (sectionBottom) {
-        sectionBottom.addEventListener('click', function(e) {
-            const actionTarget = e.target.closest('[data-action]');
-            if (!actionTarget) return;
-
-            const action = actionTarget.dataset.action;
-            const card = actionTarget.closest('.alarm-card');
+        sectionBottom.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+            const card = target.closest('.alarm-card');
             if (!card) return;
-
             const alarmId = card.dataset.id;
+            const alarm = findAlarmById(alarmId);
 
-            if (action === 'toggle-alarm-menu') {
-                e.stopPropagation();
-                const currentDropdown = card.querySelector('.card-dropdown-menu');
-
-                document.querySelectorAll('.card-dropdown-menu').forEach(menu => {
-                    if (menu !== currentDropdown) {
-                        menu.classList.add('disabled');
+            switch (target.dataset.action) {
+                case 'toggle-alarm-menu':
+                    e.stopPropagation();
+                    const dropdown = card.querySelector('.card-dropdown-menu');
+                    document.querySelectorAll('.card-dropdown-menu').forEach(m => m !== dropdown && m.classList.add('disabled'));
+                    dropdown?.classList.toggle('disabled');
+                    break;
+                case 'toggle-alarm':
+                    toggleAlarm(alarmId);
+                    break;
+                case 'test-alarm':
+                    if (alarm) playAlarmSound(alarm.sound);
+                    break;
+                case 'edit-alarm':
+                    e.stopPropagation();
+                    if (alarm) {
+                        prepareAlarmForEdit({ ...alarm, updateAlarm: updateAlarm });
+                        if (getCurrentActiveOverlay() !== 'menuAlarm') {
+                            activateModule('toggleMenuAlarm');
+                        }
                     }
-                });
-
-                currentDropdown?.classList.toggle('disabled');
-
-            } else if (action === 'toggle-alarm') {
-                toggleAlarm(alarmId);
-            } else if (action === 'test-alarm') {
-                const alarm = userAlarms.find(a => a.id === alarmId) || DEFAULT_ALARMS.find(a => a.id === alarmId);
-                if (alarm) {
-                    playAlarmSound(alarm.sound);
-                }
-
-            } else if (action === 'edit-alarm') {
-                e.stopPropagation();
-                const alarm = userAlarms.find(a => a.id === alarmId);
-                if (alarm) {
-                    prepareAlarmForEdit(alarm);
-                    
-                    if (getCurrentActiveOverlay() !== 'menuAlarm') {
-                        activateModule('toggleMenuAlarm');
+                    break;
+                case 'delete-alarm':
+                    if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
+                        deleteAlarm(alarmId);
                     }
-                }
-
-            } else if (action === 'delete-alarm') {
-                if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
-                    deleteAlarm(alarmId);
-                }
+                    break;
             }
         });
     }
 
-    // Cerrar dropdowns al hacer click fuera
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', (e) => {
         if (!e.target.closest('.card-menu-btn-wrapper')) {
-            document.querySelectorAll('.card-dropdown-menu').forEach(menu => {
-                menu.classList.add('disabled');
-            });
+            document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
         }
     });
 }
 
-// ========== FUNCIONES PÚBLICAS ==========
-function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-}
-
-// ========== INICIALIZACIÓN ==========
 export function initializeAlarmClock() {
     startClock();
     loadAlarmsFromStorage();
     loadDefaultAlarms();
     setupEventListeners();
-    requestNotificationPermission();
-    initializeSortableAlarms(); // <-- AÑADIDO
-
-    // Exponer funciones globalmente
-    window.alarmManager = {
-        createAlarm,
-        toggleAlarm,
-        deleteAlarm,
-        updateAlarm: updateAlarmCard,
-        toggleAlarmsSection,
-        playAlarmSound,
-        dismissAlarm
-    };
+    updateAlarmCounts();
+    initializeSortableAlarms(); 
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    window.alarmManager = { createAlarm, toggleAlarm, deleteAlarm, updateAlarm, toggleAlarmsSection, playAlarmSound, dismissAlarm };
 }
-
-// ========== EVENTOS DE IDIOMA ==========
-document.addEventListener('languageChanged', () => {
-    setTimeout(() => {
-        document.querySelectorAll('.alarm-card').forEach(applyTranslationsToAlarmCard);
-    }, 500);
-});
-
-document.addEventListener('translationsApplied', () => {
-    setTimeout(() => {
-        document.querySelectorAll('.alarm-card').forEach(applyTranslationsToAlarmCard);
-    }, 100);
-});

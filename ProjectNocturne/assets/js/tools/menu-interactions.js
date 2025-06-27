@@ -1,13 +1,6 @@
 "use strict";
-// ================================================================
-// INICIO DE LA CORRECCIÓN
-// Se importa 'deactivateModule' y 'getTranslation' directamente.
-// ================================================================
 import { use24HourFormat, deactivateModule } from '../general/main.js';
 import { getTranslation } from '../general/translations-controller.js';
-// ================================================================
-// FIN DE LA CORRECCIÓN
-// ================================================================
 
 const initialState = {
     alarm: { hour: 0, minute: 0, sound: 'classic-beep' },
@@ -34,14 +27,7 @@ const dropdownMap = {
     'toggleTimezoneDropdown': '.menu-worldclock-timezone'
 };
 
-// ================================================================
-// INICIO DE LA CORRECCIÓN: Timeout Manager
-// ================================================================
 const menuTimeouts = {};
-// ================================================================
-// FIN DE LA CORRECCIÓN
-// ================================================================
-
 let areGlobalListenersInitialized = false;
 
 function initMenuInteractions() {
@@ -91,14 +77,47 @@ function removeSpinnerFromCreateButton(button) {
     }
 }
 
+const setAlarmDefaults = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 10);
+    state.alarm.hour = now.getHours();
+    state.alarm.minute = now.getMinutes();
+};
+
 const resetAlarmMenu = (menuElement) => {
-    state.alarm = JSON.parse(JSON.stringify(initialState.alarm));
+    setAlarmDefaults(); 
+    state.alarm.sound = 'classic-beep';
+
     const titleInput = menuElement.querySelector('#alarm-title');
     if (titleInput) titleInput.value = '';
+
     const searchInput = menuElement.querySelector('.search-content-text input');
     if (searchInput) searchInput.value = '';
+
     updateAlarmDisplay(menuElement);
     resetDropdownDisplay(menuElement, '#alarm-selected-sound', 'classic_beep', 'sounds');
+
+    const createButton = menuElement.querySelector('.create-tool');
+    if (createButton) {
+        if (createButton.classList.contains('disabled-interactive')) {
+            removeSpinnerFromCreateButton(createButton);
+        }
+        createButton.dataset.action = 'createAlarm';
+        const buttonText = createButton.querySelector('span');
+        if (buttonText) {
+            buttonText.setAttribute('data-translate', 'create_alarm');
+            buttonText.setAttribute('data-translate-category', 'alarms');
+            buttonText.textContent = getTranslation('create_alarm', 'alarms');
+        }
+    }
+
+    menuElement.removeAttribute('data-editing-id');
+
+    const menuId = menuElement.dataset.menu;
+    if (menuTimeouts[menuId]) {
+        clearTimeout(menuTimeouts[menuId]);
+        delete menuTimeouts[menuId];
+    }
 };
 
 const resetTimerMenu = (menuElement) => {
@@ -119,17 +138,11 @@ const resetTimerMenu = (menuElement) => {
 };
 
 const resetWorldClockMenu = (menuElement) => {
-    // ================================================================
-    // INICIO DE LA CORRECCIÓN: Cancelar Timeout al resetear
-    // ================================================================
     const menuId = menuElement.dataset.menu;
     if (menuTimeouts[menuId]) {
         clearTimeout(menuTimeouts[menuId]);
         delete menuTimeouts[menuId];
     }
-    // ================================================================
-    // FIN DE LA CORRECCIÓN
-    // ================================================================
 
     state.worldClock = JSON.parse(JSON.stringify(initialState.worldClock));
     const titleInput = menuElement.querySelector('#worldclock-title');
@@ -167,6 +180,34 @@ const resetWorldClockMenu = (menuElement) => {
     menuElement.removeAttribute('data-editing-id');
 };
 
+
+export function prepareAlarmForEdit(alarmData) {
+    const menuElement = getMenuElement('menuAlarm');
+    if (!menuElement) return;
+    
+    state.alarm.hour = alarmData.hour;
+    state.alarm.minute = alarmData.minute;
+    state.alarm.sound = alarmData.sound;
+
+    const titleInput = menuElement.querySelector('#alarm-title');
+    if (titleInput) titleInput.value = alarmData.title;
+
+    updateAlarmDisplay(menuElement);
+
+    updateDisplay('#alarm-selected-sound', getTranslation(alarmData.sound, 'sounds'), menuElement);
+
+    const createButton = menuElement.querySelector('.create-tool');
+    if (createButton) {
+        createButton.dataset.action = 'saveAlarmChanges';
+        const buttonText = createButton.querySelector('span');
+        if (buttonText) {
+            buttonText.setAttribute('data-translate', 'save_changes');
+            buttonText.setAttribute('data-translate-category', 'alarms');
+            buttonText.textContent = getTranslation('save_changes', 'alarms');
+        }
+    }
+    menuElement.setAttribute('data-editing-id', alarmData.id);
+}
 
 export function prepareWorldClockForEdit(clockData) {
     const menuElement = getMenuElement('menuWorldClock');
@@ -207,7 +248,12 @@ export function prepareWorldClockForEdit(clockData) {
     menuElement.setAttribute('data-editing-id', clockData.id);
 }
 
-const initializeAlarmMenu = (menuElement) => { setAlarmDefaults(); updateAlarmDisplay(menuElement); };
+const initializeAlarmMenu = (menuElement) => {
+    if (!menuElement.hasAttribute('data-editing-id')) {
+        setAlarmDefaults();
+    }
+    updateAlarmDisplay(menuElement);
+};
 const initializeTimerMenu = (menuElement) => { updateTimerDurationDisplay(menuElement); renderCalendar(menuElement); populateHourSelectionMenu(menuElement); };
 const initializeWorldClockMenu = (menuElement) => {
     const timezoneSelector = menuElement.querySelector('[data-action="toggleTimezoneDropdown"]');
@@ -293,13 +339,6 @@ const updateAlarmDisplay = (parent) => {
     updateDisplay('#minute-display', `${state.alarm.minute} min`, parent);
 };
 
-const setAlarmDefaults = () => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() + 10);
-    state.alarm.hour = now.getHours();
-    state.alarm.minute = now.getMinutes();
-};
-
 const updateTimerDurationDisplay = (timerMenu) => {
     if (!timerMenu) return;
     updateDisplay('#timer-hour-display', `${state.timer.duration.hours} h`, timerMenu);
@@ -336,14 +375,10 @@ const renderCalendar = (timerMenu) => {
         if (state.timer.countTo.selectedDate && i === new Date(state.timer.countTo.selectedDate).getDate() && date.getMonth() === new Date(state.timer.countTo.selectedDate).getMonth()) dayEl.classList.add('selected');
         daysContainer.appendChild(dayEl);
     }
-
-    // --- Lógica para el límite de año ---
     const currentYear = new Date().getFullYear();
     const minYear = currentYear - 265;
-
     const prevButton = timerMenu.querySelector('[data-action="prev-month"]');
     const nextButton = timerMenu.querySelector('[data-action="next-month"]');
-
     if (prevButton) {
         if (date.getFullYear() < minYear || (date.getFullYear() === minYear && date.getMonth() === 0)) {
             prevButton.disabled = true;
@@ -353,9 +388,8 @@ const renderCalendar = (timerMenu) => {
             prevButton.classList.remove('disabled-interactive');
         }
     }
-
     if (nextButton) {
-        nextButton.disabled = false; // No hay límite máximo
+        nextButton.disabled = false;
         nextButton.classList.remove('disabled-interactive');
     }
 };
@@ -446,40 +480,7 @@ async function populateTimezoneDropdown(parentMenu, countryCode) {
         timezoneSelector.classList.add('disabled-interactive');
     }
 }
-export function prepareAlarmForEdit(alarmData) {
-    const menuElement = getMenuElement('menuAlarm');
-    if (!menuElement) return;
 
-    // Actualizar el estado con los datos de la alarma
-    state.alarm.hour = alarmData.hour;
-    state.alarm.minute = alarmData.minute;
-    state.alarm.sound = alarmData.sound;
-
-    // Llenar el campo de título
-    const titleInput = menuElement.querySelector('#alarm-title');
-    if (titleInput) titleInput.value = alarmData.title;
-
-    // Actualizar la visualización de hora y minuto
-    updateAlarmDisplay(menuElement);
-
-    // Actualizar el sonido seleccionado
-    updateDisplay('#alarm-selected-sound', getTranslation(alarmData.sound, 'sounds'), menuElement);
-
-    // Cambiar el botón para modo edición
-    const createButton = menuElement.querySelector('.create-tool');
-    if (createButton) {
-        createButton.dataset.action = 'saveAlarmChanges';
-        const buttonText = createButton.querySelector('span');
-        if (buttonText) {
-            buttonText.setAttribute('data-translate', 'save_changes');
-            buttonText.setAttribute('data-translate-category', 'alarms');
-            buttonText.textContent = getTranslation('save_changes', 'alarms');
-        }
-    }
-
-    // Marcar el menú como en modo edición
-    menuElement.setAttribute('data-editing-id', alarmData.id);
-}
 function setupGlobalEventListeners() {
     document.addEventListener('click', (event) => {
         const isClickInsideDropdown = event.target.closest('.dropdown-menu-container');
@@ -693,9 +694,6 @@ function setupGlobalEventListeners() {
                 }
                 break;
             }
-            // ================================================================
-            // INICIO DE LA CORRECCIÓN: 'addWorldClock'
-            // ================================================================
             case 'addWorldClock': {
                 const clockTitleInput = parentMenu.querySelector('#worldclock-title');
                 const clockTitle = clockTitleInput ? clockTitleInput.value.trim() : '';
@@ -730,13 +728,6 @@ function setupGlobalEventListeners() {
                 }, 500);
                 break;
             }
-            // ================================================================
-            // FIN DE LA CORRECCIÓN
-            // ================================================================
-
-            // ================================================================
-            // INICIO DE LA CORRECCIÓN: 'saveWorldClockChanges'
-            // ================================================================
             case 'saveWorldClockChanges': {
                 const editingId = parentMenu.getAttribute('data-editing-id');
                 const clockTitleInput = parentMenu.querySelector('#worldclock-title');
@@ -772,47 +763,8 @@ function setupGlobalEventListeners() {
                 }, 500);
                 break;
             }
-            // ================================================================
-            // FIN DE LA CORRECCIÓN
-            // ================================================================
         }
     });
-    const resetAlarmMenu = (menuElement) => {
-        state.alarm = JSON.parse(JSON.stringify(initialState.alarm));
-
-        const titleInput = menuElement.querySelector('#alarm-title');
-        if (titleInput) titleInput.value = '';
-
-        const searchInput = menuElement.querySelector('.search-content-text input');
-        if (searchInput) searchInput.value = '';
-
-        updateAlarmDisplay(menuElement);
-        resetDropdownDisplay(menuElement, '#alarm-selected-sound', 'classic_beep', 'sounds');
-
-        // Resetear el botón a modo creación
-        const createButton = menuElement.querySelector('.create-tool');
-        if (createButton) {
-            if (createButton.classList.contains('disabled-interactive')) {
-                removeSpinnerFromCreateButton(createButton);
-            }
-            createButton.dataset.action = 'createAlarm';
-            const buttonText = createButton.querySelector('span');
-            if (buttonText) {
-                buttonText.setAttribute('data-translate', 'create_alarm');
-                buttonText.setAttribute('data-translate-category', 'alarms');
-                buttonText.textContent = getTranslation('create_alarm', 'alarms');
-            }
-        }
-
-        menuElement.removeAttribute('data-editing-id');
-
-        // Cancelar timeout si existe
-        const menuId = menuElement.dataset.menu;
-        if (menuTimeouts[menuId]) {
-            clearTimeout(menuTimeouts[menuId]);
-            delete menuTimeouts[menuId];
-        }
-    };
 
 }
 

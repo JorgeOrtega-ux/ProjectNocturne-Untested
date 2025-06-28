@@ -1,4 +1,4 @@
-// /assets/js/tools/timer-controller.js
+// /assets/js/tools/timer-controller.js - Con persistencia de estado
 
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, switchToSection, allowCardMovement } from '../general/main.js';
@@ -7,6 +7,7 @@ import { playAlarmSound, stopAlarmSound } from './alarm-controller.js';
 
 // --- ESTADO Y CONSTANTES ---
 const TIMERS_STORAGE_KEY = 'user-timers';
+const TIMER_STATE_STORAGE_KEY = 'timer-states'; // Nueva clave para estados de ejecución
 let timers = [];
 let activeTimers = new Map();
 let pinnedTimerId = null;
@@ -18,11 +19,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeTimerController() {
     loadTimersFromStorage();
+    restoreActiveTimers(); // Nueva función para restaurar timers activos
     renderAllTimerCards();
     setupGlobalEventListeners();
     updateMainDisplay();
     initializeSortable();
     updateMainControlsState();
+}
+
+// --- NUEVA FUNCIÓN: RESTAURAR TIMERS ACTIVOS ---
+function restoreActiveTimers() {
+    const savedStates = localStorage.getItem(TIMER_STATE_STORAGE_KEY);
+    if (!savedStates) return;
+
+    try {
+        const states = JSON.parse(savedStates);
+        const now = Date.now();
+
+        states.forEach(state => {
+            const timer = timers.find(t => t.id === state.timerId);
+            if (!timer) return;
+
+            if (state.isRunning) {
+                if (timer.type === 'countdown') {
+                    // Calcular cuánto tiempo ha pasado desde que se guardó el estado
+                    const elapsedSinceLastSave = now - state.lastSaveTime;
+                    timer.remaining = Math.max(0, state.remaining - elapsedSinceLastSave);
+                    
+                    if (timer.remaining > 0) {
+                        timer.isRunning = true;
+                        startCountdownTimer(timer);
+                        console.log(`🔄 Timer restaurado: ${timer.title} - ${formatTime(timer.remaining)}`);
+                    } else {
+                        // El timer debería haber terminado mientras estaba cerrada la aplicación
+                        timer.remaining = 0;
+                        timer.isRunning = false;
+                        handleTimerEnd(timer.id);
+                    }
+                } else if (timer.type === 'count_to_date') {
+                    // Para count-to-date, recalcular el tiempo restante
+                    timer.remaining = new Date(timer.targetDate).getTime() - now;
+                    
+                    if (timer.remaining > 0) {
+                        timer.isRunning = true;
+                        startCountToDateTimer(timer);
+                        console.log(`🔄 Timer de fecha restaurado: ${timer.title}`);
+                    } else {
+                        timer.remaining = 0;
+                        timer.isRunning = false;
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error restaurando estados de timers:', error);
+        // Limpiar estados corruptos
+        localStorage.removeItem(TIMER_STATE_STORAGE_KEY);
+    }
+}
+
+// --- NUEVA FUNCIÓN: GUARDAR ESTADOS DE TIMERS ---
+function saveTimerStates() {
+    const states = [];
+    const now = Date.now();
+
+    timers.forEach(timer => {
+        if (timer.isRunning) {
+            states.push({
+                timerId: timer.id,
+                isRunning: timer.isRunning,
+                remaining: timer.remaining,
+                lastSaveTime: now,
+                type: timer.type
+            });
+        }
+    });
+
+    try {
+        localStorage.setItem(TIMER_STATE_STORAGE_KEY, JSON.stringify(states));
+    } catch (error) {
+        console.error('Error guardando estados de timers:', error);
+    }
 }
 
 // --- INICIALIZACIÓN DE SORTABLEJS ---
@@ -106,15 +183,13 @@ export function updateTimer(timerId, newData) {
     };
 
     saveTimersToStorage();
+    saveTimerStates(); // Guardar estados actualizados
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
 }
 
-// --- GESTIÓN DE DATOS (STORAGE) ---
-// ================================================================
-// INICIO DE LA CORRECCIÓN: Lógica robusta para cargar temporizadores
-// ================================================================
+// --- GESTIÓN DE DATOS (STORAGE) - MEJORADA ---
 function loadTimersFromStorage() {
     const storedTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
     let loadedTimers = [];
@@ -136,7 +211,6 @@ function loadTimersFromStorage() {
         let pinnedTimer = timers.find(t => t.isPinned);
 
         if (!pinnedTimer) {
-            // Si ningún temporizador está fijado explícitamente, fija el primero como respaldo.
             pinnedTimer = timers[0];
             timers[0].isPinned = true;
             saveTimersToStorage();
@@ -144,15 +218,12 @@ function loadTimersFromStorage() {
         
         pinnedTimerId = pinnedTimer.id;
 
-        // Reinicia el estado de ejecución de los temporizadores de cuenta regresiva al recargar
+        // Resetear estado de ejecución temporalmente - será restaurado por restoreActiveTimers()
         timers.forEach(timer => {
-            if (timer.type === 'countdown') {
-                timer.isRunning = false;
-            }
+            timer.isRunning = false;
         });
 
     } else {
-        // No hay temporizadores en el almacenamiento, crea uno predeterminado
         timers = [{
             id: `timer-default-${Date.now()}`,
             title: "Default Timer",
@@ -168,14 +239,11 @@ function loadTimersFromStorage() {
         saveTimersToStorage();
     }
 }
-// ================================================================
-// FIN DE LA CORRECCIÓN
-// ================================================================
 
 function saveTimersToStorage() {
     localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(timers));
+    saveTimerStates(); // Siempre guardar estados junto con los timers
 }
-
 
 // --- RENDERIZADO Y UI ---
 function renderAllTimerCards() {
@@ -352,8 +420,7 @@ function formatTime(ms, type = 'countdown') {
     }
 }
 
-
-// --- LÓGICA DEL TEMPORIZADOR ---
+// --- LÓGICA DEL TEMPORIZADOR - MEJORADA ---
 function startTimer(timerId) {
     const timer = timers.find(t => t.id === timerId);
     if (!timer || timer.isRunning) return;
@@ -365,8 +432,10 @@ function startTimer(timerId) {
         if (timer.remaining <= 0) return;
         startCountdownTimer(timer);
     }
+    
     updateTimerCardControls(timerId);
     updateMainControlsState();
+    saveTimerStates(); // Guardar estado inmediatamente
 }
 
 function startCountdownTimer(timer) {
@@ -375,6 +444,12 @@ function startCountdownTimer(timer) {
         timer.remaining -= 1000;
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
+        
+        // Guardar estado periódicamente (cada 5 segundos)
+        if (Math.floor(timer.remaining / 1000) % 5 === 0) {
+            saveTimerStates();
+        }
+        
         if (timer.remaining < 1000) {
             handleTimerEnd(timer.id);
         }
@@ -388,11 +463,17 @@ function startCountToDateTimer(timer) {
         timer.remaining = new Date(timer.targetDate).getTime() - Date.now();
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
+        
+        // Guardar estado periódicamente (cada 30 segundos para count-to-date)
+        if (Math.floor(Date.now() / 1000) % 30 === 0) {
+            saveTimerStates();
+        }
+        
         if (timer.remaining <= 0) {
             clearInterval(interval);
             activeTimers.delete(timer.id);
             timer.isRunning = false;
-            saveTimersToStorage();
+            saveTimerStates();
         }
     }, 1000);
     activeTimers.set(timer.id, interval);
@@ -406,6 +487,7 @@ function handleTimerEnd(timerId) {
 
     updateTimerCardControls(timerId);
     updateMainControlsState();
+    saveTimerStates(); // Guardar estado final
 
     if (timer.endAction === 'restart') {
         playAlarmSound(timer.sound);
@@ -428,14 +510,16 @@ function handleTimerEnd(timerId) {
     }
 }
 
-
 function pauseTimer(timerId) {
     const timer = timers.find(t => t.id === timerId);
     if (!timer || !timer.isRunning) return;
+    
     timer.isRunning = false;
     clearInterval(activeTimers.get(timerId));
     activeTimers.delete(timerId);
+    
     saveTimersToStorage();
+    saveTimerStates(); // Guardar estado de pausa
     updateTimerCardControls(timerId);
     updateMainControlsState();
 }
@@ -443,6 +527,7 @@ function pauseTimer(timerId) {
 function resetTimer(timerId) {
     const timer = timers.find(t => t.id === timerId);
     if (!timer) return;
+    
     pauseTimer(timerId);
     
     if(timer.type !== 'count_to_date') {
@@ -453,7 +538,9 @@ function resetTimer(timerId) {
     if (timer.id === pinnedTimerId) {
         updateMainDisplay();
     }
+    
     saveTimersToStorage();
+    saveTimerStates(); // Guardar estado de reset
     updateTimerCardControls(timerId);
     updateMainControlsState();
 }
@@ -467,9 +554,9 @@ function stopTimer(timerId, finished = false) {
         if (timer.id === pinnedTimerId) {
             updateMainDisplay();
         }
+        saveTimerStates(); // Guardar estado final
     }
 }
-
 
 // --- MANEJO DE EVENTOS ---
 function setupGlobalEventListeners() {
@@ -589,6 +676,7 @@ function handleDeleteTimer(timerId) {
     }
     
     saveTimersToStorage();
+    saveTimerStates(); // Limpiar estados del timer eliminado
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
@@ -605,6 +693,7 @@ function dismissTimer(timerId) {
     }
 }
 
+// --- EVENTOS GLOBALES ---
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.card-options-btn-wrapper')) {
         document.querySelectorAll('.card-options-menu').forEach(menu => {
@@ -612,3 +701,15 @@ document.addEventListener('click', (e) => {
         });
     }
 });
+
+// --- GUARDAR ESTADOS AL CERRAR LA APLICACIÓN ---
+window.addEventListener('beforeunload', () => {
+    saveTimerStates();
+});
+
+// --- GUARDAR ESTADOS PERIÓDICAMENTE ---
+setInterval(() => {
+    if (activeTimers.size > 0) {
+        saveTimerStates();
+    }
+}, 10000); // Cada 10 segundos

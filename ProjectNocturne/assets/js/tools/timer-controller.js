@@ -1,4 +1,4 @@
-// /assets/js/tools/timer-controller.js - Con persistencia de estado robusta
+// /assets/js/tools/timer-controller.js - Con persistencia de estado robusta y contenedores expandibles
 
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
@@ -6,14 +6,21 @@ import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interacti
 import { playAlarmSound, stopAlarmSound } from './alarm-controller.js';
 
 // --- ESTADO Y CONSTANTES ---
-const TIMERS_STORAGE_KEY = 'user-timers'; // Única clave para todo el estado
-let timers = [];
+const TIMERS_STORAGE_KEY = 'user-timers';
+const DEFAULT_TIMERS_STORAGE_KEY = 'default-timers-order';
+let userTimers = [];
+let defaultTimersState = [];
 let activeTimers = new Map();
 let pinnedTimerId = null;
 
-// --- NUEVA FUNCIÓN EXPORTADA ---
+const DEFAULT_TIMERS = [
+    { id: 'default-timer-1', title: 'Pomodoro (25 min)', type: 'countdown', initialDuration: 1500000, remaining: 1500000, endAction: 'restart', sound: 'gentle-chime', isRunning: false, isPinned: false },
+    { id: 'default-timer-2', title: 'Descanso Corto (5 min)', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful-tone', isRunning: false, isPinned: false },
+    { id: 'default-timer-3', title: 'Ejercicio (1 min)', type: 'countdown', initialDuration: 60000, remaining: 60000, endAction: 'restart', sound: 'digital-alarm', isRunning: false, isPinned: false }
+];
+
 export function getTimersCount() {
-    return timers.length;
+    return userTimers.length;
 }
 
 // --- INICIALIZACIÓN ---
@@ -22,116 +29,115 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeTimerController() {
-    loadAndRestoreTimers();      // Función unificada para cargar y restaurar
+    loadAndRestoreTimers();
     renderAllTimerCards();
     setupGlobalEventListeners();
     updateMainDisplay();
     initializeSortable();
     updateMainControlsState();
     updatePinnedStatesInUI();
+    updateTimerCounts();
     console.log('✅ Inicialización de timer completada.');
 }
 
-// --- LÓGICA DE CARGA, RESTAURACIÓN Y GUARDADO (UNIFICADA) ---
+// --- LÓGICA DE DATOS ---
 
-/**
- * Carga los temporizadores desde localStorage. Si un temporizador estaba corriendo,
- * recalcula el tiempo restante y reanuda su ejecución.
- */
 function loadAndRestoreTimers() {
-    const storedTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
-
-    // Si no hay temporizadores guardados, crea uno por defecto.
-    if (!storedTimers) {
-        timers = [{
-            id: `timer-default-${Date.now()}`,
-            title: "Default Timer",
-            type: 'countdown',
-            initialDuration: 300000,
-            remaining: 300000,
-            endAction: 'stop',
-            sound: 'classic-beep',
-            isRunning: false,
-            isPinned: true
-        }];
-        pinnedTimerId = timers[0].id;
-        saveTimersToStorage();
-        return;
+    // Cargar temporizadores de usuario
+    const storedUserTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
+    if (storedUserTimers) {
+        try {
+            userTimers = JSON.parse(storedUserTimers);
+        } catch (e) {
+            userTimers = [];
+        }
     }
 
-    try {
-        const loadedTimers = JSON.parse(storedTimers);
-        const now = Date.now();
+    // Cargar y sincronizar temporizadores predeterminados
+    const storedDefaultTimers = localStorage.getItem(DEFAULT_TIMERS_STORAGE_KEY);
+    if (storedDefaultTimers) {
+        try {
+            defaultTimersState = JSON.parse(storedDefaultTimers);
+            const defaultIds = new Set(defaultTimersState.map(t => t.id));
+            DEFAULT_TIMERS.forEach(defaultTimer => {
+                if (!defaultIds.has(defaultTimer.id)) {
+                    defaultTimersState.push({ ...defaultTimer });
+                }
+            });
+        } catch (e) {
+            defaultTimersState = JSON.parse(JSON.stringify(DEFAULT_TIMERS));
+        }
+    } else {
+        defaultTimersState = JSON.parse(JSON.stringify(DEFAULT_TIMERS));
+    }
 
-        timers = loadedTimers.map(timer => {
-            // Si el temporizador estaba corriendo cuando se cerró la página...
-            if (timer.isRunning) {
-                if (timer.type === 'countdown') {
-                    // Recalcula el tiempo restante basado en cuánto tiempo ha pasado desde el último guardado.
-                    const elapsedSinceLastSave = now - (timer.lastSaveTime || now);
-                    const newRemaining = Math.max(0, timer.remaining - elapsedSinceLastSave);
+    const allTimers = [...userTimers, ...defaultTimersState];
+    const now = Date.now();
 
-                    if (newRemaining > 0) {
-                        timer.remaining = newRemaining;
-                        startCountdownTimer(timer); // Reanuda el intervalo del temporizador.
-                        console.log(`🔄 Temporizador de cuenta atrás restaurado: ${timer.title}`);
-                    } else {
-                        timer.remaining = 0;
-                        timer.isRunning = false;
-                        // Opcional: Aquí se podría llamar a handleTimerEnd(timer.id) si se desea
-                        // que el sonido se active si el tiempo terminó mientras la página estaba cerrada.
-                    }
-                } else if (timer.type === 'count_to_date') {
-                    // Los temporizadores de fecha siempre se recalculan respecto a la fecha objetivo.
-                    // Esto asegura que nunca se "pausen".
-                    timer.remaining = new Date(timer.targetDate).getTime() - now;
-                    if (timer.remaining > 0) {
-                        startCountToDateTimer(timer); // Siempre están "corriendo".
-                        console.log(`🔄 Temporizador de fecha restaurado: ${timer.title}`);
-                    } else {
-                        timer.remaining = 0;
-                        timer.isRunning = false;
-                    }
+    allTimers.forEach(timer => {
+        if (timer.isRunning) {
+            if (timer.type === 'countdown') {
+                const elapsedSinceLastSave = now - (timer.lastSaveTime || now);
+                const newRemaining = Math.max(0, timer.remaining - elapsedSinceLastSave);
+                timer.remaining = newRemaining;
+                if (newRemaining > 0) {
+                    startCountdownTimer(timer);
+                } else {
+                    timer.isRunning = false;
+                }
+            } else if (timer.type === 'count_to_date') {
+                timer.remaining = new Date(timer.targetDate).getTime() - now;
+                if (timer.remaining > 0) {
+                    startCountToDateTimer(timer);
+                } else {
+                    timer.remaining = 0;
+                    timer.isRunning = false;
                 }
             }
-            return timer;
-        });
-
-        // Lógica para asegurar que siempre haya un temporizador fijado (pinned).
-        let pinnedTimer = timers.find(t => t.isPinned);
-        if (!pinnedTimer && timers.length > 0) {
-            pinnedTimer = timers[0];
-            pinnedTimer.isPinned = true;
-        }
-        pinnedTimerId = pinnedTimer ? pinnedTimer.id : null;
-        timers.forEach(t => t.isPinned = (t.id === pinnedTimerId));
-
-    } catch (error) {
-        console.error('Error al cargar o restaurar temporizadores. Se reseteará el estado.', error);
-        localStorage.removeItem(TIMERS_STORAGE_KEY);
-        timers = [];
-    }
-}
-
-/**
- * Guarda el array completo de temporizadores en localStorage.
- * Para los temporizadores en ejecución, actualiza su 'lastSaveTime'.
- */
-function saveTimersToStorage() {
-    const now = Date.now();
-    timers.forEach(timer => {
-        if (timer.isRunning) {
-            timer.lastSaveTime = now; // Marca la última vez que se guardó el estado.
         }
     });
-    localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(timers));
+
+    let pinnedTimer = allTimers.find(t => t.isPinned);
+    if (!pinnedTimer && allTimers.length > 0) {
+        pinnedTimer = allTimers[0];
+        pinnedTimer.isPinned = true;
+    }
+    pinnedTimerId = pinnedTimer ? pinnedTimer.id : null;
+    allTimers.forEach(t => t.isPinned = (t.id === pinnedTimerId));
+
+    saveTimersToStorage();
+    saveDefaultTimersOrder();
 }
 
 
-// --- LÓGICA DEL TEMPORIZADOR - MEJORADA ---
+function saveTimersToStorage() {
+    const now = Date.now();
+    userTimers.forEach(timer => {
+        if (timer.isRunning) {
+            timer.lastSaveTime = now;
+        }
+    });
+    localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(userTimers));
+}
+
+function saveDefaultTimersOrder() {
+    const now = Date.now();
+    defaultTimersState.forEach(timer => {
+        if (timer.isRunning) {
+            timer.lastSaveTime = now;
+        }
+    });
+    localStorage.setItem(DEFAULT_TIMERS_STORAGE_KEY, JSON.stringify(defaultTimersState));
+}
+
+function findTimerById(timerId) {
+    return userTimers.find(t => t.id === timerId) || defaultTimersState.find(t => t.id === timerId);
+}
+
+// --- LÓGICA DEL TEMPORIZADOR ---
 
 function startTimer(timerId) {
-    const timer = timers.find(t => t.id === timerId);
+    const timer = findTimerById(timerId);
     if (!timer || timer.isRunning) return;
 
     if (timer.type === 'count_to_date') {
@@ -144,7 +150,7 @@ function startTimer(timerId) {
     
     updateTimerCardControls(timerId);
     updateMainControlsState();
-    saveTimersToStorage(); // Guardar estado inmediatamente al iniciar.
+    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
 }
 
 function startCountdownTimer(timer) {
@@ -154,9 +160,8 @@ function startCountdownTimer(timer) {
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
         
-        // Guardar estado periódicamente (cada 2 segundos) para mayor precisión.
         if (Math.floor(timer.remaining / 1000) % 2 === 0) {
-            saveTimersToStorage();
+            if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
         }
         
         if (timer.remaining < 1000) {
@@ -177,75 +182,84 @@ function startCountToDateTimer(timer) {
             clearInterval(interval);
             activeTimers.delete(timer.id);
             timer.isRunning = false;
-            saveTimersToStorage(); // Guardar el estado final.
+            if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
         }
     }, 1000);
     activeTimers.set(timer.id, interval);
 }
 
+
 function pauseTimer(timerId) {
-    const timer = timers.find(t => t.id === timerId);
+    const timer = findTimerById(timerId);
     if (!timer || !timer.isRunning) return;
     
     timer.isRunning = false;
     clearInterval(activeTimers.get(timerId));
     activeTimers.delete(timerId);
     
-    saveTimersToStorage(); // Guardar el estado de pausa.
+    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
     updateTimerCardControls(timerId);
     updateMainControlsState();
 }
 
 function resetTimer(timerId) {
-    const timer = timers.find(t => t.id === timerId);
+    const timer = findTimerById(timerId);
     if (!timer) return;
     
-    // Pausar primero para detener cualquier intervalo.
     pauseTimer(timerId);
     
     if(timer.type !== 'count_to_date') {
         timer.remaining = timer.initialDuration;
     }
-    timer.isRunning = false; // Asegurarse de que el estado sea "no corriendo".
+    timer.isRunning = false;
     
     updateCardDisplay(timerId);
     if (timer.id === pinnedTimerId) {
         updateMainDisplay();
     }
     
-    saveTimersToStorage(); // Guardar el estado reseteado.
+    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
     updateTimerCardControls(timerId);
     updateMainControlsState();
 }
 
-// --- EVENTOS DE GUARDADO ---
 
-// Guardar el estado al cerrar o recargar la página.
-window.addEventListener('beforeunload', saveTimersToStorage);
-
-
-// --- FUNCIONES DE UI Y MANEJO DE EVENTOS (sin cambios significativos) ---
-// El resto de las funciones como addTimerAndRender, updateTimer, renderAllTimerCards, etc.,
-// se mantienen prácticamente iguales, ya que la lógica de guardado/carga está ahora centralizada.
-// Las he incluido aquí para que el archivo esté completo.
+// --- FUNCIONES DE UI Y MANEJO DE EVENTOS ---
 
 function initializeSortable() {
     if (!allowCardMovement) return;
-    const grid = document.querySelector('.timers-grid-container');
-    if (grid && typeof Sortable !== 'undefined') {
-        new Sortable(grid, {
+    const userGrid = document.querySelector('.timers-grid-container[data-timer-grid="user"]');
+    const defaultGrid = document.querySelector('.timers-grid-container[data-timer-grid="default"]');
+
+    if (userGrid && typeof Sortable !== 'undefined') {
+        new Sortable(userGrid, {
             animation: 150,
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
             onEnd: function() {
-                const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
-                timers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+                const newOrder = Array.from(userGrid.querySelectorAll('.timer-card')).map(card => card.id);
+                userTimers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
                 saveTimersToStorage();
             }
         });
     }
+
+     if (defaultGrid && typeof Sortable !== 'undefined') {
+        new Sortable(defaultGrid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onEnd: function() {
+                const newOrder = Array.from(defaultGrid.querySelectorAll('.timer-card')).map(card => card.id);
+                defaultTimersState.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+                saveDefaultTimersOrder();
+            }
+        });
+    }
 }
+
 
 export function addTimerAndRender(timerData) {
     const isCountToDate = timerData.type === 'count_to_date';
@@ -268,9 +282,9 @@ export function addTimerAndRender(timerData) {
         newTimer.sound = timerData.sound;
     }
 
-    timers.push(newTimer);
+    userTimers.push(newTimer);
 
-    if (timers.length === 1 || !timers.some(t => t.isPinned)) {
+    if ((userTimers.length + defaultTimersState.length) === 1 || ![...userTimers, ...defaultTimersState].some(t => t.isPinned)) {
         newTimer.isPinned = true;
         pinnedTimerId = newTimer.id;
     }
@@ -279,6 +293,7 @@ export function addTimerAndRender(timerData) {
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
+    updateTimerCounts();
 
     if (isCountToDate) {
         startTimer(newTimer.id);
@@ -286,27 +301,32 @@ export function addTimerAndRender(timerData) {
 }
 
 export function updateTimer(timerId, newData) {
-    const timerIndex = timers.findIndex(t => t.id === timerId);
-    if (timerIndex === -1) return;
+    const timerIndex = userTimers.findIndex(t => t.id === timerId);
+    const defaultTimerIndex = defaultTimersState.findIndex(t => t.id === timerId);
+
+    if (timerIndex === -1 && defaultTimerIndex === -1) return;
 
     if (activeTimers.has(timerId)) {
         clearInterval(activeTimers.get(timerId));
         activeTimers.delete(timerId);
     }
-
-    const oldTimer = timers[timerIndex];
+    
+    const isUserTimer = timerIndex !== -1;
+    const targetArray = isUserTimer ? userTimers : defaultTimersState;
+    const index = isUserTimer ? timerIndex : defaultTimerIndex;
+    const oldTimer = targetArray[index];
 
     if (newData.type === 'count_to_date') {
-        timers[timerIndex] = {
+        targetArray[index] = {
             ...oldTimer,
             title: newData.title,
             targetDate: newData.targetDate,
             remaining: new Date(newData.targetDate).getTime() - Date.now(),
-            isRunning: false // Will be restarted if needed
+            isRunning: false
         };
-        startTimer(timerId); // Restart the timer with new date
-    } else { // It's a countdown timer
-        timers[timerIndex] = {
+        startTimer(timerId);
+    } else {
+        targetArray[index] = {
             ...oldTimer,
             title: newData.title,
             initialDuration: newData.duration,
@@ -316,33 +336,45 @@ export function updateTimer(timerId, newData) {
             isRunning: false
         };
     }
-
-    saveTimersToStorage();
+    
+    if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
 }
 
+
 function renderAllTimerCards() {
-    const container = document.querySelector('.timers-grid-container');
-    if (!container) return;
+    const userContainer = document.querySelector('.timers-grid-container[data-timer-grid="user"]');
+    const defaultContainer = document.querySelector('.timers-grid-container[data-timer-grid="default"]');
+    if (!userContainer || !defaultContainer) return;
     
-    container.innerHTML = '';
+    userContainer.innerHTML = '';
+    defaultContainer.innerHTML = '';
     
-    timers.forEach(timer => {
+    userTimers.forEach(timer => {
         const card = createTimerCard(timer);
-        container.appendChild(card);
+        userContainer.appendChild(card);
+    });
+
+    defaultTimersState.forEach(timer => {
+        const card = createTimerCard(timer);
+        defaultContainer.appendChild(card);
     });
     
     setTimeout(() => {
         updatePinnedStatesInUI();
     }, 50);
 }
+
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'timer-card';
     card.id = timer.id;
     card.dataset.id = timer.id;
+    if (!timer.isRunning && timer.remaining <= 0) {
+        card.classList.add('timer-finished');
+    }
 
     const isCountdown = timer.type === 'countdown';
     const playPauseAction = timer.isRunning ? 'pause-card-timer' : 'start-card-timer';
@@ -401,7 +433,7 @@ function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
     if (!mainDisplay) return;
 
-    const pinnedTimer = timers.find(t => t.id === pinnedTimerId);
+    const pinnedTimer = findTimerById(pinnedTimerId);
     if (pinnedTimer) {
         mainDisplay.textContent = formatTime(pinnedTimer.remaining, pinnedTimer.type);
     } else {
@@ -418,8 +450,8 @@ function updateMainControlsState() {
     const resetBtn = section.querySelector('[data-action="reset-pinned-timer"]');
     const buttons = [startBtn, pauseBtn, resetBtn];
 
-    const hasTimers = timers.length > 0;
-    const pinnedTimer = timers.find(t => t.id === pinnedTimerId);
+    const hasTimers = (userTimers.length + defaultTimersState.length) > 0;
+    const pinnedTimer = findTimerById(pinnedTimerId);
     const isPinnedCountToDate = pinnedTimer && pinnedTimer.type === 'count_to_date';
 
     if (!hasTimers || isPinnedCountToDate) {
@@ -431,23 +463,25 @@ function updateMainControlsState() {
     }
 }
 
+
 function updateCardDisplay(timerId) {
     const card = document.getElementById(timerId);
     if (!card) return;
-    const timer = timers.find(t => t.id === timerId);
+    const timer = findTimerById(timerId);
     if (!timer) return;
 
     const timeElement = card.querySelector('.clock-time');
     if (timeElement) {
         timeElement.textContent = formatTime(timer.remaining, timer.type);
     }
+    card.classList.toggle('timer-finished', !timer.isRunning && timer.remaining <= 0);
 }
 
 function updateTimerCardControls(timerId) {
     const card = document.getElementById(timerId);
     if (!card) return;
 
-    const timer = timers.find(t => t.id === timerId);
+    const timer = findTimerById(timerId);
     if (!timer || timer.type !== 'countdown') return;
 
     const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
@@ -470,11 +504,12 @@ function updateTimerCardControls(timerId) {
 }
 
 function updatePinnedStatesInUI() {
-    if (!pinnedTimerId && timers.length > 0) {
-        const firstTimer = timers[0];
+    const allTimers = [...userTimers, ...defaultTimersState];
+    if (!pinnedTimerId && allTimers.length > 0) {
+        const firstTimer = allTimers[0];
         pinnedTimerId = firstTimer.id;
         firstTimer.isPinned = true;
-        saveTimersToStorage();
+        if (firstTimer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
     }
 
     document.querySelectorAll('.timer-card').forEach(card => {
@@ -510,10 +545,9 @@ function formatTime(ms, type = 'countdown') {
 }
 
 function handleTimerEnd(timerId) {
-    const timer = timers.find(t => t.id === timerId);
+    const timer = findTimerById(timerId);
     if (!timer || timer.type === 'count_to_date') return;
     
-    // Detiene el intervalo y actualiza el estado
     timer.isRunning = false;
     if (activeTimers.has(timerId)) {
         clearInterval(activeTimers.get(timerId));
@@ -525,7 +559,7 @@ function handleTimerEnd(timerId) {
     if (timer.id === pinnedTimerId) updateMainDisplay();
     updateTimerCardControls(timerId);
     updateMainControlsState();
-    saveTimersToStorage();
+    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
 
     if (timer.endAction === 'restart') {
         playAlarmSound(timer.sound);
@@ -535,12 +569,40 @@ function handleTimerEnd(timerId) {
             startTimer(timerId);
         }, 3000);
 
-    } else { // 'stop'
+    } else {
         playAlarmSound(timer.sound);
         const card = document.getElementById(timerId);
         card?.querySelector('.card-options-container')?.classList.add('active');
     }
 }
+
+function toggleTimersSection(type) {
+    const grid = document.querySelector(`.timers-grid-container[data-timer-grid="${type}"]`);
+    if (!grid) return;
+    const container = grid.closest('.timers-container');
+    if (!container) return;
+    const btn = container.querySelector('.collapse-timers-btn');
+    grid.classList.toggle('active');
+    btn.classList.toggle('expanded');
+}
+
+function updateTimerCounts() {
+    const userTimersCount = userTimers.length;
+    const defaultTimersCount = defaultTimersState.length;
+
+    const userCountBadge = document.querySelector('.timer-count-badge[data-count-for="user"]');
+    const defaultCountBadge = document.querySelector('.timer-count-badge[data-count-for="default"]');
+
+    if (userCountBadge) userCountBadge.textContent = userTimersCount;
+    if (defaultCountBadge) defaultCountBadge.textContent = defaultTimersCount;
+    
+    const userContainer = document.querySelector('.timers-container[data-container="user"]');
+    const defaultContainer = document.querySelector('.timers-container[data-container="default"]');
+
+    if(userContainer) userContainer.style.display = userTimersCount > 0 ? 'flex' : 'none';
+    if(defaultContainer) defaultContainer.style.display = defaultTimersCount > 0 ? 'flex' : 'none';
+}
+
 
 function setupGlobalEventListeners() {
     const section = document.querySelector('.section-timer');
@@ -556,8 +618,8 @@ function setupGlobalEventListeners() {
         if (pinnedTimerId) resetTimer(pinnedTimerId);
     });
 
-    const container = section.querySelector('.timers-grid-container');
-    container.addEventListener('click', (e) => {
+    const listWrapper = section.querySelector('.timers-list-wrapper');
+    listWrapper.addEventListener('click', (e) => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
 
@@ -579,13 +641,22 @@ function setupGlobalEventListeners() {
         }
     });
 
-    // Cierra menús de opciones si se hace clic fuera
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.card-options-btn-wrapper')) {
             document.querySelectorAll('.card-options-menu').forEach(menu => menu.style.display = 'none');
         }
     });
+
+    window.addEventListener('beforeunload', () => {
+        saveTimersToStorage();
+        saveDefaultTimersOrder();
+    });
+
+    window.timerManager = {
+        toggleTimersSection
+    };
 }
+
 
 function closeMenu(target) {
     const menu = target.closest('.card-options-menu');
@@ -595,14 +666,17 @@ function closeMenu(target) {
 function handlePinTimer(timerId) {
     if (pinnedTimerId === timerId) return;
     
+    const allTimers = [...userTimers, ...defaultTimersState];
+    allTimers.forEach(t => t.isPinned = (t.id === timerId));
     pinnedTimerId = timerId;
-    timers.forEach(t => t.isPinned = (t.id === timerId));
-    
+
     updatePinnedStatesInUI();
     updateMainDisplay();
     updateMainControlsState();
     saveTimersToStorage();
+    saveDefaultTimersOrder();
 }
+
 
 function toggleOptionsMenu(optionsBtn) {
     const menu = optionsBtn.parentElement.querySelector('.card-options-menu');
@@ -612,7 +686,7 @@ function toggleOptionsMenu(optionsBtn) {
 }
 
 function handleEditTimer(timerId) {
-    const timerData = timers.find(t => t.id === timerId);
+    const timerData = findTimerById(timerId);
     if (timerData) {
         if (timerData.type === 'count_to_date') {
             prepareCountToDateForEdit(timerData);
@@ -633,21 +707,34 @@ function handleDeleteTimer(timerId) {
         activeTimers.delete(timerId);
     }
     
-    timers = timers.filter(t => t.id !== timerId);
+    const userIndex = userTimers.findIndex(t => t.id === timerId);
+    if(userIndex !== -1) {
+        userTimers.splice(userIndex, 1);
+        saveTimersToStorage();
+    }
+
+    const defaultIndex = defaultTimersState.findIndex(t => t.id === timerId);
+    if(defaultIndex !== -1){
+        defaultTimersState.splice(defaultIndex, 1);
+        saveDefaultTimersOrder();
+    }
     
     if (pinnedTimerId === timerId) {
-        pinnedTimerId = timers.length > 0 ? timers[0].id : null;
+        const allTimers = [...userTimers, ...defaultTimersState];
+        pinnedTimerId = allTimers.length > 0 ? allTimers[0].id : null;
         if (pinnedTimerId) {
-             const newPinnedTimer = timers.find(t => t.id === pinnedTimerId);
+             const newPinnedTimer = findTimerById(pinnedTimerId);
              if(newPinnedTimer) newPinnedTimer.isPinned = true;
+             if (newPinnedTimer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
         }
     }
     
-    saveTimersToStorage();
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
+    updateTimerCounts();
 }
+
 
 function dismissTimer(timerId) {
     stopAlarmSound();
@@ -658,8 +745,7 @@ function dismissTimer(timerId) {
             optionsContainer.classList.remove('active');
         }
     }
-    const timer = timers.find(t => t.id === timerId);
-    // Cuando un temporizador con acción 'stop' es descartado, se resetea a su valor inicial.
+    const timer = findTimerById(timerId);
     if (timer && timer.endAction === 'stop') {
         resetTimer(timerId);
     }

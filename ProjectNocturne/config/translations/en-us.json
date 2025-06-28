@@ -199,7 +199,9 @@
     "edit_not_implemented_timer": "Editing for this type of timer is not implemented.",
     "delete_timer_confirm": "Are you sure you want to delete this timer?",
     "event_finished": "Event finished!",
-    "timer_limit_reached": "Timer limit of {limit} reached."
+    "timer_limit_reached": "Timer limit of {limit} reached.",
+    "my_timers": "My Timers",
+    "default_timers": "Default Timers"
   },
   "world_clock_options": {
     "options": "Clock options",

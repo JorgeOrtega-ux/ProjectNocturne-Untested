@@ -366,9 +366,6 @@
     gap: 8px;
 }
 
-/* ================================================================ */
-/* INICIO DE LA MODIFICACIÓN: Borde por defecto para .timer-card     */
-/* ================================================================ */
 .timer-card {
     position: relative;
     display: flex;
@@ -380,9 +377,10 @@
     border-radius: 12px;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-/* ================================================================ */
-/* FIN DE LA MODIFICACIÓN                                             */
-/* ================================================================ */
+
+.timer-card.timer-finished {
+    opacity: 0.6;
+}
 
 .timer-card .card-header {
     display: flex;
@@ -525,7 +523,6 @@
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-
 .card-header {
     display: flex;
     align-items: center;
@@ -597,7 +594,6 @@
 .dark-mode .card-menu-btn {
     color: #ffffff;
 }
-
 
 .dark-mode .card-menu-container {
     filter: unset;
@@ -822,8 +818,10 @@
     justify-content: space-between;
     background: #fff;
     border: 1px solid #00000020;
+    cursor: pointer;
     border-radius: 8px;
-    padding: 8px;
+    padding: 0 8px; 
+    height: 55px;
 }
 
 .dark-mode .alarms-header {
@@ -898,7 +896,6 @@
     transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-
 .dark-mode .alarm-card {
     background-color: #2e2f31;
     border-color: #ffffff18;
@@ -961,7 +958,6 @@
 .dark-mode .dismiss-timer-btn:hover {
     background-color: #81c784;
 }
-
 
 .alarm-card.alarm-disabled {
     opacity: 0.6;
@@ -1257,6 +1253,142 @@
 .dark-mode .alarms-header:hover {
     background-color: #ffffff20;
 }
+
+.timers-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+}
+.timers-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.timers-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #00000020;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 0 8px; 
+    height: 55px;
+}
+
+.dark-mode .timers-header {
+    border-bottom-color: #ffffff20;
+    background: #252627;
+    border-color: #ffffff20;
+}
+
+.timers-header:hover {
+    background-color: #f5f5fa;
+}
+
+.dark-mode .timers-header:hover {
+    background-color: #ffffff20;
+}
+
+
+.timers-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timers-header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    border-radius: 8px;
+    border: 1px solid #00000020;
+    height: 40px;
+}
+
+.dark-mode .timers-header-icon {
+    border-color: #ffffff20;
+}
+
+.timers-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #000000;
+}
+
+.dark-mode .timers-header h3 {
+    color: #ffffff;
+}
+
+.timers-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timer-count-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #000000;
+    background-color: #f5f5fa;
+    border-radius: 12px;
+}
+
+.dark-mode .timer-count-badge {
+    color: #ffffff;
+    background-color: #ffffff20;
+}
+
+.collapse-timers-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #000000;
+    transition: background-color 0.2s ease, transform 0.3s ease;
+}
+
+.dark-mode .collapse-timers-btn {
+    color: #ffffff;
+}
+
+.collapse-timers-btn:hover {
+    background-color: #f5f5fa;
+}
+
+.dark-mode .collapse-timers-btn:hover {
+    background-color: #ffffff20;
+}
+
+.collapse-timers-btn.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.timers-grid-container {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.timers-grid-container.active {
+    display: grid;
+}
+
 
 /* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
 .alarm-card,

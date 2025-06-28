@@ -1,6 +1,10 @@
 "use strict";
 import { use24HourFormat, deactivateModule } from '../general/main.js';
 import { getTranslation } from '../general/translations-controller.js';
+// =========================================================================
+// === CAMBIO CLAVE: Importar la función para crear la card del timer =======
+// =========================================================================
+import { addTimerAndRender } from './timer-controller.js';
 
 const initialState = {
     alarm: { hour: 0, minute: 0, sound: 'classic-beep' },
@@ -85,7 +89,7 @@ const setAlarmDefaults = () => {
 };
 
 const resetAlarmMenu = (menuElement) => {
-    setAlarmDefaults(); 
+    setAlarmDefaults();
     state.alarm.sound = 'classic-beep';
 
     const titleInput = menuElement.querySelector('#alarm-title');
@@ -184,7 +188,7 @@ const resetWorldClockMenu = (menuElement) => {
 export function prepareAlarmForEdit(alarmData) {
     const menuElement = getMenuElement('menuAlarm');
     if (!menuElement) return;
-    
+
     state.alarm.hour = alarmData.hour;
     state.alarm.minute = alarmData.minute;
     state.alarm.sound = alarmData.sound;
@@ -595,7 +599,7 @@ function setupGlobalEventListeners() {
                 state.worldClock.timezone = actionTarget.getAttribute('data-timezone');
                 break;
 
-          case 'createAlarm': {
+        case 'createAlarm': {
     const alarmTitleInput = parentMenu.querySelector('#alarm-title');
     const alarmTitle = alarmTitleInput ? alarmTitleInput.value.trim() : '';
     
@@ -633,7 +637,7 @@ function setupGlobalEventListeners() {
     }, 500);
     break;
 
-            } case 'saveAlarmChanges': {
+        } case 'saveAlarmChanges': {
                 const editingId = parentMenu.getAttribute('data-editing-id');
                 const alarmTitleInput = parentMenu.querySelector('#alarm-title');
                 const alarmTitle = alarmTitleInput ? alarmTitleInput.value.trim() : '';
@@ -676,21 +680,55 @@ function setupGlobalEventListeners() {
                 const timerMenu = parentMenu;
                 if (state.timer.currentTab === 'countdown') {
                     const timerTitleInput = timerMenu.querySelector('#timer-title');
-                    const timerTitle = timerTitleInput ? timerTitleInput.value.trim() : '';
+                    const timerTitle = timerTitleInput.value.trim() || getTranslation('timer.my_new_timer_placeholder', 'timer');
                     const { hours, minutes, seconds } = state.timer.duration;
-                    if (!timerTitle) { console.warn('⚠️ Se bloqueó la creación del temporizador: falta el título.'); return; }
-                    if (hours === 0 && minutes === 0 && seconds === 0) { console.warn('⚠️ Se bloqueó la creación del temporizador: la duración no puede ser cero.'); return; }
-                    const timerData = { type: 'countdown', title: timerTitle, duration: { ...state.timer.duration }, endAction: state.timer.endAction, sound: state.timer.sound };
-                    console.group("⏱️ Temporizador Creado (Countdown)"); console.log("Datos:", timerData); console.groupEnd();
-                } else {
+
+                    if (!timerTitle) {
+                        console.warn('⚠️ Se bloqueó la creación del temporizador: falta el título.');
+                        return;
+                    }
+                    if (hours === 0 && minutes === 0 && seconds === 0) {
+                        console.warn('⚠️ Se bloqueó la creación del temporizador: la duración no puede ser cero.');
+                        return;
+                    }
+                    
+                    const durationInMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+                    
+                    const timerData = {
+                        title: timerTitle,
+                        duration: durationInMs,
+                        endAction: state.timer.endAction,
+                        sound: state.timer.sound
+                    };
+
+                    // Llama a la función del controlador de timers para crear la card
+                    if (typeof addTimerAndRender === 'function') {
+                        addTimerAndRender(timerData);
+                    } else {
+                        console.error('La función addTimerAndRender no está disponible. Revisa las importaciones.');
+                        return;
+                    }
+                    
+                    // Cierra el menú de creación
+                    if (deactivateModule) {
+                        deactivateModule('overlayContainer', { source: 'create-timer' });
+                    }
+
+                } else { // Caso 'count_to_date'
                     const eventTitleInput = timerMenu.querySelector('#countto-title');
                     const eventTitle = eventTitleInput ? eventTitleInput.value.trim() : '';
                     const { selectedDate, selectedHour, selectedMinute } = state.timer.countTo;
+                    
                     if (!eventTitle) { console.warn('⚠️ Se bloqueó la creación del evento: falta el título.'); return; }
                     if (selectedDate == null) { console.warn('⚠️ Se bloqueó la creación del evento: falta seleccionar la fecha.'); return; }
                     if (typeof selectedHour !== 'number' || typeof selectedMinute !== 'number') { console.warn('⚠️ Se bloqueó la creación del evento: falta seleccionar la hora y los minutos.'); return; }
+                    
+                    // AVISO: La lógica para este tipo de timer aún no está conectada.
                     const eventData = { type: 'count_to_date', title: eventTitle, ...state.timer.countTo };
-                    console.group("📅 Temporizador Creado (Conteo a Fecha)"); console.log("Datos:", eventData); console.groupEnd();
+                    console.group("📅 Temporizador Creado (Conteo a Fecha) - LÓGICA PENDIENTE");
+                    console.log("Datos:", eventData);
+                    console.groupEnd();
+                    alert("La funcionalidad para crear un temporizador hasta una fecha específica aún no está implementada.");
                 }
                 break;
             }

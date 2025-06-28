@@ -365,6 +365,146 @@
 }
 
 /* ====================================== */
+/* ========= NUEVOS ESTILOS PARA TIMER CARDS ========= */
+/* ====================================== */
+.timers-grid-container {
+    display: grid;
+    padding: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+}
+
+.timer-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 8px;
+    background-color: #ffffff;
+    border: 1px solid #00000020;
+    border-radius: 12px;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.timer-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-weight: 500;
+    color: #000000;
+}
+
+.timer-card .card-location-details {
+    overflow: hidden;
+    flex: 1 1 auto;
+}
+
+.timer-card .location-text {
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timer-card .card-body {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.timer-card .clock-time {
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: #000000;
+    line-height: 1;
+}
+
+.timer-card .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.timer-card .card-buttons-container {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: none; /* Oculto por defecto */
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 2px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    filter: drop-shadow(0 2px 8px #00000020);
+}
+
+.timer-card:hover .card-buttons-container {
+    display: flex; /* Se muestra al pasar el mouse */
+}
+
+.timer-card .card-pin-btn,
+.timer-card .card-options-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: #000000;
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.timer-card .card-pin-btn:hover,
+.timer-card .card-options-btn:hover {
+    background-color: #f5f5fa;
+}
+
+.timer-card .card-pin-btn.active {
+    background-color: #e0e0e0;
+}
+
+.timer-card .card-options-menu {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    z-index: 10;
+    display: none; /* Oculto por defecto */
+    flex-direction: column;
+    width: 180px;
+    padding: 8px;
+    gap: 4px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    filter: drop-shadow(0 4px 12px #00000020);
+}
+
+.timer-card .card-options-btn-wrapper.active .card-options-menu {
+    display: flex; /* Se muestra al hacer clic en opciones */
+}
+
+.timer-card .card-options-menu .menu-link {
+    height: 36px;
+    font-size: 0.875rem;
+}
+
+.timer-card .card-options-menu .menu-link[data-action="delete-timer"] .menu-link-text span,
+.timer-card .card-options-menu .menu-link[data-action="delete-timer"] .menu-link-icon span {
+    color: #d32f2f;
+}
+
+.timer-card .card-options-menu .menu-link[data-action="delete-timer"]:hover {
+    background-color: rgba(229, 57, 53, 0.08);
+}
+
+
+/* ====================================== */
 /* ========= WORLD CLOCK CARDS ========== */
 /* ====================================== */
 .pinned-clocks-container {
@@ -1137,28 +1277,30 @@
 
 /* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
 .alarm-card,
-.world-clock-card {
+.world-clock-card,
+.timer-card { /* Añadido .timer-card */
     cursor: grab;
 }
 
 .alarm-card.sortable-drag,
-.world-clock-card.sortable-drag {
+.world-clock-card.sortable-drag,
+.timer-card.sortable-drag { /* Añadido .timer-card */
     cursor: grabbing;
 }
 
 .alarm-card.sortable-chosen,
-.world-clock-card.sortable-chosen {
+.world-clock-card.sortable-chosen,
+.timer-card.sortable-chosen { /* Añadido .timer-card */
     opacity: 0.9;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     transform: scale(1.03);
     cursor: grabbing;
 }
 
-/* ================== CORRECCIÓN APLICADA AQUÍ ================== */
 .alarm-card.sortable-ghost,
-.world-clock-card.sortable-ghost {
+.world-clock-card.sortable-ghost,
+.timer-card.sortable-ghost { /* Añadido .timer-card */
     opacity: 0.4;
-    background-color: #f5f5fa; /* Color de fondo neutro */
-    border: 1px solid #d0d0d0;   /* Borde sólido y sutil */
+    background-color: #f5f5fa;
+    border: 1px solid #d0d0d0;
 }
-/* ============================================================= */

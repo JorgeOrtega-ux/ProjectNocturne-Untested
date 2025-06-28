@@ -651,11 +651,6 @@ function setupGlobalEventListeners() {
         }
     });
 
-    window.addEventListener('beforeunload', () => {
-        saveTimersToStorage();
-        saveDefaultTimersOrder();
-    });
-
     window.timerManager = {
         toggleTimersSection
     };

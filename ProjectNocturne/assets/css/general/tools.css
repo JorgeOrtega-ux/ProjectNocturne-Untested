@@ -1296,7 +1296,17 @@
     align-items: center;
     gap: 8px;
 }
-
+.alarm-card:has(.card-dropdown-menu:not(.disabled)),
+.world-clock-card:has(.card-dropdown-menu:not(.disabled)),
+.timer-card:has(.card-options-btn-wrapper:focus-within) {
+    z-index: 20;
+    position: relative;
+}.alarm-card.sortable-chosen,
+.world-clock-card.sortable-chosen,
+.timer-card.sortable-chosen {
+    z-index: 30 !important;
+    position: relative;
+}
 .timers-header-icon {
     display: flex;
     align-items: center;

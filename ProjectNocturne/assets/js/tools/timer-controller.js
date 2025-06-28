@@ -11,6 +11,11 @@ let timers = [];
 let activeTimers = new Map();
 let pinnedTimerId = null;
 
+// --- NUEVA FUNCIÓN EXPORTADA ---
+export function getTimersCount() {
+    return timers.length;
+}
+
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
     initializeTimerController();

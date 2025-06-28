@@ -198,7 +198,8 @@
     "delete_timer": "Eliminar temporizador",
     "edit_not_implemented_timer": "La edición para este tipo de temporizador no está implementada.",
     "delete_timer_confirm": "¿Estás seguro de que quieres eliminar este temporizador?",
-    "event_finished": "¡Evento finalizado!"
+    "event_finished": "¡Evento finalizado!",
+    "timer_limit_reached": "Se alcanzó el límite de {limit} temporizadores."
   },
   "world_clock_options": {
     "options": "Opciones del reloj",

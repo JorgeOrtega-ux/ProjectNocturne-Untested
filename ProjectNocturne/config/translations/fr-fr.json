@@ -198,7 +198,8 @@
     "delete_timer": "Supprimer le minuteur",
     "edit_not_implemented_timer": "La modification pour ce type de minuteur n'est pas implémentée.",
     "delete_timer_confirm": "Êtes-vous sûr de vouloir supprimer ce minuteur ?",
-    "event_finished": "Événement terminé !"
+    "event_finished": "Événement terminé !",
+    "timer_limit_reached": "Limite de {limit} minuteries atteinte."
   },
   "world_clock_options": {
     "options": "Options de l'horloge",

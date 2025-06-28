@@ -1,7 +1,7 @@
 "use strict";
-import { use24HourFormat, deactivateModule } from '../general/main.js';
+import { use24HourFormat, deactivateModule, PREMIUM_FEATURES } from '../general/main.js';
 import { getTranslation } from '../general/translations-controller.js';
-import { addTimerAndRender, updateTimer } from './timer-controller.js';
+import { addTimerAndRender, updateTimer, getTimersCount } from './timer-controller.js';
 
 const initialState = {
     alarm: { hour: 0, minute: 0, sound: 'classic-beep' },
@@ -762,8 +762,15 @@ function setupGlobalEventListeners() {
                 }, 500);
                 break;
             }
-// =================== INICIO DE LA CORRECCIÓN ===================
+// =================== INICIO DE LA MODIFICACIÓN ===================
 case 'createTimer': {
+    const timerLimit = PREMIUM_FEATURES ? 10 : 3;
+    if (getTimersCount() >= timerLimit) {
+        const message = getTranslation('timer_limit_reached', 'timer').replace('{limit}', timerLimit);
+        alert(message);
+        return;
+    }
+
     const createButton = actionTarget;
     addSpinnerToCreateButton(createButton);
     const menuId = parentMenu.dataset.menu;
@@ -807,6 +814,7 @@ case 'createTimer': {
     }, 500);
     break;
 }
+// =================== FIN DE LA MODIFICACIÓN ===================
 
 case 'saveTimerChanges': {
     const editingId = parentMenu.getAttribute('data-editing-id');
@@ -870,7 +878,6 @@ case 'saveCountToDateChanges': {
     }, 500);
     break;
 }
-// =================== FIN DE LA CORRECCIÓN ===================
             case 'addWorldClock': {
                 const clockTitleInput = parentMenu.querySelector('#worldclock-title');
                 const clockTitle = clockTitleInput ? clockTitleInput.value.trim() : '';

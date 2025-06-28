@@ -1,7 +1,7 @@
 // /assets/js/tools/timer-controller.js
 
 import { getTranslation } from '../general/translations-controller.js';
-import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, switchToSection } from '../general/main.js';
+import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, switchToSection, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit } from './menu-interactions.js';
 import { playAlarmSound, stopAlarmSound } from './alarm-controller.js';
 
@@ -21,6 +21,29 @@ function initializeTimerController() {
     renderAllTimerCards();
     setupGlobalEventListeners();
     updateMainDisplay();
+    initializeSortable();
+    updateMainControlsState();
+}
+
+// --- INICIALIZACIÓN DE SORTABLEJS ---
+function initializeSortable() {
+    if (!allowCardMovement) return;
+    const grid = document.querySelector('.timers-grid-container');
+    if (grid && typeof Sortable !== 'undefined') {
+        new Sortable(grid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onEnd: function() {
+                const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
+                timers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+                saveTimersToStorage();
+            }
+        });
+    } else if (typeof Sortable === 'undefined') {
+        console.error('La librería SortableJS no está cargada. La función de arrastrar y soltar no funcionará.');
+    }
 }
 
 // --- CREACIÓN Y ACTUALIZACIÓN DE TEMPORIZADORES ---
@@ -56,7 +79,6 @@ export function addTimerAndRender(timerData) {
     renderAllTimerCards();
     updateMainDisplay();
     
-    // Iniciar el temporizador si es de tipo 'count_to_date'
     if (isCountToDate) {
         startTimer(newTimer.id);
     }
@@ -95,20 +117,18 @@ function loadTimersFromStorage() {
         const pinnedTimer = timers.find(t => t.isPinned);
         pinnedTimerId = pinnedTimer ? pinnedTimer.id : (timers.length > 0 ? timers[0].id : null);
         
-        // Reiniciar los temporizadores que estaban corriendo
         timers.forEach(timer => {
             if (timer.isRunning) {
                  if (timer.type === 'count_to_date') {
                     timer.remaining = new Date(timer.targetDate).getTime() - Date.now();
                     startTimer(timer.id);
                 } else {
-                    timer.isRunning = false; // Los de cuenta atrás se pausan al recargar
+                    timer.isRunning = false;
                 }
             }
         });
 
     } else {
-        // Estado inicial por defecto
         timers = [];
         pinnedTimerId = null;
         saveTimersToStorage();
@@ -132,11 +152,19 @@ function renderAllTimerCards() {
     updatePinnedStatesInUI();
 }
 
+// ================================================================
+// INICIO DE LA MODIFICACIÓN: createTimerCard actualizada
+// ================================================================
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'timer-card';
     card.id = timer.id;
     card.dataset.id = timer.id;
+
+    const isCountdown = timer.type === 'countdown';
+    const playPauseAction = timer.isRunning ? 'pause-card-timer' : 'start-card-timer';
+    const playPauseIcon = timer.isRunning ? 'pause' : 'play_arrow';
+    const playPauseTextKey = timer.isRunning ? 'pause' : 'play';
 
     card.innerHTML = `
         <div class="card-header">
@@ -156,6 +184,16 @@ function createTimerCard(timer) {
                     <span class="material-symbols-rounded">more_horiz</span>
                 </button>
                 <div class="card-options-menu" style="display: none;">
+                    ${isCountdown ? `
+                    <div class="menu-link" data-action="${playPauseAction}">
+                        <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
+                        <div class="menu-link-text"><span data-translate="${playPauseTextKey}" data-translate-category="tooltips">${getTranslation(playPauseTextKey, 'tooltips')}</span></div>
+                    </div>
+                    <div class="menu-link" data-action="reset-card-timer">
+                        <div class="menu-link-icon"><span class="material-symbols-rounded">refresh</span></div>
+                        <div class="menu-link-text"><span data-translate="reset" data-translate-category="tooltips">${getTranslation('reset', 'tooltips')}</span></div>
+                    </div>
+                    ` : ''}
                     <div class="menu-link" data-action="edit-timer">
                         <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                         <div class="menu-link-text"><span data-translate="edit_timer" data-translate-category="timer">${getTranslation('edit_timer', 'timer')}</span></div>
@@ -170,6 +208,9 @@ function createTimerCard(timer) {
     `;
     return card;
 }
+// ================================================================
+// FIN DE LA MODIFICACIÓN
+// ================================================================
 
 function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
@@ -180,6 +221,24 @@ function updateMainDisplay() {
         mainDisplay.textContent = formatTime(pinnedTimer.remaining, pinnedTimer.type);
     } else {
         mainDisplay.textContent = formatTime(0, 'countdown');
+    }
+}
+
+function updateMainControlsState() {
+    const section = document.querySelector('.section-timer');
+    if (!section) return;
+
+    const startBtn = section.querySelector('[data-action="start-pinned-timer"]');
+    const pauseBtn = section.querySelector('[data-action="pause-pinned-timer"]');
+    const resetBtn = section.querySelector('[data-action="reset-pinned-timer"]');
+    const buttons = [startBtn, pauseBtn, resetBtn];
+
+    const pinnedTimer = timers.find(t => t.id === pinnedTimerId);
+
+    if (pinnedTimer && pinnedTimer.type === 'count_to_date') {
+        buttons.forEach(btn => btn?.classList.add('disabled-interactive'));
+    } else {
+        buttons.forEach(btn => btn?.classList.remove('disabled-interactive'));
     }
 }
 
@@ -194,6 +253,38 @@ function updateCardDisplay(timerId) {
         timeElement.textContent = formatTime(timer.remaining, timer.type);
     }
 }
+
+// ================================================================
+// INICIO DE LA MODIFICACIÓN: Nueva función para actualizar botones de la tarjeta
+// ================================================================
+function updateTimerCardControls(timerId) {
+    const card = document.getElementById(timerId);
+    if (!card) return;
+
+    const timer = timers.find(t => t.id === timerId);
+    if (!timer || timer.type !== 'countdown') return;
+
+    const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
+    if (!playPauseLink) return;
+
+    const icon = playPauseLink.querySelector('.menu-link-icon span');
+    const text = playPauseLink.querySelector('.menu-link-text span');
+
+    if (timer.isRunning) {
+        playPauseLink.dataset.action = 'pause-card-timer';
+        icon.textContent = 'pause';
+        text.dataset.translate = 'pause';
+        text.textContent = getTranslation('pause', 'tooltips');
+    } else {
+        playPauseLink.dataset.action = 'start-card-timer';
+        icon.textContent = 'play_arrow';
+        text.dataset.translate = 'play';
+        text.textContent = getTranslation('play', 'tooltips');
+    }
+}
+// ================================================================
+// FIN DE LA MODIFICACIÓN
+// ================================================================
 
 function updatePinnedStatesInUI() {
     document.querySelectorAll('.timer-card').forEach(card => {
@@ -244,6 +335,7 @@ function startTimer(timerId) {
         if (timer.remaining <= 0) return;
         startCountdownTimer(timer);
     }
+    updateTimerCardControls(timerId); // <--- AÑADIDO
 }
 
 function startCountdownTimer(timer) {
@@ -294,6 +386,7 @@ function handleTimerEnd(timerId) {
         default:
             break;
     }
+    updateTimerCardControls(timerId); // <--- AÑADIDO
 }
 
 function pauseTimer(timerId) {
@@ -303,6 +396,7 @@ function pauseTimer(timerId) {
     clearInterval(activeTimers.get(timerId));
     activeTimers.delete(timerId);
     saveTimersToStorage();
+    updateTimerCardControls(timerId); // <--- AÑADIDO
 }
 
 function resetTimer(timerId) {
@@ -319,6 +413,7 @@ function resetTimer(timerId) {
         updateMainDisplay();
     }
     saveTimersToStorage();
+    updateTimerCardControls(timerId); // <--- AÑADIDO
 }
 
 function stopTimer(timerId, finished = false) {
@@ -335,6 +430,9 @@ function stopTimer(timerId, finished = false) {
 
 
 // --- MANEJO DE EVENTOS ---
+// ================================================================
+// INICIO DE LA MODIFICACIÓN: setupGlobalEventListeners actualizado
+// ================================================================
 function setupGlobalEventListeners() {
     const section = document.querySelector('.section-timer');
     if (!section) return;
@@ -355,6 +453,8 @@ function setupGlobalEventListeners() {
         if (!target) return;
 
         const card = target.closest('.timer-card');
+        if (!card) return;
+        
         const timerId = card.dataset.id;
         const action = target.dataset.action;
 
@@ -366,6 +466,18 @@ function setupGlobalEventListeners() {
                 e.stopPropagation();
                 toggleOptionsMenu(target);
                 break;
+            case 'start-card-timer':
+                startTimer(timerId);
+                target.closest('.card-options-menu').style.display = 'none';
+                break;
+            case 'pause-card-timer':
+                pauseTimer(timerId);
+                target.closest('.card-options-menu').style.display = 'none';
+                break;
+            case 'reset-card-timer':
+                resetTimer(timerId);
+                target.closest('.card-options-menu').style.display = 'none';
+                break;
             case 'edit-timer':
                 handleEditTimer(timerId);
                 break;
@@ -375,6 +487,9 @@ function setupGlobalEventListeners() {
         }
     });
 }
+// ================================================================
+// FIN DE LA MODIFICACIÓN
+// ================================================================
 
 function handlePinTimer(timerId) {
     if (pinnedTimerId === timerId) return;
@@ -384,6 +499,7 @@ function handlePinTimer(timerId) {
     
     updatePinnedStatesInUI();
     updateMainDisplay();
+    updateMainControlsState();
     saveTimersToStorage();
 }
 
@@ -436,6 +552,7 @@ function handleDeleteTimer(timerId) {
     saveTimersToStorage();
     renderAllTimerCards();
     updateMainDisplay();
+    updateMainControlsState();
 }
 
 document.addEventListener('click', (e) => {

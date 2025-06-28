@@ -191,9 +191,6 @@
     background-color: #f5f5fa;
 }
 
-/* ====================================== */
-/* ========= ESTILOS MENU TIMER ========= */
-/* ====================================== */
 .menu-tabs {
     display: flex;
     width: 100%;
@@ -239,7 +236,6 @@
     font-size: 1.2rem;
 }
 
-/* Calendario */
 .date-time-selector {
     position: relative;
     width: 100%;
@@ -324,7 +320,6 @@
     border: 1px solid #00000080;
 }
 
-/* Selector de Hora */
 .time-selector-container {
     height: 250px;
 }
@@ -364,9 +359,6 @@
     margin-top: 0;
 }
 
-/* ====================================== */
-/* ========= NUEVOS ESTILOS PARA TIMER CARDS ========= */
-/* ====================================== */
 .timers-grid-container {
     display: grid;
     padding: 8px;
@@ -432,7 +424,7 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    display: none; /* Oculto por defecto */
+    display: none;
     flex-direction: row;
     align-items: center;
     gap: 4px;
@@ -443,7 +435,7 @@
 }
 
 .timer-card:hover .card-buttons-container {
-    display: flex; /* Se muestra al pasar el mouse */
+    display: flex;
 }
 
 .timer-card .card-pin-btn,
@@ -475,7 +467,7 @@
     top: calc(100% + 5px);
     right: 0;
     z-index: 10;
-    display: none; /* Oculto por defecto */
+    display: none;
     flex-direction: column;
     width: 180px;
     padding: 8px;
@@ -486,7 +478,7 @@
 }
 
 .timer-card .card-options-btn-wrapper.active .card-options-menu {
-    display: flex; /* Se muestra al hacer clic en opciones */
+    display: flex; 
 }
 
 .timer-card .card-options-menu .menu-link {
@@ -503,10 +495,6 @@
     background-color: rgba(229, 57, 53, 0.08);
 }
 
-
-/* ====================================== */
-/* ========= WORLD CLOCK CARDS ========== */
-/* ====================================== */
 .pinned-clocks-container {
     margin-bottom: 16px;
 }
@@ -692,22 +680,17 @@
 .card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-icon span {
     font-weight: 500;
     color: #d32f2f;
-    /* Slightly less intense red */
 }
 
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover {
     background-color: rgba(229, 57, 53, 0.08);
-    /* Light, transparent red */
 }
 
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-text span,
 .card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-icon span {
     color: #b71c1c;
-    /* Darker red on hover */
 }
 
-
-/* Badge Styles */
 .badges-container {
     display: flex;
     gap: 8px;
@@ -773,7 +756,6 @@
 }
 
 .zoneInfoTool {
-    /* Estilos del contenedor principal */
     width: auto;
     padding: 0 12px;
     flex: 0 0 auto;
@@ -786,18 +768,15 @@
     border: 1px solid #00000020;
     border-radius: 8px;
     min-width: 120px;
-    /* IMPORTANTE: overflow hidden aquí para contener al span */
     overflow: hidden;
 }
 
 .zoneInfoTool span {
-    /* Estilos para el texto y la elipsis */
     width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: center;
-    /* Opcional, para centrar el texto si no se desborda */
 }
 
 .pinned-clock-display {
@@ -824,10 +803,6 @@
     font-size: 1rem;
     opacity: 0.7;
 }
-
-/* ====================================== */
-/* ========== ALARMAS SECTION =========== */
-/* ====================================== */
 
 .alarms-container {
     width: 100%;
@@ -905,8 +880,6 @@
     display: grid;
 }
 
-
-/* ========== ALARM CARDS ========== */
 .alarm-card {
     position: relative;
     display: flex;
@@ -925,7 +898,6 @@
     border-color: #ffffff18;
 }
 
-/* ========== ALARM CARD OPTIONS ========== */
 .card-options-container {
     display: none;
     position: absolute;
@@ -960,16 +932,6 @@
 .dark-mode .dismiss-alarm-btn:hover {
     background-color: #ef9a9a;
 }
-
-.alarm-card:hover {
-    /* No hay estilos de sombra ni transformación aquí */
-}
-
-.dark-mode .alarm-card:hover {
-    /* No hay estilos de sombra ni transformación aquí */
-}
-
-
 
 .alarm-card.alarm-disabled {
     opacity: 0.6;
@@ -1014,7 +976,6 @@
     color: #ffffff;
 }
 
-/* ========== ALARM CARD FOOTER ========== */
 .alarm-card .card-footer {
     display: flex;
     justify-content: space-between;
@@ -1042,7 +1003,6 @@
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* ========== ALARM MENU CONTAINER ========== */
 .alarm-card .card-menu-container {
     position: absolute;
     top: 5px;
@@ -1163,7 +1123,6 @@
     color: #ef9a9a;
 }
 
-/* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 768px) {
     .alarms-grid {
         grid-template-columns: 1fr;
@@ -1183,11 +1142,7 @@
     flex-direction: column;
     padding: 8px;
     gap: 8px;
-}/* ====================================== */
-/* ESTILOS AÑADIDOS PARA ALARMS HEADER  */
-/* ====================================== */
-
-/* Contenedor principal del header */
+}
 .alarms-header {
     display: flex;
     align-items: center;
@@ -1196,21 +1151,18 @@
     border: 1px solid #00000020;
     cursor: pointer;
     border-radius: 8px;
-    padding: 0 8px; /* Ajuste de padding */
-    height: 55px; /* Altura fija para consistencia */
+    padding: 0 8px; 
+    height: 55px;
 }
 
-/* Parte izquierda del header (ícono y título) */
 .alarms-header-left {
     display: flex;
     align-items: center;
-    gap: 8px; /* Espacio entre ícono y texto */
+    gap: 8px;
 }
 
-/* Contenedor del ícono */
 .alarms-header-icon {
-    display: flex
-;
+    display: flex;
     align-items: center;
     justify-content: center;
     width: 40px;
@@ -1224,17 +1176,14 @@
     font-weight: 500;
 }
 
-/* Parte derecha del header (badge y botón) */
 .alarms-header-right {
     display: flex;
     align-items: center;
-    gap: 8px; /* Espacio entre badge y botón */
+    gap: 8px;
 }
 
-/* Estilos para el badge de número de alarmas */
 .alarm-count-badge {
-    display: flex
-;
+    display: flex;
     align-items: center;
     justify-content: center;
     min-width: 24px;
@@ -1247,7 +1196,6 @@
     border-radius: 12px;
 }
 
-/* --- Dark Mode --- */
 .dark-mode .alarms-header {
     background: #252627;
     border-color: #ffffff20;
@@ -1274,6 +1222,38 @@
 .dark-mode .alarms-header:hover {
     background-color: #ffffff20;
 }
+
+/* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
+.alarm-card,
+.world-clock-card,
+.timer-card { 
+    cursor: grab;
+}
+
+.alarm-card.sortable-drag,
+.world-clock-card.sortable-drag,
+.timer-card.sortable-drag { 
+    cursor: grabbing;
+}
+
+.alarm-card.sortable-chosen,
+.world-clock-card.sortable-chosen,
+.timer-card.sortable-chosen {
+    opacity: 0.9;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    transform: scale(1.03);
+    cursor: grabbing;
+}
+
+.alarm-card.sortable-ghost,
+.world-clock-card.sortable-ghost,
+.timer-card.sortable-ghost {
+    opacity: 0.4;
+    background-color: #f5f5fa;
+    border: 1px dashed #d0d0d0;
+}/* /assets/css/general/tools.css */
+
+/* ... (código existente) ... */
 
 /* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
 .alarm-card,

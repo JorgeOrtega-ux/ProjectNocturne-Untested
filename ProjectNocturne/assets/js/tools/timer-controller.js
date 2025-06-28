@@ -754,3 +754,5 @@ function dismissTimer(timerId) {
         resetTimer(timerId);
     }
 }
+
+export { initializeTimerController };

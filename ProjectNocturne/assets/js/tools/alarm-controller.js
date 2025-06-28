@@ -2,8 +2,12 @@
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 
+// ========== CAMBIO CLAVE: EXPORTAR FUNCIONES DE SONIDO ==========
+export { playAlarmSound, stopAlarmSound };
+// ===============================================================
+
 const ALARMS_STORAGE_KEY = 'user-alarms';
-const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order'; // Nueva clave para el orden de alarmas predeterminadas
+const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
 const ALARM_SOUND_PATTERNS = {
     'classic-beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
     'gentle-chime': { frequencies: [523.25, 659.25, 783.99], beepDuration: 300, pauseDuration: 500, type: 'sine' },
@@ -253,7 +257,6 @@ function toggleAlarm(alarmId) {
     if (alarm.type === 'user') {
         saveAlarmsToStorage();
     } else if (alarm.type === 'default') {
-        // Guardar el orden de las alarmas predeterminadas cuando se modifica una
         saveDefaultAlarmsOrder();
     }
     if (alarm.enabled) {
@@ -343,22 +346,18 @@ function saveAlarmsToStorage() {
     localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(userAlarms));
 }
 
-// Nueva función para guardar el orden de las alarmas predeterminadas
 function saveDefaultAlarmsOrder() {
     localStorage.setItem(DEFAULT_ALARMS_STORAGE_KEY, JSON.stringify(defaultAlarmsState));
 }
 
-// Nueva función para cargar el orden de las alarmas predeterminadas
 function loadDefaultAlarmsOrder() {
     const stored = localStorage.getItem(DEFAULT_ALARMS_STORAGE_KEY);
     if (stored) {
         try {
             defaultAlarmsState = JSON.parse(stored);
-            // Verificar que todas las alarmas por defecto estén presentes
             const defaultIds = new Set(defaultAlarmsState.map(alarm => alarm.id));
             const originalIds = new Set(DEFAULT_ALARMS.map(alarm => alarm.id));
             
-            // Si faltan alarmas por defecto, agregar las que faltan
             DEFAULT_ALARMS.forEach(defaultAlarm => {
                 if (!defaultIds.has(defaultAlarm.id)) {
                     defaultAlarmsState.push({...defaultAlarm});
@@ -366,11 +365,9 @@ function loadDefaultAlarmsOrder() {
             });
         } catch (error) {
             console.warn('Error loading default alarms order:', error);
-            // Si hay error, usar el orden por defecto
             defaultAlarmsState = JSON.parse(JSON.stringify(DEFAULT_ALARMS));
         }
     } else {
-        // Si no hay orden guardado, usar el orden por defecto
         defaultAlarmsState = JSON.parse(JSON.stringify(DEFAULT_ALARMS));
     }
 }
@@ -388,7 +385,6 @@ function loadAlarmsFromStorage() {
 }
 
 function loadDefaultAlarms() {
-    // Cargar el orden guardado de las alarmas predeterminadas
     loadDefaultAlarmsOrder();
     
     defaultAlarmsState.forEach(alarm => {
@@ -440,7 +436,6 @@ function startClock() {
     clockInterval = setInterval(updateLocalTime, 1000);
 }
 
-// Función mejorada para inicializar el sortable en ambas grillas
 function initializeSortableAlarms() {
     if (!allowCardMovement) return;
 
@@ -452,7 +447,6 @@ function initializeSortableAlarms() {
         return;
     }
 
-    // Configuración para la grilla de alarmas de usuario
     if (userGrid) {
         new Sortable(userGrid, {
             animation: 150,
@@ -470,7 +464,6 @@ function initializeSortableAlarms() {
         });
     }
 
-    // Configuración para la grilla de alarmas predeterminadas
     if (defaultGrid) {
         new Sortable(defaultGrid, {
             animation: 150,

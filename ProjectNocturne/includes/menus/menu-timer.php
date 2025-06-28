@@ -66,10 +66,6 @@
                                             <div class="menu-link-icon"><span class="material-symbols-rounded">replay</span></div>
                                             <div class="menu-link-text"><span data-translate="restart_timer" data-translate-category="timer">Reiniciar temporizador</span></div>
                                         </div>
-                                        <div class="menu-link" data-action="selectTimerEndAction" data-end-action="stopwatch">
-                                            <div class="menu-link-icon"><span class="material-symbols-rounded">play_arrow</span></div>
-                                            <div class="menu-link-text"><span data-translate="start_as_stopwatch" data-translate-category="timer">Iniciar como cronómetro</span></div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

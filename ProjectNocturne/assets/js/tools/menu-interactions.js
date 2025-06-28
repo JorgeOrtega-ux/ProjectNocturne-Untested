@@ -1,10 +1,7 @@
 "use strict";
 import { use24HourFormat, deactivateModule } from '../general/main.js';
 import { getTranslation } from '../general/translations-controller.js';
-// =========================================================================
-// === CAMBIO CLAVE: Importar la función para crear la card del timer =======
-// =========================================================================
-import { addTimerAndRender } from './timer-controller.js';
+import { addTimerAndRender, updateTimer } from './timer-controller.js';
 
 const initialState = {
     alarm: { hour: 0, minute: 0, sound: 'classic-beep' },
@@ -139,6 +136,18 @@ const resetTimerMenu = (menuElement) => {
     updateDisplay('#selected-minute-display', '--', menuElement);
     resetDropdownDisplay(menuElement, '#timer-selected-end-action', 'stop_timer', 'timer');
     resetDropdownDisplay(menuElement, '#timer-selected-sound', 'classic_beep', 'sounds');
+
+    const createButton = menuElement.querySelector('.create-tool');
+    if (createButton) {
+        createButton.dataset.action = 'createTimer';
+        const buttonText = createButton.querySelector('span');
+        if (buttonText) {
+            buttonText.setAttribute('data-translate', 'create_timer');
+            buttonText.setAttribute('data-translate-category', 'timer');
+            buttonText.textContent = getTranslation('create_timer', 'timer');
+        }
+    }
+    menuElement.removeAttribute('data-editing-id');
 };
 
 const resetWorldClockMenu = (menuElement) => {
@@ -212,6 +221,43 @@ export function prepareAlarmForEdit(alarmData) {
     }
     menuElement.setAttribute('data-editing-id', alarmData.id);
 }
+
+export function prepareTimerForEdit(timerData) {
+    const menuElement = getMenuElement('menuTimer');
+    if (!menuElement) return;
+
+    state.timer.currentTab = 'countdown';
+    updateTimerTabView(menuElement);
+
+    const durationInMs = timerData.initialDuration;
+    const totalSeconds = Math.floor(durationInMs / 1000);
+    state.timer.duration.hours = Math.floor(totalSeconds / 3600);
+    state.timer.duration.minutes = Math.floor((totalSeconds % 3600) / 60);
+    state.timer.duration.seconds = totalSeconds % 60;
+    
+    state.timer.endAction = timerData.endAction;
+    state.timer.sound = timerData.sound;
+
+    const titleInput = menuElement.querySelector('#timer-title');
+    if (titleInput) titleInput.value = timerData.title;
+
+    updateTimerDurationDisplay(menuElement);
+    updateDisplay('#timer-selected-end-action', getTranslation(`${timerData.endAction}_timer`, 'timer'), menuElement);
+    updateDisplay('#timer-selected-sound', getTranslation(timerData.sound, 'sounds'), menuElement);
+    
+    const createButton = menuElement.querySelector('.create-tool');
+    if (createButton) {
+        createButton.dataset.action = 'saveTimerChanges';
+        const buttonText = createButton.querySelector('span');
+        if (buttonText) {
+            buttonText.setAttribute('data-translate', 'save_changes');
+            buttonText.setAttribute('data-translate-category', 'timer');
+            buttonText.textContent = getTranslation('save_changes', 'timer');
+        }
+    }
+    menuElement.setAttribute('data-editing-id', timerData.id);
+}
+
 
 export function prepareWorldClockForEdit(clockData) {
     const menuElement = getMenuElement('menuWorldClock');
@@ -680,7 +726,7 @@ function setupGlobalEventListeners() {
                 const timerMenu = parentMenu;
                 if (state.timer.currentTab === 'countdown') {
                     const timerTitleInput = timerMenu.querySelector('#timer-title');
-                    const timerTitle = timerTitleInput.value.trim() || getTranslation('timer.my_new_timer_placeholder', 'timer');
+                    const timerTitle = timerTitleInput.value.trim() || getTranslation('my_new_timer_placeholder', 'timer');
                     const { hours, minutes, seconds } = state.timer.duration;
 
                     if (!timerTitle) {
@@ -695,26 +741,25 @@ function setupGlobalEventListeners() {
                     const durationInMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
                     
                     const timerData = {
+                        type: 'countdown',
                         title: timerTitle,
                         duration: durationInMs,
                         endAction: state.timer.endAction,
                         sound: state.timer.sound
                     };
 
-                    // Llama a la función del controlador de timers para crear la card
                     if (typeof addTimerAndRender === 'function') {
                         addTimerAndRender(timerData);
                     } else {
-                        console.error('La función addTimerAndRender no está disponible. Revisa las importaciones.');
+                        console.error('La función addTimerAndRender no está disponible.');
                         return;
                     }
                     
-                    // Cierra el menú de creación
                     if (deactivateModule) {
                         deactivateModule('overlayContainer', { source: 'create-timer' });
                     }
 
-                } else { // Caso 'count_to_date'
+                } else {
                     const eventTitleInput = timerMenu.querySelector('#countto-title');
                     const eventTitle = eventTitleInput ? eventTitleInput.value.trim() : '';
                     const { selectedDate, selectedHour, selectedMinute } = state.timer.countTo;
@@ -723,12 +768,59 @@ function setupGlobalEventListeners() {
                     if (selectedDate == null) { console.warn('⚠️ Se bloqueó la creación del evento: falta seleccionar la fecha.'); return; }
                     if (typeof selectedHour !== 'number' || typeof selectedMinute !== 'number') { console.warn('⚠️ Se bloqueó la creación del evento: falta seleccionar la hora y los minutos.'); return; }
                     
-                    // AVISO: La lógica para este tipo de timer aún no está conectada.
-                    const eventData = { type: 'count_to_date', title: eventTitle, ...state.timer.countTo };
-                    console.group("📅 Temporizador Creado (Conteo a Fecha) - LÓGICA PENDIENTE");
-                    console.log("Datos:", eventData);
-                    console.groupEnd();
-                    alert("La funcionalidad para crear un temporizador hasta una fecha específica aún no está implementada.");
+                    const targetDate = new Date(selectedDate);
+                    targetDate.setHours(selectedHour, selectedMinute, 0, 0);
+
+                    const timerData = {
+                        type: 'count_to_date',
+                        title: eventTitle,
+                        targetDate: targetDate.toISOString()
+                    };
+
+                    if (typeof addTimerAndRender === 'function') {
+                        addTimerAndRender(timerData);
+                    } else {
+                        console.error('La función addTimerAndRender no está disponible.');
+                        return;
+                    }
+
+                     if (deactivateModule) {
+                        deactivateModule('overlayContainer', { source: 'create-timer-count-to-date' });
+                    }
+                }
+                break;
+            }
+            case 'saveTimerChanges': {
+                const editingId = parentMenu.getAttribute('data-editing-id');
+                const timerTitleInput = parentMenu.querySelector('#timer-title');
+                const timerTitle = timerTitleInput.value.trim() || getTranslation('my_new_timer_placeholder', 'timer');
+                const { hours, minutes, seconds } = state.timer.duration;
+
+                if (!editingId) return;
+
+                 if (hours === 0 && minutes === 0 && seconds === 0) {
+                    console.warn('⚠️ Se bloqueó la edición del temporizador: la duración no puede ser cero.');
+                    return;
+                }
+
+                const durationInMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+
+                const timerData = {
+                    title: timerTitle,
+                    duration: durationInMs,
+                    endAction: state.timer.endAction,
+                    sound: state.timer.sound
+                };
+
+                if (typeof updateTimer === 'function') {
+                    updateTimer(editingId, timerData);
+                } else {
+                    console.error('La función updateTimer no está disponible.');
+                    return;
+                }
+
+                if (deactivateModule) {
+                    deactivateModule('overlayContainer', { source: 'save-timer' });
                 }
                 break;
             }

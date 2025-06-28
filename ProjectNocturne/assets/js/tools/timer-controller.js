@@ -2,7 +2,7 @@
 
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
-import { prepareTimerForEdit } from './menu-interactions.js';
+import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
 import { playAlarmSound, stopAlarmSound } from './alarm-controller.js';
 
 // --- ESTADO Y CONSTANTES ---
@@ -290,15 +290,27 @@ export function updateTimer(timerId, newData) {
     }
 
     const oldTimer = timers[timerIndex];
-    timers[timerIndex] = {
-        ...oldTimer,
-        title: newData.title,
-        initialDuration: newData.duration,
-        remaining: newData.duration,
-        endAction: newData.endAction,
-        sound: newData.sound,
-        isRunning: false
-    };
+
+    if (newData.type === 'count_to_date') {
+        timers[timerIndex] = {
+            ...oldTimer,
+            title: newData.title,
+            targetDate: newData.targetDate,
+            remaining: new Date(newData.targetDate).getTime() - Date.now(),
+            isRunning: false // Will be restarted if needed
+        };
+        startTimer(timerId); // Restart the timer with new date
+    } else { // It's a countdown timer
+        timers[timerIndex] = {
+            ...oldTimer,
+            title: newData.title,
+            initialDuration: newData.duration,
+            remaining: newData.duration,
+            endAction: newData.endAction,
+            sound: newData.sound,
+            isRunning: false
+        };
+    }
 
     saveTimersToStorage();
     renderAllTimerCards();
@@ -597,11 +609,11 @@ function toggleOptionsMenu(optionsBtn) {
 function handleEditTimer(timerId) {
     const timerData = timers.find(t => t.id === timerId);
     if (timerData) {
-        if(timerData.type === 'count_to_date') {
-            alert(getTranslation('edit_not_implemented_timer', 'timer') || "La edición para este tipo de temporizador no está implementada.");
-            return;
+        if (timerData.type === 'count_to_date') {
+            prepareCountToDateForEdit(timerData);
+        } else {
+            prepareTimerForEdit(timerData);
         }
-        prepareTimerForEdit(timerData);
         if (getCurrentActiveOverlay() !== 'menuTimer') {
             activateModule('toggleMenuTimer');
         }
@@ -640,5 +652,10 @@ function dismissTimer(timerId) {
         if (optionsContainer) {
             optionsContainer.classList.remove('active');
         }
+    }
+    const timer = timers.find(t => t.id === timerId);
+    // Cuando un temporizador con acción 'stop' es descartado, se resetea a su valor inicial.
+    if (timer && timer.endAction === 'stop') {
+        resetTimer(timerId);
     }
 }

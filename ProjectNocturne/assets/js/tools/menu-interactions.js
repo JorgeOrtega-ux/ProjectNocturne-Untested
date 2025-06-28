@@ -261,6 +261,43 @@ export function prepareTimerForEdit(timerData) {
     menuElement.setAttribute('data-editing-id', timerData.id);
 }
 
+export function prepareCountToDateForEdit(timerData) {
+    const menuElement = getMenuElement('menuTimer');
+    if (!menuElement) return;
+
+    // Switch to the 'count_to_date' tab
+    state.timer.currentTab = 'count_to_date';
+    updateTimerTabView(menuElement);
+
+    // Populate the form fields
+    const titleInput = menuElement.querySelector('#countto-title');
+    if (titleInput) titleInput.value = timerData.title;
+
+    const targetDate = new Date(timerData.targetDate);
+    state.timer.countTo.date = targetDate;
+    state.timer.countTo.selectedDate = targetDate.toISOString();
+    state.timer.countTo.selectedHour = targetDate.getHours();
+    state.timer.countTo.selectedMinute = targetDate.getMinutes();
+
+    updateDisplay('#selected-date-display', targetDate.toLocaleDateString(), menuElement);
+    updateDisplay('#selected-hour-display', String(targetDate.getHours()).padStart(2, '0'), menuElement);
+    updateDisplay('#selected-minute-display', String(targetDate.getMinutes()).padStart(2, '0'), menuElement);
+    renderCalendar(menuElement);
+
+    // Change the button to "Save Changes"
+    const createButton = menuElement.querySelector('.create-tool');
+    if (createButton) {
+        createButton.dataset.action = 'saveCountToDateChanges';
+        const buttonText = createButton.querySelector('span');
+        if (buttonText) {
+            buttonText.setAttribute('data-translate', 'save_changes');
+            buttonText.setAttribute('data-translate-category', 'timer');
+            buttonText.textContent = getTranslation('save_changes', 'timer');
+        }
+    }
+    menuElement.setAttribute('data-editing-id', timerData.id);
+}
+
 
 export function prepareWorldClockForEdit(clockData) {
     const menuElement = getMenuElement('menuWorldClock');
@@ -799,6 +836,40 @@ case 'saveTimerChanges': {
     }, 500);
     break;
 }
+case 'saveCountToDateChanges': {
+    const editingId = parentMenu.getAttribute('data-editing-id');
+    if (!editingId) return;
+
+    const saveButton = actionTarget;
+    addSpinnerToCreateButton(saveButton);
+    const menuId = parentMenu.dataset.menu;
+
+    if (menuTimeouts[menuId]) clearTimeout(menuTimeouts[menuId]);
+
+    menuTimeouts[menuId] = setTimeout(() => {
+        const eventTitleInput = parentMenu.querySelector('#countto-title');
+        const eventTitle = eventTitleInput ? eventTitleInput.value.trim() : '';
+        const { selectedDate, selectedHour, selectedMinute } = state.timer.countTo;
+
+        if (eventTitle && selectedDate != null && typeof selectedHour === 'number' && typeof selectedMinute === 'number') {
+            const targetDate = new Date(selectedDate);
+            targetDate.setHours(selectedHour, selectedMinute, 0, 0);
+
+            updateTimer(editingId, {
+                type: 'count_to_date',
+                title: eventTitle,
+                targetDate: targetDate.toISOString()
+            });
+            deactivateModule('overlayContainer', { source: 'save-timer' });
+        } else {
+            removeSpinnerFromCreateButton(saveButton);
+        }
+
+        resetTimerMenu(parentMenu);
+        delete menuTimeouts[menuId];
+    }, 500);
+    break;
+}
 // =================== FIN DE LA CORRECCIÓN ===================
             case 'addWorldClock': {
                 const clockTitleInput = parentMenu.querySelector('#worldclock-title');
@@ -875,5 +946,3 @@ case 'saveTimerChanges': {
 }
 
 initMenuInteractions();
-
-export { initMenuInteractions };

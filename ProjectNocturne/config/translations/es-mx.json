@@ -130,7 +130,8 @@
     "lap": "Vuelta",
     "timer": "Temporizador",
     "world_clock": "Reloj Mundial",
-    "pin_clock": "Fijar reloj"
+    "pin_clock": "Fijar reloj",
+    "pin_timer": "Fijar temporizador"
   },
   "stopwatch": {
     "lap_header": "Vuelta",
@@ -152,7 +153,8 @@
     "alarm_limit_reached": "Se alcanzó el límite de {limit} alarmas.",
     "default_alarms": "Alarmas Predeterminadas",
     "activate_alarm": "Activar Alarma",
-    "deactivate_alarm": "Desactivar Alarma"
+    "deactivate_alarm": "Desactivar Alarma",
+    "dismiss": "Descartar"
   },
   "world_clock": {
     "clock_title": "Título del Reloj",
@@ -189,7 +191,12 @@
     "create_timer": "Crear temporizador",
     "hours": "Horas",
     "minutes": "Minutos",
-    "seconds": "Segundos"
+    "seconds": "Segundos",
+    "edit_timer": "Editar temporizador",
+    "delete_timer": "Eliminar temporizador",
+    "edit_not_implemented_timer": "La edición para este tipo de temporizador no está implementada.",
+    "delete_timer_confirm": "¿Estás seguro de que quieres eliminar este temporizador?",
+    "event_finished": "¡Evento finalizado!"
   },
   "world_clock_options": {
     "options": "Opciones del reloj",

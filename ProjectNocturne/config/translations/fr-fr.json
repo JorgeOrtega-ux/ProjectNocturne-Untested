@@ -130,7 +130,8 @@
     "lap": "Tour",
     "timer": "Minuterie",
     "world_clock": "Horloge Mondiale",
-    "pin_clock": "Épingler l'horloge"
+    "pin_clock": "Épingler l'horloge",
+    "pin_timer": "Épingler le minuteur"
   },
    "stopwatch": {
     "lap_header": "Tour",
@@ -152,7 +153,8 @@
     "alarm_limit_reached": "Limite de {limit} alarmes atteinte.",
     "default_alarms": "Alarmes par Défaut",
     "activate_alarm": "Activer l'Alarme",
-    "deactivate_alarm": "Désactiver l'Alarme"
+    "deactivate_alarm": "Désactiver l'Alarme",
+    "dismiss": "Rejeter"
   },
   "world_clock": {
     "clock_title": "Titre de l'horloge",
@@ -189,7 +191,12 @@
     "create_timer": "Créer un minuteur",
     "hours": "Heures",
     "minutes": "Minutes",
-    "seconds": "Secondes"
+    "seconds": "Secondes",
+    "edit_timer": "Modifier le minuteur",
+    "delete_timer": "Supprimer le minuteur",
+    "edit_not_implemented_timer": "La modification pour ce type de minuteur n'est pas implémentée.",
+    "delete_timer_confirm": "Êtes-vous sûr de vouloir supprimer ce minuteur ?",
+    "event_finished": "Événement terminé !"
   },
   "world_clock_options": {
     "options": "Options de l'horloge",

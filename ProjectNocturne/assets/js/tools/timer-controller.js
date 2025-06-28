@@ -17,10 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTimerController();
 });
 
+// CORRECCIÓN 3: En la función initializeTimerController() - línea ~15-30
 function initializeTimerController() {
-    loadTimersFromStorage();
-    restoreActiveTimers(); 
-    renderAllTimerCards(); // Ya incluye updatePinnedStatesInUI con delay
+    loadTimersFromStorage();    // Carga timers y establece pin correcto
+    restoreActiveTimers();      // Restaura estados activos y preserva pin 
+    renderAllTimerCards();      // Renderiza cards con estado de pin correcto
     setupGlobalEventListeners();
     updateMainDisplay();
     initializeSortable();
@@ -30,6 +31,12 @@ function initializeTimerController() {
     setTimeout(() => {
         updatePinnedStatesInUI();
         console.log('✅ Inicialización de timer completada con verificación de estado de pin');
+        
+        // DEBUG: Verificar el estado final
+        console.log('📊 Estado final del sistema:');
+        console.log('  - pinnedTimerId:', pinnedTimerId);
+        console.log('  - Timer fijado en memoria:', timers.find(t => t.id === pinnedTimerId)?.title || 'No encontrado');
+        console.log('  - Timers con isPinned=true:', timers.filter(t => t.isPinned).map(t => t.title));
     }, 100);
 }
 
@@ -76,7 +83,24 @@ function restoreActiveTimers() {
                     }
                 }
             }
+            
+            // CORRECCIÓN CLAVE: Restaurar el estado del pin después de restaurar el timer
+            // Esto es crítico para timers count-to-date que se auto-inician
+            if (timer.isPinned) {
+                pinnedTimerId = timer.id;
+                console.log(`📌 Pin restaurado para timer: ${timer.title} (${timer.type})`);
+            }
         });
+        
+        // NUEVA VERIFICACIÓN: Asegurar que haya siempre un timer fijado
+        if (!pinnedTimerId && timers.length > 0) {
+            const firstTimer = timers[0];
+            pinnedTimerId = firstTimer.id;
+            firstTimer.isPinned = true;
+            saveTimersToStorage();
+            console.log('🔧 No había timer fijado después de restaurar estados, se fijó automáticamente:', firstTimer.title);
+        }
+        
     } catch (error) {
         console.error('Error restaurando estados de timers:', error);
         // Limpiar estados corruptos
@@ -130,6 +154,7 @@ function initializeSortable() {
 }
 
 // --- CREACIÓN Y ACTUALIZACIÓN DE TEMPORIZADORES ---
+// CORRECCIÓN 4: En la función addTimerAndRender() - línea ~80-120
 export function addTimerAndRender(timerData) {
     const isCountToDate = timerData.type === 'count_to_date';
 
@@ -138,7 +163,7 @@ export function addTimerAndRender(timerData) {
         title: timerData.title,
         type: timerData.type,
         isRunning: false,
-        isPinned: timers.length === 0,
+        isPinned: false,  // Inicializar como false por defecto
     };
 
     if (isCountToDate) {
@@ -153,9 +178,21 @@ export function addTimerAndRender(timerData) {
 
     timers.push(newTimer);
 
+    // CORRECCIÓN: Lógica mejorada para el pin del primer timer
     if (timers.length === 1) {
+        // Si es el primer timer, lo fijamos
         newTimer.isPinned = true;
         pinnedTimerId = newTimer.id;
+        console.log('📌 Primer timer creado y fijado:', newTimer.title);
+    } else {
+        // Si hay más timers, verificar que haya un timer fijado
+        const currentPinned = timers.find(t => t.isPinned);
+        if (!currentPinned) {
+            // Si por alguna razón no hay timer fijado, fijar este nuevo
+            newTimer.isPinned = true;
+            pinnedTimerId = newTimer.id;
+            console.log('📌 No había timer fijado, fijando el nuevo:', newTimer.title);
+        }
     }
 
     saveTimersToStorage();
@@ -163,6 +200,7 @@ export function addTimerAndRender(timerData) {
     updateMainDisplay();
     updateMainControlsState();
 
+    // CORRECCIÓN: Para timers count-to-date, auto-iniciar DESPUÉS de fijar el pin
     if (isCountToDate) {
         startTimer(newTimer.id);
     }
@@ -214,14 +252,13 @@ function loadTimersFromStorage() {
     if (loadedTimers.length > 0) {
         timers = loadedTimers;
         
-        // CORRECCIÓN: Verificar y corregir el estado del pin
+        // CORRECCIÓN: Verificar y corregir el estado del pin ANTES de restaurar estados activos
         let pinnedTimer = timers.find(t => t.isPinned);
 
         if (!pinnedTimer) {
             // Si no hay timer fijado, fijar el primero
             pinnedTimer = timers[0];
-            timers[0].isPinned = true;
-            saveTimersToStorage();
+            pinnedTimer.isPinned = true;
             console.log('🔧 No había timer fijado, se fijó automáticamente:', pinnedTimer.title);
         }
         
@@ -231,6 +268,9 @@ function loadTimersFromStorage() {
         timers.forEach(timer => {
             timer.isPinned = (timer.id === pinnedTimerId);
         });
+
+        // IMPORTANTE: Guardar el estado corregido del pin antes de continuar
+        saveTimersToStorage();
 
         // Resetear estado de ejecución temporalmente - será restaurado por restoreActiveTimers()
         timers.forEach(timer => {

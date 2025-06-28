@@ -1,13 +1,12 @@
-// /assets/js/tools/timer-controller.js - Con persistencia de estado
+// /assets/js/tools/timer-controller.js - Con persistencia de estado robusta
 
 import { getTranslation } from '../general/translations-controller.js';
-import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, switchToSection, allowCardMovement } from '../general/main.js';
+import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit } from './menu-interactions.js';
 import { playAlarmSound, stopAlarmSound } from './alarm-controller.js';
 
 // --- ESTADO Y CONSTANTES ---
-const TIMERS_STORAGE_KEY = 'user-timers';
-const TIMER_STATE_STORAGE_KEY = 'timer-states'; // Nueva clave para estados de ejecución
+const TIMERS_STORAGE_KEY = 'user-timers'; // Única clave para todo el estado
 let timers = [];
 let activeTimers = new Map();
 let pinnedTimerId = null;
@@ -17,122 +16,214 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTimerController();
 });
 
-// CORRECCIÓN 3: En la función initializeTimerController() - línea ~15-30
 function initializeTimerController() {
-    loadTimersFromStorage();    // Carga timers y establece pin correcto
-    restoreActiveTimers();      // Restaura estados activos y preserva pin 
-    renderAllTimerCards();      // Renderiza cards con estado de pin correcto
+    loadAndRestoreTimers();      // Función unificada para cargar y restaurar
+    renderAllTimerCards();
     setupGlobalEventListeners();
     updateMainDisplay();
     initializeSortable();
     updateMainControlsState();
-    
-    // CORRECCIÓN: Verificación adicional después de la inicialización completa
-    setTimeout(() => {
-        updatePinnedStatesInUI();
-        console.log('✅ Inicialización de timer completada con verificación de estado de pin');
-        
-        // DEBUG: Verificar el estado final
-        console.log('📊 Estado final del sistema:');
-        console.log('  - pinnedTimerId:', pinnedTimerId);
-        console.log('  - Timer fijado en memoria:', timers.find(t => t.id === pinnedTimerId)?.title || 'No encontrado');
-        console.log('  - Timers con isPinned=true:', timers.filter(t => t.isPinned).map(t => t.title));
-    }, 100);
+    updatePinnedStatesInUI();
+    console.log('✅ Inicialización de timer completada.');
 }
 
-// --- NUEVA FUNCIÓN: RESTAURAR TIMERS ACTIVOS ---
-function restoreActiveTimers() {
-    const savedStates = localStorage.getItem(TIMER_STATE_STORAGE_KEY);
-    if (!savedStates) return;
+// --- LÓGICA DE CARGA, RESTAURACIÓN Y GUARDADO (UNIFICADA) ---
+
+/**
+ * Carga los temporizadores desde localStorage. Si un temporizador estaba corriendo,
+ * recalcula el tiempo restante y reanuda su ejecución.
+ */
+function loadAndRestoreTimers() {
+    const storedTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
+
+    // Si no hay temporizadores guardados, crea uno por defecto.
+    if (!storedTimers) {
+        timers = [{
+            id: `timer-default-${Date.now()}`,
+            title: "Default Timer",
+            type: 'countdown',
+            initialDuration: 300000,
+            remaining: 300000,
+            endAction: 'stop',
+            sound: 'classic-beep',
+            isRunning: false,
+            isPinned: true
+        }];
+        pinnedTimerId = timers[0].id;
+        saveTimersToStorage();
+        return;
+    }
 
     try {
-        const states = JSON.parse(savedStates);
+        const loadedTimers = JSON.parse(storedTimers);
         const now = Date.now();
 
-        states.forEach(state => {
-            const timer = timers.find(t => t.id === state.timerId);
-            if (!timer) return;
-
-            if (state.isRunning) {
+        timers = loadedTimers.map(timer => {
+            // Si el temporizador estaba corriendo cuando se cerró la página...
+            if (timer.isRunning) {
                 if (timer.type === 'countdown') {
-                    // Calcular cuánto tiempo ha pasado desde que se guardó el estado
-                    const elapsedSinceLastSave = now - state.lastSaveTime;
-                    timer.remaining = Math.max(0, state.remaining - elapsedSinceLastSave);
-                    
-                    if (timer.remaining > 0) {
-                        timer.isRunning = true;
-                        startCountdownTimer(timer);
-                        console.log(`🔄 Timer restaurado: ${timer.title} - ${formatTime(timer.remaining)}`);
+                    // Recalcula el tiempo restante basado en cuánto tiempo ha pasado desde el último guardado.
+                    const elapsedSinceLastSave = now - (timer.lastSaveTime || now);
+                    const newRemaining = Math.max(0, timer.remaining - elapsedSinceLastSave);
+
+                    if (newRemaining > 0) {
+                        timer.remaining = newRemaining;
+                        startCountdownTimer(timer); // Reanuda el intervalo del temporizador.
+                        console.log(`🔄 Temporizador de cuenta atrás restaurado: ${timer.title}`);
                     } else {
-                        // El timer debería haber terminado mientras estaba cerrada la aplicación
                         timer.remaining = 0;
                         timer.isRunning = false;
-                        handleTimerEnd(timer.id);
+                        // Opcional: Aquí se podría llamar a handleTimerEnd(timer.id) si se desea
+                        // que el sonido se active si el tiempo terminó mientras la página estaba cerrada.
                     }
                 } else if (timer.type === 'count_to_date') {
-                    // Para count-to-date, recalcular el tiempo restante
+                    // Los temporizadores de fecha siempre se recalculan respecto a la fecha objetivo.
+                    // Esto asegura que nunca se "pausen".
                     timer.remaining = new Date(timer.targetDate).getTime() - now;
-                    
                     if (timer.remaining > 0) {
-                        timer.isRunning = true;
-                        startCountToDateTimer(timer);
-                        console.log(`🔄 Timer de fecha restaurado: ${timer.title}`);
+                        startCountToDateTimer(timer); // Siempre están "corriendo".
+                        console.log(`🔄 Temporizador de fecha restaurado: ${timer.title}`);
                     } else {
                         timer.remaining = 0;
                         timer.isRunning = false;
                     }
                 }
             }
-            
-            // CORRECCIÓN CLAVE: Restaurar el estado del pin después de restaurar el timer
-            // Esto es crítico para timers count-to-date que se auto-inician
-            if (timer.isPinned) {
-                pinnedTimerId = timer.id;
-                console.log(`📌 Pin restaurado para timer: ${timer.title} (${timer.type})`);
-            }
+            return timer;
         });
-        
-        // NUEVA VERIFICACIÓN: Asegurar que haya siempre un timer fijado
-        if (!pinnedTimerId && timers.length > 0) {
-            const firstTimer = timers[0];
-            pinnedTimerId = firstTimer.id;
-            firstTimer.isPinned = true;
-            saveTimersToStorage();
-            console.log('🔧 No había timer fijado después de restaurar estados, se fijó automáticamente:', firstTimer.title);
+
+        // Lógica para asegurar que siempre haya un temporizador fijado (pinned).
+        let pinnedTimer = timers.find(t => t.isPinned);
+        if (!pinnedTimer && timers.length > 0) {
+            pinnedTimer = timers[0];
+            pinnedTimer.isPinned = true;
         }
-        
+        pinnedTimerId = pinnedTimer ? pinnedTimer.id : null;
+        timers.forEach(t => t.isPinned = (t.id === pinnedTimerId));
+
     } catch (error) {
-        console.error('Error restaurando estados de timers:', error);
-        // Limpiar estados corruptos
-        localStorage.removeItem(TIMER_STATE_STORAGE_KEY);
+        console.error('Error al cargar o restaurar temporizadores. Se reseteará el estado.', error);
+        localStorage.removeItem(TIMERS_STORAGE_KEY);
+        timers = [];
     }
 }
 
-// --- NUEVA FUNCIÓN: GUARDAR ESTADOS DE TIMERS ---
-function saveTimerStates() {
-    const states = [];
+/**
+ * Guarda el array completo de temporizadores en localStorage.
+ * Para los temporizadores en ejecución, actualiza su 'lastSaveTime'.
+ */
+function saveTimersToStorage() {
     const now = Date.now();
-
     timers.forEach(timer => {
         if (timer.isRunning) {
-            states.push({
-                timerId: timer.id,
-                isRunning: timer.isRunning,
-                remaining: timer.remaining,
-                lastSaveTime: now,
-                type: timer.type
-            });
+            timer.lastSaveTime = now; // Marca la última vez que se guardó el estado.
         }
     });
-
-    try {
-        localStorage.setItem(TIMER_STATE_STORAGE_KEY, JSON.stringify(states));
-    } catch (error) {
-        console.error('Error guardando estados de timers:', error);
-    }
+    localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(timers));
 }
 
-// --- INICIALIZACIÓN DE SORTABLEJS ---
+
+// --- LÓGICA DEL TEMPORIZADOR - MEJORADA ---
+
+function startTimer(timerId) {
+    const timer = timers.find(t => t.id === timerId);
+    if (!timer || timer.isRunning) return;
+
+    if (timer.type === 'count_to_date') {
+        if (timer.remaining <= 0) return;
+        startCountToDateTimer(timer);
+    } else {
+        if (timer.remaining <= 0) return;
+        startCountdownTimer(timer);
+    }
+    
+    updateTimerCardControls(timerId);
+    updateMainControlsState();
+    saveTimersToStorage(); // Guardar estado inmediatamente al iniciar.
+}
+
+function startCountdownTimer(timer) {
+    timer.isRunning = true;
+    const interval = setInterval(() => {
+        timer.remaining -= 1000;
+        updateCardDisplay(timer.id);
+        if (timer.id === pinnedTimerId) updateMainDisplay();
+        
+        // Guardar estado periódicamente (cada 2 segundos) para mayor precisión.
+        if (Math.floor(timer.remaining / 1000) % 2 === 0) {
+            saveTimersToStorage();
+        }
+        
+        if (timer.remaining < 1000) {
+            handleTimerEnd(timer.id);
+        }
+    }, 1000);
+    activeTimers.set(timer.id, interval);
+}
+
+function startCountToDateTimer(timer) {
+    timer.isRunning = true;
+    const interval = setInterval(() => {
+        timer.remaining = new Date(timer.targetDate).getTime() - Date.now();
+        updateCardDisplay(timer.id);
+        if (timer.id === pinnedTimerId) updateMainDisplay();
+        
+        if (timer.remaining <= 0) {
+            clearInterval(interval);
+            activeTimers.delete(timer.id);
+            timer.isRunning = false;
+            saveTimersToStorage(); // Guardar el estado final.
+        }
+    }, 1000);
+    activeTimers.set(timer.id, interval);
+}
+
+function pauseTimer(timerId) {
+    const timer = timers.find(t => t.id === timerId);
+    if (!timer || !timer.isRunning) return;
+    
+    timer.isRunning = false;
+    clearInterval(activeTimers.get(timerId));
+    activeTimers.delete(timerId);
+    
+    saveTimersToStorage(); // Guardar el estado de pausa.
+    updateTimerCardControls(timerId);
+    updateMainControlsState();
+}
+
+function resetTimer(timerId) {
+    const timer = timers.find(t => t.id === timerId);
+    if (!timer) return;
+    
+    // Pausar primero para detener cualquier intervalo.
+    pauseTimer(timerId);
+    
+    if(timer.type !== 'count_to_date') {
+        timer.remaining = timer.initialDuration;
+    }
+    timer.isRunning = false; // Asegurarse de que el estado sea "no corriendo".
+    
+    updateCardDisplay(timerId);
+    if (timer.id === pinnedTimerId) {
+        updateMainDisplay();
+    }
+    
+    saveTimersToStorage(); // Guardar el estado reseteado.
+    updateTimerCardControls(timerId);
+    updateMainControlsState();
+}
+
+// --- EVENTOS DE GUARDADO ---
+
+// Guardar el estado al cerrar o recargar la página.
+window.addEventListener('beforeunload', saveTimersToStorage);
+
+
+// --- FUNCIONES DE UI Y MANEJO DE EVENTOS (sin cambios significativos) ---
+// El resto de las funciones como addTimerAndRender, updateTimer, renderAllTimerCards, etc.,
+// se mantienen prácticamente iguales, ya que la lógica de guardado/carga está ahora centralizada.
+// Las he incluido aquí para que el archivo esté completo.
+
 function initializeSortable() {
     if (!allowCardMovement) return;
     const grid = document.querySelector('.timers-grid-container');
@@ -148,13 +239,9 @@ function initializeSortable() {
                 saveTimersToStorage();
             }
         });
-    } else if (typeof Sortable === 'undefined') {
-        console.error('La librería SortableJS no está cargada. La función de arrastrar y soltar no funcionará.');
     }
 }
 
-// --- CREACIÓN Y ACTUALIZACIÓN DE TEMPORIZADORES ---
-// CORRECCIÓN 4: En la función addTimerAndRender() - línea ~80-120
 export function addTimerAndRender(timerData) {
     const isCountToDate = timerData.type === 'count_to_date';
 
@@ -163,7 +250,7 @@ export function addTimerAndRender(timerData) {
         title: timerData.title,
         type: timerData.type,
         isRunning: false,
-        isPinned: false,  // Inicializar como false por defecto
+        isPinned: false,
     };
 
     if (isCountToDate) {
@@ -178,21 +265,9 @@ export function addTimerAndRender(timerData) {
 
     timers.push(newTimer);
 
-    // CORRECCIÓN: Lógica mejorada para el pin del primer timer
-    if (timers.length === 1) {
-        // Si es el primer timer, lo fijamos
+    if (timers.length === 1 || !timers.some(t => t.isPinned)) {
         newTimer.isPinned = true;
         pinnedTimerId = newTimer.id;
-        console.log('📌 Primer timer creado y fijado:', newTimer.title);
-    } else {
-        // Si hay más timers, verificar que haya un timer fijado
-        const currentPinned = timers.find(t => t.isPinned);
-        if (!currentPinned) {
-            // Si por alguna razón no hay timer fijado, fijar este nuevo
-            newTimer.isPinned = true;
-            pinnedTimerId = newTimer.id;
-            console.log('📌 No había timer fijado, fijando el nuevo:', newTimer.title);
-        }
     }
 
     saveTimersToStorage();
@@ -200,7 +275,6 @@ export function addTimerAndRender(timerData) {
     updateMainDisplay();
     updateMainControlsState();
 
-    // CORRECCIÓN: Para timers count-to-date, auto-iniciar DESPUÉS de fijar el pin
     if (isCountToDate) {
         startTimer(newTimer.id);
     }
@@ -227,96 +301,22 @@ export function updateTimer(timerId, newData) {
     };
 
     saveTimersToStorage();
-    saveTimerStates(); // Guardar estados actualizados
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
 }
 
-function loadTimersFromStorage() {
-    const storedTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
-    let loadedTimers = [];
-
-    if (storedTimers) {
-        try {
-            loadedTimers = JSON.parse(storedTimers);
-            if (!Array.isArray(loadedTimers)) {
-                loadedTimers = [];
-            }
-        } catch (e) {
-            console.error("Error al analizar los temporizadores de localStorage", e);
-            loadedTimers = [];
-        }
-    }
-
-    if (loadedTimers.length > 0) {
-        timers = loadedTimers;
-        
-        // CORRECCIÓN: Verificar y corregir el estado del pin ANTES de restaurar estados activos
-        let pinnedTimer = timers.find(t => t.isPinned);
-
-        if (!pinnedTimer) {
-            // Si no hay timer fijado, fijar el primero
-            pinnedTimer = timers[0];
-            pinnedTimer.isPinned = true;
-            console.log('🔧 No había timer fijado, se fijó automáticamente:', pinnedTimer.title);
-        }
-        
-        pinnedTimerId = pinnedTimer.id;
-        
-        // Asegurar que solo un timer esté marcado como fijado
-        timers.forEach(timer => {
-            timer.isPinned = (timer.id === pinnedTimerId);
-        });
-
-        // IMPORTANTE: Guardar el estado corregido del pin antes de continuar
-        saveTimersToStorage();
-
-        // Resetear estado de ejecución temporalmente - será restaurado por restoreActiveTimers()
-        timers.forEach(timer => {
-            timer.isRunning = false;
-        });
-
-    } else {
-        // Crear timer por defecto si no hay ninguno
-        timers = [{
-            id: `timer-default-${Date.now()}`,
-            title: "Default Timer",
-            type: 'countdown',
-            initialDuration: 300000,
-            remaining: 300000,
-            endAction: 'stop',
-            sound: 'classic-beep',
-            isRunning: false,
-            isPinned: true
-        }];
-        pinnedTimerId = timers[0].id;
-        saveTimersToStorage();
-    }
-    
-    console.log('📂 Timers cargados. Timer fijado:', pinnedTimerId);
-}
-
-function saveTimersToStorage() {
-    localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(timers));
-    saveTimerStates(); // Siempre guardar estados junto con los timers
-}
-
-// --- RENDERIZADO Y UI ---
 function renderAllTimerCards() {
     const container = document.querySelector('.timers-grid-container');
     if (!container) return;
     
     container.innerHTML = '';
     
-    // Renderizar todas las tarjetas
     timers.forEach(timer => {
         const card = createTimerCard(timer);
         container.appendChild(card);
     });
     
-    // CORRECCIÓN: Llamar updatePinnedStatesInUI después de un pequeño delay
-    // para asegurar que el DOM esté completamente renderizado
     setTimeout(() => {
         updatePinnedStatesInUI();
     }, 50);
@@ -388,7 +388,7 @@ function updateMainDisplay() {
     if (pinnedTimer) {
         mainDisplay.textContent = formatTime(pinnedTimer.remaining, pinnedTimer.type);
     } else {
-        mainDisplay.textContent = formatTime(300000, 'countdown');
+        mainDisplay.textContent = formatTime(0, 'countdown');
     }
 }
 
@@ -453,36 +453,25 @@ function updateTimerCardControls(timerId) {
 }
 
 function updatePinnedStatesInUI() {
-    // Asegurar que pinnedTimerId tenga un valor válido
     if (!pinnedTimerId && timers.length > 0) {
         const firstTimer = timers[0];
         pinnedTimerId = firstTimer.id;
         firstTimer.isPinned = true;
         saveTimersToStorage();
-        console.log('🔧 Pin corregido automáticamente para:', firstTimer.title);
     }
 
-    // Actualizar todos los botones de pin
     document.querySelectorAll('.timer-card').forEach(card => {
         const pinBtn = card.querySelector('.card-pin-btn');
         if (pinBtn) {
-            const isThisCardPinned = card.id === pinnedTimerId;
-            
-            // Aplicar o remover la clase active
-            if (isThisCardPinned) {
-                pinBtn.classList.add('active');
-            } else {
-                pinBtn.classList.remove('active');
-            }
+            pinBtn.classList.toggle('active', card.id === pinnedTimerId);
         }
     });
-    
-    console.log('📌 Estados de pin actualizados. Timer fijado:', pinnedTimerId);
 }
 
 function formatTime(ms, type = 'countdown') {
-    if (ms <= 0 && type === 'count_to_date') return "¡Evento finalizado!";
-    if (ms <= 0) return "00:00:00";
+    if (ms <= 0) {
+        return type === 'count_to_date' ? getTranslation('event_finished', 'timer') || "¡Evento finalizado!" : "00:00:00";
+    }
 
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
     
@@ -503,74 +492,23 @@ function formatTime(ms, type = 'countdown') {
     }
 }
 
-// --- LÓGICA DEL TEMPORIZADOR - MEJORADA ---
-function startTimer(timerId) {
-    const timer = timers.find(t => t.id === timerId);
-    if (!timer || timer.isRunning) return;
-
-    if (timer.type === 'count_to_date') {
-        if (timer.remaining <= 0) return;
-        startCountToDateTimer(timer);
-    } else {
-        if (timer.remaining <= 0) return;
-        startCountdownTimer(timer);
-    }
-    
-    updateTimerCardControls(timerId);
-    updateMainControlsState();
-    saveTimerStates(); // Guardar estado inmediatamente
-}
-
-function startCountdownTimer(timer) {
-    timer.isRunning = true;
-    const interval = setInterval(() => {
-        timer.remaining -= 1000;
-        updateCardDisplay(timer.id);
-        if (timer.id === pinnedTimerId) updateMainDisplay();
-        
-        // Guardar estado periódicamente (cada 5 segundos)
-        if (Math.floor(timer.remaining / 1000) % 5 === 0) {
-            saveTimerStates();
-        }
-        
-        if (timer.remaining < 1000) {
-            handleTimerEnd(timer.id);
-        }
-    }, 1000);
-    activeTimers.set(timer.id, interval);
-}
-
-function startCountToDateTimer(timer) {
-    timer.isRunning = true;
-    const interval = setInterval(() => {
-        timer.remaining = new Date(timer.targetDate).getTime() - Date.now();
-        updateCardDisplay(timer.id);
-        if (timer.id === pinnedTimerId) updateMainDisplay();
-        
-        // Guardar estado periódicamente (cada 30 segundos para count-to-date)
-        if (Math.floor(Date.now() / 1000) % 30 === 0) {
-            saveTimerStates();
-        }
-        
-        if (timer.remaining <= 0) {
-            clearInterval(interval);
-            activeTimers.delete(timer.id);
-            timer.isRunning = false;
-            saveTimerStates();
-        }
-    }, 1000);
-    activeTimers.set(timer.id, interval);
-}
-
 function handleTimerEnd(timerId) {
     const timer = timers.find(t => t.id === timerId);
     if (!timer || timer.type === 'count_to_date') return;
     
-    stopTimer(timerId, true);
+    // Detiene el intervalo y actualiza el estado
+    timer.isRunning = false;
+    if (activeTimers.has(timerId)) {
+        clearInterval(activeTimers.get(timerId));
+        activeTimers.delete(timerId);
+    }
+    timer.remaining = 0;
 
+    updateCardDisplay(timerId);
+    if (timer.id === pinnedTimerId) updateMainDisplay();
     updateTimerCardControls(timerId);
     updateMainControlsState();
-    saveTimerStates(); // Guardar estado final
+    saveTimersToStorage();
 
     if (timer.endAction === 'restart') {
         playAlarmSound(timer.sound);
@@ -580,68 +518,13 @@ function handleTimerEnd(timerId) {
             startTimer(timerId);
         }, 3000);
 
-    } else {
+    } else { // 'stop'
         playAlarmSound(timer.sound);
-        
         const card = document.getElementById(timerId);
-        if (card) {
-            const optionsContainer = card.querySelector('.card-options-container');
-            if (optionsContainer) {
-                optionsContainer.classList.add('active');
-            }
-        }
+        card?.querySelector('.card-options-container')?.classList.add('active');
     }
 }
 
-function pauseTimer(timerId) {
-    const timer = timers.find(t => t.id === timerId);
-    if (!timer || !timer.isRunning) return;
-    
-    timer.isRunning = false;
-    clearInterval(activeTimers.get(timerId));
-    activeTimers.delete(timerId);
-    
-    saveTimersToStorage();
-    saveTimerStates(); // Guardar estado de pausa
-    updateTimerCardControls(timerId);
-    updateMainControlsState();
-}
-
-function resetTimer(timerId) {
-    const timer = timers.find(t => t.id === timerId);
-    if (!timer) return;
-    
-    pauseTimer(timerId);
-    
-    if(timer.type !== 'count_to_date') {
-        timer.remaining = timer.initialDuration;
-    }
-    
-    updateCardDisplay(timerId);
-    if (timer.id === pinnedTimerId) {
-        updateMainDisplay();
-    }
-    
-    saveTimersToStorage();
-    saveTimerStates(); // Guardar estado de reset
-    updateTimerCardControls(timerId);
-    updateMainControlsState();
-}
-
-function stopTimer(timerId, finished = false) {
-    pauseTimer(timerId);
-    const timer = timers.find(t => t.id === timerId);
-    if (timer && finished) {
-        timer.remaining = 0;
-        updateCardDisplay(timerId);
-        if (timer.id === pinnedTimerId) {
-            updateMainDisplay();
-        }
-        saveTimerStates(); // Guardar estado final
-    }
-}
-
-// --- MANEJO DE EVENTOS ---
 function setupGlobalEventListeners() {
     const section = document.querySelector('.section-timer');
     if (!section) return;
@@ -668,77 +551,54 @@ function setupGlobalEventListeners() {
         const action = target.dataset.action;
 
         switch(action) {
-            case 'pin-timer':
-                handlePinTimer(timerId);
-                break;
-            case 'toggle-timer-options':
-                e.stopPropagation();
-                toggleOptionsMenu(target);
-                break;
-            case 'start-card-timer':
-                startTimer(timerId);
-                target.closest('.card-options-menu').style.display = 'none';
-                break;
-            case 'pause-card-timer':
-                pauseTimer(timerId);
-                target.closest('.card-options-menu').style.display = 'none';
-                break;
-            case 'reset-card-timer':
-                resetTimer(timerId);
-                target.closest('.card-options-menu').style.display = 'none';
-                break;
-            case 'edit-timer':
-                handleEditTimer(timerId);
-                break;
-            case 'delete-timer':
-                handleDeleteTimer(timerId);
-                break;
-            case 'dismiss-timer':
-                dismissTimer(timerId);
-                break;
+            case 'pin-timer': handlePinTimer(timerId); break;
+            case 'toggle-timer-options': e.stopPropagation(); toggleOptionsMenu(target); break;
+            case 'start-card-timer': startTimer(timerId); closeMenu(target); break;
+            case 'pause-card-timer': pauseTimer(timerId); closeMenu(target); break;
+            case 'reset-card-timer': resetTimer(timerId); closeMenu(target); break;
+            case 'edit-timer': handleEditTimer(timerId); break;
+            case 'delete-timer': handleDeleteTimer(timerId); break;
+            case 'dismiss-timer': dismissTimer(timerId); break;
+        }
+    });
+
+    // Cierra menús de opciones si se hace clic fuera
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.card-options-btn-wrapper')) {
+            document.querySelectorAll('.card-options-menu').forEach(menu => menu.style.display = 'none');
         }
     });
 }
+
+function closeMenu(target) {
+    const menu = target.closest('.card-options-menu');
+    if (menu) menu.style.display = 'none';
+}
+
 function handlePinTimer(timerId) {
-    if (pinnedTimerId === timerId) {
-        console.log('⚠️ Timer ya está fijado:', timerId);
-        return;
-    }
+    if (pinnedTimerId === timerId) return;
     
-    console.log('📌 Cambiando pin de', pinnedTimerId, 'a', timerId);
-    
-    // Actualizar el estado interno
     pinnedTimerId = timerId;
     timers.forEach(t => t.isPinned = (t.id === timerId));
     
-    // Actualizar la UI
     updatePinnedStatesInUI();
     updateMainDisplay();
     updateMainControlsState();
     saveTimersToStorage();
 }
 
-
 function toggleOptionsMenu(optionsBtn) {
-    const wrapper = optionsBtn.parentElement;
-    const menu = wrapper.querySelector('.card-options-menu');
-    
-    const isActive = menu.style.display === 'flex';
-
-    document.querySelectorAll('.card-options-menu').forEach(m => {
-        m.style.display = 'none';
-    });
-
-    if (!isActive) {
-        menu.style.display = 'flex';
-    }
+    const menu = optionsBtn.parentElement.querySelector('.card-options-menu');
+    const isHidden = menu.style.display === 'none' || menu.style.display === '';
+    document.querySelectorAll('.card-options-menu').forEach(m => m.style.display = 'none');
+    if (isHidden) menu.style.display = 'flex';
 }
 
 function handleEditTimer(timerId) {
     const timerData = timers.find(t => t.id === timerId);
     if (timerData) {
         if(timerData.type === 'count_to_date') {
-            alert("La edición para este tipo de temporizador no está implementada.");
+            alert(getTranslation('edit_not_implemented_timer', 'timer') || "La edición para este tipo de temporizador no está implementada.");
             return;
         }
         prepareTimerForEdit(timerData);
@@ -749,13 +609,14 @@ function handleEditTimer(timerId) {
 }
 
 function handleDeleteTimer(timerId) {
-    if (!confirm(getTranslation('delete_timer_confirm', 'timer'))) return;
+    if (!confirm(getTranslation('delete_timer_confirm', 'timer') || '¿Estás seguro de que quieres eliminar este temporizador?')) return;
 
-    timers = timers.filter(t => t.id !== timerId);
     if (activeTimers.has(timerId)) {
         clearInterval(activeTimers.get(timerId));
         activeTimers.delete(timerId);
     }
+    
+    timers = timers.filter(t => t.id !== timerId);
     
     if (pinnedTimerId === timerId) {
         pinnedTimerId = timers.length > 0 ? timers[0].id : null;
@@ -766,7 +627,6 @@ function handleDeleteTimer(timerId) {
     }
     
     saveTimersToStorage();
-    saveTimerStates(); // Limpiar estados del timer eliminado
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
@@ -782,24 +642,3 @@ function dismissTimer(timerId) {
         }
     }
 }
-
-// --- EVENTOS GLOBALES ---
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.card-options-btn-wrapper')) {
-        document.querySelectorAll('.card-options-menu').forEach(menu => {
-            menu.style.display = 'none';
-        });
-    }
-});
-
-// --- GUARDAR ESTADOS AL CERRAR LA APLICACIÓN ---
-window.addEventListener('beforeunload', () => {
-    saveTimerStates();
-});
-
-// --- GUARDAR ESTADOS PERIÓDICAMENTE ---
-setInterval(() => {
-    if (activeTimers.size > 0) {
-        saveTimerStates();
-    }
-}, 10000); // Cada 10 segundos

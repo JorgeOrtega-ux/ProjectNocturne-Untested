@@ -1123,6 +1123,62 @@
     color: #ef9a9a;
 }
 
+/* ================================================================ */
+/* INICIO DE LA CORRECCIÓN: Estilos para .timer-card en modo oscuro */
+/* ================================================================ */
+
+.dark-mode .timer-card {
+    background-color: #2e2f31;
+    border-color: #ffffff18;
+}
+
+.dark-mode .timer-card .card-header,
+.dark-mode .timer-card .clock-time {
+    color: #ffffff;
+}
+
+.dark-mode .timer-card .card-buttons-container {
+    background-color: #252627;
+    filter: unset;
+}
+
+.dark-mode .timer-card .card-pin-btn,
+.dark-mode .timer-card .card-options-btn {
+    color: #ffffff;
+}
+
+.dark-mode .timer-card .card-pin-btn:hover,
+.dark-mode .timer-card .card-options-btn:hover {
+    background-color: #ffffff20;
+}
+
+.dark-mode .timer-card .card-pin-btn.active {
+    background-color: #ffffff20;
+}
+
+.dark-mode .timer-card .card-options-menu {
+    background-color: #3a3b3d;
+    filter: drop-shadow(0 4px 12px #00000040);
+}
+
+.dark-mode .timer-card .card-options-menu .menu-link[data-action="delete-timer"] .menu-link-text span,
+.dark-mode .timer-card .card-options-menu .menu-link[data-action="delete-timer"] .menu-link-icon span {
+    color: #e57373;
+}
+
+.dark-mode .timer-card .card-options-menu .menu-link[data-action="delete-timer"]:hover {
+    background-color: rgba(239, 154, 154, 0.1);
+}
+
+.dark-mode .timer-card .card-options-menu .menu-link[data-action="delete-timer"]:hover .menu-link-text span,
+.dark-mode .timer-card .card-options-menu .menu-link[data-action="delete-timer"]:hover .menu-link-icon span {
+    color: #ef9a9a;
+}
+
+/* ================================================================ */
+/* FIN DE LA CORRECCIÓN                                             */
+/* ================================================================ */
+
 @media (max-width: 768px) {
     .alarms-grid {
         grid-template-columns: 1fr;
@@ -1251,36 +1307,4 @@
     opacity: 0.4;
     background-color: #f5f5fa;
     border: 1px dashed #d0d0d0;
-}/* /assets/css/general/tools.css */
-
-/* ... (código existente) ... */
-
-/* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
-.alarm-card,
-.world-clock-card,
-.timer-card { /* Añadido .timer-card */
-    cursor: grab;
-}
-
-.alarm-card.sortable-drag,
-.world-clock-card.sortable-drag,
-.timer-card.sortable-drag { /* Añadido .timer-card */
-    cursor: grabbing;
-}
-
-.alarm-card.sortable-chosen,
-.world-clock-card.sortable-chosen,
-.timer-card.sortable-chosen { /* Añadido .timer-card */
-    opacity: 0.9;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    transform: scale(1.03);
-    cursor: grabbing;
-}
-
-.alarm-card.sortable-ghost,
-.world-clock-card.sortable-ghost,
-.timer-card.sortable-ghost { /* Añadido .timer-card */
-    opacity: 0.4;
-    background-color: #f5f5fa;
-    border: 1px solid #d0d0d0;
 }

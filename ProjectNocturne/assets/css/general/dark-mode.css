@@ -469,16 +469,16 @@
 
 /* --- ESTILOS UNIFICADOS PARA DRAG & DROP (MODO OSCURO) --- */
 .dark-mode .alarm-card.sortable-chosen,
-.dark-mode .world-clock-card.sortable-chosen {
+.dark-mode .world-clock-card.sortable-chosen,
+.dark-mode .timer-card.sortable-chosen {
     background-color: #3a3b3d;
     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
 }
 
-/* ================== CORRECCIÓN APLICADA AQUÍ ================== */
 .dark-mode .alarm-card.sortable-ghost,
-.dark-mode .world-clock-card.sortable-ghost {
+.dark-mode .world-clock-card.sortable-ghost,
+.dark-mode .timer-card.sortable-ghost {
     opacity: 0.5;
-    background-color: #252627; /* Fondo sutil para modo oscuro */
-    border: 1px solid #444;       /* Borde sólido y sutil para modo oscuro */
+    background-color: #252627;
+    border: 1px solid #444;
 }
-/* ============================================================= */

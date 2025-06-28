@@ -1,3 +1,96 @@
+// ========== SOUND LOGIC ==========
+const SOUND_PATTERNS = {
+    'classic-beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
+    'gentle-chime': { frequencies: [523.25, 659.25, 783.99], beepDuration: 300, pauseDuration: 500, type: 'sine' },
+    'digital-alarm': { frequencies: [1200, 800], beepDuration: 100, pauseDuration: 100, type: 'square' },
+    'peaceful-tone': { frequencies: [440, 554.37, 659.25], beepDuration: 400, pauseDuration: 600, type: 'sine' },
+    'urgent-beep': { frequencies: [1600, 1600], beepDuration: 80, pauseDuration: 80, type: 'sawtooth' }
+};
+
+export const AVAILABLE_SOUNDS = [
+    { id: 'classic-beep', nameKey: 'classic_beep', icon: 'volume_up' },
+    { id: 'gentle-chime', nameKey: 'gentle_chime', icon: 'notifications' },
+    { id: 'digital-alarm', nameKey: 'digital_alarm', icon: 'alarm' },
+    { id: 'peaceful-tone', nameKey: 'peaceful_tone', icon: 'self_care' },
+    { id: 'urgent-beep', nameKey: 'urgent_beep', icon: 'priority_high' }
+];
+
+let audioContext = null;
+let activeSoundSource = null;
+let isPlayingSound = false;
+
+function initializeAudioContext() {
+    if (!audioContext) {
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn('Web Audio API is not available:', e);
+            return false;
+        }
+    }
+    return true;
+}
+
+export function playSound(soundType = 'classic-beep') {
+    if (isPlayingSound || !initializeAudioContext()) return;
+    stopSound();
+    isPlayingSound = true;
+    const pattern = SOUND_PATTERNS[soundType] || SOUND_PATTERNS['classic-beep'];
+    let freqIndex = 0;
+    const playBeep = () => {
+        if (!isPlayingSound) return;
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        const freq = pattern.frequencies[freqIndex % pattern.frequencies.length];
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.type = pattern.type;
+        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + (pattern.beepDuration / 1000));
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + (pattern.beepDuration / 1000));
+        freqIndex++;
+    };
+    playBeep();
+    const intervalId = setInterval(playBeep, pattern.beepDuration + pattern.pauseDuration);
+    activeSoundSource = { intervalId: intervalId };
+}
+
+export function stopSound() {
+    if (activeSoundSource && activeSoundSource.intervalId) {
+        clearInterval(activeSoundSource.intervalId);
+    }
+    activeSoundSource = null;
+    isPlayingSound = false;
+}
+
+export function generateSoundList(listElement, onSelectCallback) {
+    if (!listElement) return;
+    listElement.innerHTML = ''; // Clear existing list
+    const getTranslation = window.getTranslation || ((key, category) => key);
+
+    AVAILABLE_SOUNDS.forEach(sound => {
+        const menuLink = document.createElement('div');
+        menuLink.className = 'menu-link';
+        menuLink.dataset.action = 'selectSound';
+        menuLink.dataset.sound = sound.id;
+        menuLink.innerHTML = `
+            <div class="menu-link-icon"><span class="material-symbols-rounded">${sound.icon}</span></div>
+            <div class="menu-link-text"><span data-translate="${sound.nameKey}" data-translate-category="sounds">${getTranslation(sound.nameKey, 'sounds')}</span></div>
+        `;
+        menuLink.addEventListener('click', () => {
+            if (typeof onSelectCallback === 'function') {
+                onSelectCallback(sound.id);
+            }
+        });
+        listElement.appendChild(menuLink);
+    });
+}
 // ========== SERVICE: CATEGORY SLIDER DRAG & SCROLL ==========
 
 function initializeCategorySliderService() {
@@ -909,5 +1002,5 @@ export {
     initializeCategorySliderService,
     initializeCentralizedFontManager,
     initializeTextStyleManager,
-    initializeFullScreenManager
+    initializeFullScreenManager,
 };

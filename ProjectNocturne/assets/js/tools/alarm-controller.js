@@ -1,20 +1,10 @@
 // /assets/js/tools/alarm-controller.js
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
-
-// ========== CAMBIO CLAVE: EXPORTAR FUNCIONES DE SONIDO ==========
-export { playAlarmSound, stopAlarmSound };
-// ===============================================================
+import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList } from './general-tools.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
-const ALARM_SOUND_PATTERNS = {
-    'classic-beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
-    'gentle-chime': { frequencies: [523.25, 659.25, 783.99], beepDuration: 300, pauseDuration: 500, type: 'sine' },
-    'digital-alarm': { frequencies: [1200, 800], beepDuration: 100, pauseDuration: 100, type: 'square' },
-    'peaceful-tone': { frequencies: [440, 554.37, 659.25], beepDuration: 400, pauseDuration: 600, type: 'sine' },
-    'urgent-beep': { frequencies: [1600, 1600], beepDuration: 80, pauseDuration: 80, type: 'sawtooth' }
-};
 
 const DEFAULT_ALARMS = [
     { id: 'default-1', title: 'Limpiar cuarto', hour: 10, minute: 0, sound: 'gentle-chime', enabled: false, type: 'default' },
@@ -26,56 +16,6 @@ let clockInterval = null;
 let userAlarms = [];
 let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
-let isPlayingSound = false;
-let audioContext = null;
-let activeSoundSource = null;
-
-function initializeAudioContext() {
-    if (!audioContext) {
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.warn('Web Audio API no está disponible:', e);
-            return false;
-        }
-    }
-    return true;
-}
-
-function playAlarmSound(soundType = 'classic-beep') {
-    if (isPlayingSound || !initializeAudioContext()) return;
-    stopAlarmSound();
-    isPlayingSound = true;
-    const pattern = ALARM_SOUND_PATTERNS[soundType] || ALARM_SOUND_PATTERNS['classic-beep'];
-    let freqIndex = 0;
-    const playBeep = () => {
-        if (!isPlayingSound) return;
-        const freq = pattern.frequencies[freqIndex % pattern.frequencies.length];
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.type = pattern.type;
-        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + (pattern.beepDuration / 1000));
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + (pattern.beepDuration / 1000));
-        freqIndex++;
-    };
-    playBeep();
-    const intervalId = setInterval(playBeep, pattern.beepDuration + pattern.pauseDuration);
-    activeSoundSource = { intervalId: intervalId };
-}
-
-function stopAlarmSound() {
-    if (activeSoundSource && activeSoundSource.intervalId) {
-        clearInterval(activeSoundSource.intervalId);
-    }
-    activeSoundSource = null;
-    isPlayingSound = false;
-}
 
 function updateAlarmCounts() {
     const userAlarmsCount = userAlarms.length;
@@ -541,6 +481,16 @@ export function initializeAlarmClock() {
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
     }
+
+    const soundListContainer = document.querySelector('.menu-alarm .menu-list');
+    generateSoundList(soundListContainer, (soundId) => {
+        const selectedSoundSpan = document.querySelector('#alarm-selected-sound');
+        if (selectedSoundSpan) {
+            const soundName = getTranslation(soundId, 'sounds');
+            selectedSoundSpan.textContent = soundName;
+        }
+    });
+
     window.alarmManager = { 
         createAlarm, 
         toggleAlarm, 

@@ -83,27 +83,7 @@
                                 </div>
                                 <div class="dropdown-menu-container menu-timer-sound disabled body-title" data-menu="timerSoundMenu">
                                     <div class="menu-list">
-                                        <div class="menu-link" data-action="selectTimerSound" data-sound="classic-beep">
-                                            <div class="menu-link-icon"><span class="material-symbols-rounded">volume_up</span></div>
-                                            <div class="menu-link-text"><span data-translate="classic_beep" data-translate-category="sounds">Beep Clásico</span></div>
                                         </div>
-                                        <div class="menu-link" data-action="selectTimerSound" data-sound="gentle-chime">
-                                            <div class="menu-link-icon"><span class="material-symbols-rounded">notifications</span></div>
-                                            <div class="menu-link-text"><span data-translate="gentle_chime" data-translate-category="sounds">Campanita Suave</span></div>
-                                        </div>
-                                        <div class="menu-link" data-action="selectTimerSound" data-sound="digital-alarm">
-                                            <div class="menu-link-icon"><span class="material-symbols-rounded">alarm</span></div>
-                                            <div class="menu-link-text"><span data-translate="digital_alarm" data-translate-category="sounds">Alarma Digital</span></div>
-                                        </div>
-                                        <div class="menu-link" data-action="selectTimerSound" data-sound="peaceful-tone">
-                                            <div class="menu-link-icon"><span class="material-symbols-rounded">self_care</span></div>
-                                            <div class="menu-link-text"><span data-translate="peaceful_tone" data-translate-category="sounds">Tono Relajante</span></div>
-                                        </div>
-                                        <div class="menu-link" data-action="selectTimerSound" data-sound="urgent-beep">
-                                            <div class="menu-link-icon"><span class="material-symbols-rounded">priority_high</span></div>
-                                            <div class="menu-link-text"><span data-translate="urgent_beep" data-translate-category="sounds">Beep Urgente</span></div>
-                                        </div>
-                                    </div>
                                 </div>
                                 <div class="menu-action-button" data-action="previewTimerSound"><span class="material-symbols-rounded">play_arrow</span></div>
                             </div>
@@ -159,7 +139,7 @@
                                         <div class="enter-sound-content-left"><span id="selected-hour-display">--</span> : <span id="selected-minute-display">--</span></div>
                                         <div class="enter-sound-content-right"><span class="material-symbols-rounded">schedule</span></div>
                                     </div>
-                                    
+
                                     <div class="dropdown-menu-container menu-timer-hour-selection overflow-y disabled body-title" data-menu="timerHourMenu">
                                         <div class="menu-list menu-list-grid" data-list-type="hours">
                                             </div>

@@ -3,7 +3,7 @@
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
-import { playAlarmSound, stopAlarmSound } from './alarm-controller.js';
+import { playSound, stopSound, generateSoundList } from './general-tools.js';
 
 // --- ESTADO Y CONSTANTES ---
 const TIMERS_STORAGE_KEY = 'user-timers';
@@ -37,6 +37,16 @@ function initializeTimerController() {
     updateMainControlsState();
     updatePinnedStatesInUI();
     updateTimerCounts();
+    
+    const soundListContainer = document.querySelector('.menu-timer .menu-list');
+    generateSoundList(soundListContainer, (soundId) => {
+        const selectedSoundSpan = document.querySelector('#timer-selected-sound');
+        if (selectedSoundSpan) {
+            const soundName = getTranslation(soundId, 'sounds');
+            selectedSoundSpan.textContent = soundName;
+        }
+    });
+
     console.log('✅ Inicialización de timer completada.');
 }
 
@@ -562,15 +572,15 @@ function handleTimerEnd(timerId) {
     if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
 
     if (timer.endAction === 'restart') {
-        playAlarmSound(timer.sound);
+        playSound(timer.sound);
         setTimeout(() => {
-            stopAlarmSound();
+            stopSound();
             resetTimer(timerId);
             startTimer(timerId);
         }, 3000);
 
     } else {
-        playAlarmSound(timer.sound);
+        playSound(timer.sound);
         const card = document.getElementById(timerId);
         card?.querySelector('.card-options-container')?.classList.add('active');
     }
@@ -737,7 +747,7 @@ function handleDeleteTimer(timerId) {
 
 
 function dismissTimer(timerId) {
-    stopAlarmSound();
+    stopSound();
     const card = document.getElementById(timerId);
     if (card) {
         const optionsContainer = card.querySelector('.card-options-container');

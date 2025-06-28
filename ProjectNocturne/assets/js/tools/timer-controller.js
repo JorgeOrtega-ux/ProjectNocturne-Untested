@@ -19,12 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeTimerController() {
     loadTimersFromStorage();
-    restoreActiveTimers(); // Nueva función para restaurar timers activos
-    renderAllTimerCards();
+    restoreActiveTimers(); 
+    renderAllTimerCards(); // Ya incluye updatePinnedStatesInUI con delay
     setupGlobalEventListeners();
     updateMainDisplay();
     initializeSortable();
     updateMainControlsState();
+    
+    // CORRECCIÓN: Verificación adicional después de la inicialización completa
+    setTimeout(() => {
+        updatePinnedStatesInUI();
+        console.log('✅ Inicialización de timer completada con verificación de estado de pin');
+    }, 100);
 }
 
 // --- NUEVA FUNCIÓN: RESTAURAR TIMERS ACTIVOS ---
@@ -189,7 +195,6 @@ export function updateTimer(timerId, newData) {
     updateMainControlsState();
 }
 
-// --- GESTIÓN DE DATOS (STORAGE) - MEJORADA ---
 function loadTimersFromStorage() {
     const storedTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
     let loadedTimers = [];
@@ -208,15 +213,24 @@ function loadTimersFromStorage() {
 
     if (loadedTimers.length > 0) {
         timers = loadedTimers;
+        
+        // CORRECCIÓN: Verificar y corregir el estado del pin
         let pinnedTimer = timers.find(t => t.isPinned);
 
         if (!pinnedTimer) {
+            // Si no hay timer fijado, fijar el primero
             pinnedTimer = timers[0];
             timers[0].isPinned = true;
             saveTimersToStorage();
+            console.log('🔧 No había timer fijado, se fijó automáticamente:', pinnedTimer.title);
         }
         
         pinnedTimerId = pinnedTimer.id;
+        
+        // Asegurar que solo un timer esté marcado como fijado
+        timers.forEach(timer => {
+            timer.isPinned = (timer.id === pinnedTimerId);
+        });
 
         // Resetear estado de ejecución temporalmente - será restaurado por restoreActiveTimers()
         timers.forEach(timer => {
@@ -224,6 +238,7 @@ function loadTimersFromStorage() {
         });
 
     } else {
+        // Crear timer por defecto si no hay ninguno
         timers = [{
             id: `timer-default-${Date.now()}`,
             title: "Default Timer",
@@ -238,6 +253,8 @@ function loadTimersFromStorage() {
         pinnedTimerId = timers[0].id;
         saveTimersToStorage();
     }
+    
+    console.log('📂 Timers cargados. Timer fijado:', pinnedTimerId);
 }
 
 function saveTimersToStorage() {
@@ -249,14 +266,21 @@ function saveTimersToStorage() {
 function renderAllTimerCards() {
     const container = document.querySelector('.timers-grid-container');
     if (!container) return;
+    
     container.innerHTML = '';
+    
+    // Renderizar todas las tarjetas
     timers.forEach(timer => {
         const card = createTimerCard(timer);
         container.appendChild(card);
     });
-    updatePinnedStatesInUI();
+    
+    // CORRECCIÓN: Llamar updatePinnedStatesInUI después de un pequeño delay
+    // para asegurar que el DOM esté completamente renderizado
+    setTimeout(() => {
+        updatePinnedStatesInUI();
+    }, 50);
 }
-
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'timer-card';
@@ -389,12 +413,31 @@ function updateTimerCardControls(timerId) {
 }
 
 function updatePinnedStatesInUI() {
+    // Asegurar que pinnedTimerId tenga un valor válido
+    if (!pinnedTimerId && timers.length > 0) {
+        const firstTimer = timers[0];
+        pinnedTimerId = firstTimer.id;
+        firstTimer.isPinned = true;
+        saveTimersToStorage();
+        console.log('🔧 Pin corregido automáticamente para:', firstTimer.title);
+    }
+
+    // Actualizar todos los botones de pin
     document.querySelectorAll('.timer-card').forEach(card => {
         const pinBtn = card.querySelector('.card-pin-btn');
         if (pinBtn) {
-            pinBtn.classList.toggle('active', card.id === pinnedTimerId);
+            const isThisCardPinned = card.id === pinnedTimerId;
+            
+            // Aplicar o remover la clase active
+            if (isThisCardPinned) {
+                pinBtn.classList.add('active');
+            } else {
+                pinBtn.classList.remove('active');
+            }
         }
     });
+    
+    console.log('📌 Estados de pin actualizados. Timer fijado:', pinnedTimerId);
 }
 
 function formatTime(ms, type = 'countdown') {
@@ -616,18 +659,25 @@ function setupGlobalEventListeners() {
         }
     });
 }
-
 function handlePinTimer(timerId) {
-    if (pinnedTimerId === timerId) return;
+    if (pinnedTimerId === timerId) {
+        console.log('⚠️ Timer ya está fijado:', timerId);
+        return;
+    }
     
+    console.log('📌 Cambiando pin de', pinnedTimerId, 'a', timerId);
+    
+    // Actualizar el estado interno
     pinnedTimerId = timerId;
     timers.forEach(t => t.isPinned = (t.id === timerId));
     
+    // Actualizar la UI
     updatePinnedStatesInUI();
     updateMainDisplay();
     updateMainControlsState();
     saveTimersToStorage();
 }
+
 
 function toggleOptionsMenu(optionsBtn) {
     const wrapper = optionsBtn.parentElement;

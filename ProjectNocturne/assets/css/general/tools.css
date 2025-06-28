@@ -361,7 +361,6 @@
 
 .timers-grid-container {
     display: grid;
-    padding: 8px;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 8px;
 }
@@ -1309,6 +1308,7 @@
 }
 
 .dark-mode .timers-header-icon {
+    color: #ffffff;
     border-color: #ffffff20;
 }
 

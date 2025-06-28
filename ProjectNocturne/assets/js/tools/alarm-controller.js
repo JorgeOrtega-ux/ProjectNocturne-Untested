@@ -1,7 +1,6 @@
-// /assets/js/tools/alarm-controller.js
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
-import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList } from './general-tools.js';
+import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable } from './general-tools.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
@@ -376,50 +375,32 @@ function startClock() {
     clockInterval = setInterval(updateLocalTime, 1000);
 }
 
-function initializeSortableAlarms() {
+function initializeSortableGrids() {
     if (!allowCardMovement) return;
 
-    const userGrid = document.querySelector('.alarms-grid[data-alarm-grid="user"]');
-    const defaultGrid = document.querySelector('.alarms-grid[data-alarm-grid="default"]');
-    
-    if (typeof Sortable === 'undefined') {
-        console.warn('SortableJS no está disponible. La funcionalidad de arrastrar y soltar no funcionará.');
-        return;
-    }
+    initializeSortable('.alarms-grid[data-alarm-grid="user"]', {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onEnd: function (evt) {
+            const newOrderIds = Array.from(evt.to.children).map(card => card.id);
+            userAlarms.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+            saveAlarmsToStorage();
+        }
+    });
 
-    if (userGrid) {
-        new Sortable(userGrid, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            onEnd: function (evt) {
-                const newOrderIds = Array.from(evt.to.children).map(card => card.id);
-                userAlarms.sort((a, b) => {
-                    return newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id);
-                });
-                saveAlarmsToStorage();
-                console.log('📝 Nuevo orden de alarmas de usuario guardado');
-            }
-        });
-    }
-
-    if (defaultGrid) {
-        new Sortable(defaultGrid, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            onEnd: function (evt) {
-                const newOrderIds = Array.from(evt.to.children).map(card => card.id);
-                defaultAlarmsState.sort((a, b) => {
-                    return newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id);
-                });
-                saveDefaultAlarmsOrder();
-                console.log('📝 Nuevo orden de alarmas predeterminadas guardado');
-            }
-        });
-    }
+    initializeSortable('.alarms-grid[data-alarm-grid="default"]', {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onEnd: function (evt) {
+            const newOrderIds = Array.from(evt.to.children).map(card => card.id);
+            defaultAlarmsState.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+            saveDefaultAlarmsOrder();
+        }
+    });
 }
 
 function setupEventListeners() {
@@ -477,7 +458,7 @@ export function initializeAlarmClock() {
     loadDefaultAlarms();
     setupEventListeners();
     updateAlarmCounts();
-    initializeSortableAlarms(); 
+    initializeSortableGrids(); 
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
     }

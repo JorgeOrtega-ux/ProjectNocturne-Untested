@@ -1,9 +1,7 @@
-// /assets/js/tools/timer-controller.js - Con persistencia de estado robusta y contenedores expandibles
-
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
-import { playSound, stopSound, generateSoundList } from './general-tools.js';
+import { playSound, stopSound, generateSoundList, initializeSortable } from './general-tools.js';
 
 // --- ESTADO Y CONSTANTES ---
 const TIMERS_STORAGE_KEY = 'user-timers';
@@ -33,7 +31,7 @@ function initializeTimerController() {
     renderAllTimerCards();
     setupGlobalEventListeners();
     updateMainDisplay();
-    initializeSortable();
+    initializeSortableGrids();
     updateMainControlsState();
     updatePinnedStatesInUI();
     updateTimerCounts();
@@ -236,38 +234,34 @@ function resetTimer(timerId) {
 
 // --- FUNCIONES DE UI Y MANEJO DE EVENTOS ---
 
-function initializeSortable() {
+function initializeSortableGrids() {
     if (!allowCardMovement) return;
-    const userGrid = document.querySelector('.timers-grid-container[data-timer-grid="user"]');
-    const defaultGrid = document.querySelector('.timers-grid-container[data-timer-grid="default"]');
 
-    if (userGrid && typeof Sortable !== 'undefined') {
-        new Sortable(userGrid, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            onEnd: function() {
-                const newOrder = Array.from(userGrid.querySelectorAll('.timer-card')).map(card => card.id);
-                userTimers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
-                saveTimersToStorage();
-            }
-        });
-    }
+    initializeSortable('.timers-grid-container[data-timer-grid="user"]', {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onEnd: function() {
+            const grid = document.querySelector('.timers-grid-container[data-timer-grid="user"]');
+            const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
+            userTimers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+            saveTimersToStorage();
+        }
+    });
 
-     if (defaultGrid && typeof Sortable !== 'undefined') {
-        new Sortable(defaultGrid, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            onEnd: function() {
-                const newOrder = Array.from(defaultGrid.querySelectorAll('.timer-card')).map(card => card.id);
-                defaultTimersState.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
-                saveDefaultTimersOrder();
-            }
-        });
-    }
+    initializeSortable('.timers-grid-container[data-timer-grid="default"]', {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onEnd: function() {
+            const grid = document.querySelector('.timers-grid-container[data-timer-grid="default"]');
+            const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
+            defaultTimersState.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+            saveDefaultTimersOrder();
+        }
+    });
 }
 
 

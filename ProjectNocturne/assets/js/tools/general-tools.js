@@ -996,6 +996,16 @@ function initializeFullScreenManager() {
     });
 }
 
+// ========== UNIFIED SORTABLE INITIALIZER ==========
+export function initializeSortable(gridSelector, options) {
+    const grid = document.querySelector(gridSelector);
+    if (grid && typeof Sortable !== 'undefined') {
+        new Sortable(grid, options);
+    } else if (typeof Sortable === 'undefined') {
+        console.warn('SortableJS not available. Drag-and-drop functionality will be disabled.');
+    }
+}
+
 
 // ========== EXPORTS ==========
 export {

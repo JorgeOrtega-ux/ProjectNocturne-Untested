@@ -38,9 +38,13 @@ function initializeTimerController() {
     const soundListContainer = document.querySelector('.menu-timer-sound .menu-list');
     generateSoundList(soundListContainer, 'selectTimerSound');
 
+    // Listener para guardar el estado antes de cerrar la página
+    window.addEventListener('beforeunload', () => {
+        saveAllTimersState();
+    });
+
     console.log('✅ Inicialización de timer completada.');
 
-    // Exponer el gestor de temporizadores globalmente
     window.timerManager = {
         startTimer,
         pauseTimer,
@@ -120,6 +124,11 @@ function loadAndRestoreTimers() {
     saveDefaultTimersOrder();
 }
 
+// Función unificada para guardar el estado de todos los temporizadores.
+function saveAllTimersState() {
+    saveTimersToStorage();
+    saveDefaultTimersOrder();
+}
 
 function saveTimersToStorage() {
     const now = Date.now();
@@ -376,6 +385,7 @@ function renderAllTimerCards() {
     }, 50);
 }
 
+// =================== INICIO DE LA CORRECCIÓN DE SINTAXIS ===================
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'tool-card timer-card';
@@ -392,6 +402,20 @@ function createTimerCard(timer) {
 
     const isDefault = timer.id.startsWith('default-timer-');
     const titleText = isDefault ? getTranslation(timer.title, 'timer') : timer.title;
+
+    let countdownMenu = '';
+    if (isCountdown) {
+        countdownMenu = `
+        <div class="menu-link" data-action="${playPauseAction}">
+            <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
+            <div class="menu-link-text"><span data-translate="${playPauseTextKey}" data-translate-category="tooltips">${getTranslation(playPauseTextKey, 'tooltips')}</span></div>
+        </div>
+        <div class="menu-link" data-action="reset-card-timer">
+            <div class="menu-link-icon"><span class="material-symbols-rounded">refresh</span></div>
+            <div class="menu-link-text"><span data-translate="reset" data-translate-category="tooltips">${getTranslation('reset', 'tooltips')}</span></div>
+        </div>
+        `;
+    }
 
     card.innerHTML = `
         <div class="card-header">
@@ -422,16 +446,7 @@ function createTimerCard(timer) {
                     <span class="material-symbols-rounded">more_horiz</span>
                 </button>
                 <div class="card-dropdown-menu body-title disabled">
-                    ${isCountdown ? `
-                    <div class="menu-link" data-action="${playPauseAction}">
-                        <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
-                        <div class="menu-link-text"><span data-translate="${playPauseTextKey}" data-translate-category="tooltips">${getTranslation(playPauseTextKey, 'tooltips')}</span></div>
-                    </div>
-                    <div class="menu-link" data-action="reset-card-timer">
-                        <div class="menu-link-icon"><span class="material-symbols-rounded">refresh</span></div>
-                        <div class="menu-link-text"><span data-translate="reset" data-translate-category="tooltips">${getTranslation('reset', 'tooltips')}</span></div>
-                    </div>
-                    ` : ''}
+                    ${countdownMenu}
                     <div class="menu-link" data-action="edit-timer">
                         <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                         <div class="menu-link-text"><span data-translate="edit_timer" data-translate-category="timer">${getTranslation('edit_timer', 'timer')}</span></div>
@@ -456,6 +471,8 @@ function createTimerCard(timer) {
 
     return card;
 }
+// =================== FIN DE LA CORRECCIÓN DE SINTAXIS ===================
+
 function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
     if (!mainDisplay) return;
@@ -699,7 +716,6 @@ function updateTimerCardVisuals(timer) {
     const card = document.getElementById(timer.id);
     if (!card) return;
 
-    // Actualizar título de la tarjeta
     const titleElement = card.querySelector('.card-title');
     if (titleElement) {
         const isDefault = timer.id.startsWith('default-timer-');
@@ -708,26 +724,22 @@ function updateTimerCardVisuals(timer) {
         titleElement.title = titleText;
     }
 
-    // Actualizar el tiempo restante
     const timeElement = card.querySelector('.card-value');
     if (timeElement) {
         timeElement.textContent = formatTime(timer.remaining, timer.type);
     }
 
-    // Actualizar etiqueta (sonido o tipo)
     const isCountdown = timer.type === 'countdown';
     const tagElement = card.querySelector('.card-tag');
     if (tagElement) {
         tagElement.textContent = isCountdown ? getTranslation(timer.sound, 'sounds') : '';
     }
 
-    // Actualizar texto del botón "Descartar"
     const dismissButton = card.querySelector('.card-dismiss-btn span');
     if (dismissButton) {
         dismissButton.textContent = getTranslation('dismiss', 'alarms');
     }
 
-    // Actualizar textos del menú desplegable
     const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
     if (playPauseLink) {
         const textElement = playPauseLink.querySelector('.menu-link-text span');
@@ -769,12 +781,10 @@ function dismissTimer(timerId) {
     }
 }
 document.addEventListener('translationsApplied', () => {
-    // Obtenemos todos los temporizadores sin recargar las tarjetas
     const allTimers = [...userTimers, ...defaultTimersState];
     allTimers.forEach(timer => {
-        // Actualizamos cada tarjeta individualmente
         updateTimerCardVisuals(timer);
     });
-    // Los tooltips de los controles principales se actualizan en sus respectivas funciones
 });
+
 export { initializeTimerController };

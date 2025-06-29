@@ -322,10 +322,14 @@ function updateAlarmCardVisuals(alarm) {
 }
 
 function saveAlarmsToStorage() {
+    // MODIFICACIÓN: Añadido console.log para depuración
+    console.log(`[LocalStorage Save] Guardando datos de alarmas en la clave: '${ALARMS_STORAGE_KEY}'`, userAlarms);
     localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(userAlarms));
 }
 
 function saveDefaultAlarmsOrder() {
+    // MODIFICACIÓN: Añadido console.log para depuración
+    console.log(`[LocalStorage Save] Guardando orden de alarmas por defecto en la clave: '${DEFAULT_ALARMS_STORAGE_KEY}'`, defaultAlarmsState);
     localStorage.setItem(DEFAULT_ALARMS_STORAGE_KEY, JSON.stringify(defaultAlarmsState));
 }
 
@@ -335,11 +339,11 @@ function loadDefaultAlarmsOrder() {
         try {
             defaultAlarmsState = JSON.parse(stored);
             const defaultIds = new Set(defaultAlarmsState.map(alarm => alarm.id));
-            const originalIds = new Set(DEFAULT_ALARMS.map(alarm => alarm.id));
             
             DEFAULT_ALARMS.forEach(defaultAlarm => {
                 if (!defaultIds.has(defaultAlarm.id)) {
                     defaultAlarmsState.push({...defaultAlarm});
+                    // A diferencia del script de timers, este no guarda automáticamente aquí.
                 }
             });
         } catch (error) {
@@ -382,13 +386,7 @@ function formatTime(hour, minute) {
     return `${h12}:${String(minute).padStart(2, '0')} ${ampm}`;
 }
 
-function getTranslation(key, category) {
-    if (typeof window.getTranslation === 'function') {
-        const text = window.getTranslation(key, category);
-        return text === key ? key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : text;
-    }
-    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-}
+// Se ha eliminado la función getTranslation duplicada para usar la versión global importada.
 
 function toggleAlarmsSection(type) {
     const grid = document.querySelector(`.tool-grid[data-alarm-grid="${type}"]`);
@@ -464,6 +462,9 @@ export function initializeAlarmClock() {
         Notification.requestPermission();
     }
 
+    // Se ha movido la lógica de 'getTranslation' a la importación global
+    // y se ha eliminado la función local duplicada.
+
     window.alarmManager = { 
         createAlarm, 
         toggleAlarm, 
@@ -482,6 +483,7 @@ export function initializeAlarmClock() {
         document.querySelectorAll('[data-translate-category="alarms"]').forEach(element => {
             const key = element.dataset.translate;
             if (key) {
+                // Asumiendo que getTranslation está disponible globalmente a través del import
                 element.textContent = getTranslation(key, 'alarms');
             }
         });

@@ -69,10 +69,6 @@ function initializeTimerController() {
     updateMainControlsState();
     updatePinnedStatesInUI();
     updateTimerCounts();
-    
-    window.addEventListener('beforeunload', () => {
-        saveAllTimersState();
-    });
 
     console.log('✅ Inicialización de timer completada.');
 
@@ -165,10 +161,14 @@ function saveAllTimersState() {
 }
 
 function saveTimersToStorage() {
+    // MODIFICACIÓN: Añadido console.log para depuración
+    console.log(`[LocalStorage Save] Guardando datos en la clave: '${TIMERS_STORAGE_KEY}'`, userTimers);
     localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(userTimers));
 }
 
 function saveDefaultTimersOrder() {
+    // MODIFICACIÓN: Añadido console.log para depuración
+    console.log(`[LocalStorage Save] Guardando datos en la clave: '${DEFAULT_TIMERS_STORAGE_KEY}'`, defaultTimersState);
     localStorage.setItem(DEFAULT_TIMERS_STORAGE_KEY, JSON.stringify(defaultTimersState));
 }
 
@@ -458,32 +458,32 @@ function createTimerCard(timer) {
         </div>
         <div class="card-options-container">
              <button class="card-dismiss-btn" data-type="timer" data-action="dismiss-timer">
-                <span data-translate="dismiss" data-translate-category="alarms">${getTranslation('dismiss', 'alarms')}</span>
-            </button>
+                 <span data-translate="dismiss" data-translate-category="alarms">${getTranslation('dismiss', 'alarms')}</span>
+             </button>
         </div>
         <div class="card-menu-container">
              <button class="card-pin-btn" data-action="pin-timer" data-translate="pin_timer" data-translate-category="tooltips" data-translate-target="tooltip">
-                <span class="material-symbols-rounded">push_pin</span>
-            </button>
-            <div class="card-menu-btn-wrapper">
+                 <span class="material-symbols-rounded">push_pin</span>
+             </button>
+             <div class="card-menu-btn-wrapper">
                  <button class="card-menu-btn" data-action="toggle-timer-options"
-                    data-translate="timer_options"
-                    data-translate-category="timer"
-                    data-translate-target="tooltip">
-                    <span class="material-symbols-rounded">more_horiz</span>
-                </button>
-                <div class="card-dropdown-menu body-title disabled">
-                    ${countdownMenu}
-                    <div class="menu-link" data-action="edit-timer">
-                        <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
-                        <div class="menu-link-text"><span data-translate="edit_timer" data-translate-category="timer">${getTranslation('edit_timer', 'timer')}</span></div>
-                    </div>
-                    <div class="menu-link" data-action="delete-timer">
-                        <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
-                        <div class="menu-link-text"><span data-translate="delete_timer" data-translate-category="timer">${getTranslation('delete_timer', 'timer')}</span></div>
-                    </div>
-                </div>
-            </div>
+                     data-translate="timer_options"
+                     data-translate-category="timer"
+                     data-translate-target="tooltip">
+                     <span class="material-symbols-rounded">more_horiz</span>
+                 </button>
+                 <div class="card-dropdown-menu body-title disabled">
+                     ${countdownMenu}
+                     <div class="menu-link" data-action="edit-timer">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
+                         <div class="menu-link-text"><span data-translate="edit_timer" data-translate-category="timer">${getTranslation('edit_timer', 'timer')}</span></div>
+                     </div>
+                     <div class="menu-link" data-action="delete-timer">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+                         <div class="menu-link-text"><span data-translate="delete_timer" data-translate-category="timer">${getTranslation('delete_timer', 'timer')}</span></div>
+                     </div>
+                 </div>
+             </div>
         </div>
     `;
     

@@ -343,7 +343,7 @@
 }
 
 .time-selector-hours .hour-item.selected {
-    background-color: #e0e0e0;
+    background-color: #f5f5fa;
 }
 
 .duration-label {
@@ -384,9 +384,35 @@
     transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.tool-card.timer-finished,
-.tool-card.alarm-disabled {
+/* Nueva implementación: aplicar opacidad solo a elementos específicos */
+.tool-card.timer-finished .card-header,
+.tool-card.timer-finished .card-footer,
+.tool-card.alarm-disabled .card-header,
+.tool-card.alarm-disabled .card-footer {
     opacity: 0.6;
+}
+
+/* Asegurar que el menú mantenga opacidad completa */
+.tool-card.timer-finished .card-menu-container,
+.tool-card.timer-finished .card-dropdown-menu,
+.tool-card.alarm-disabled .card-menu-container,
+.tool-card.alarm-disabled .card-dropdown-menu {
+    opacity: 1 !important;
+}
+
+/* ===== VERSIÓN MODO OSCURO ===== */
+.dark-mode .tool-card.timer-finished .card-header,
+.dark-mode .tool-card.timer-finished .card-footer,
+.dark-mode .tool-card.alarm-disabled .card-header,
+.dark-mode .tool-card.alarm-disabled .card-footer {
+    opacity: 0.6;
+}
+
+.dark-mode .tool-card.timer-finished .card-menu-container,
+.dark-mode .tool-card.timer-finished .card-dropdown-menu,
+.dark-mode .tool-card.alarm-disabled .card-menu-container,
+.dark-mode .tool-card.alarm-disabled .card-dropdown-menu {
+    opacity: 1 !important;
 }
 
 .tool-card .card-header {
@@ -481,7 +507,7 @@
 }
 
 .tool-card .card-pin-btn.active {
-    background-color: #e0e0e0;
+    background-color: #f5f5fa;
 }
 
 .tool-card .card-dropdown-menu .menu-link:hover {
@@ -813,16 +839,13 @@
 }
 
 .tool-card.sortable-chosen {
-    opacity: 0.9;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    opacity: 0.8;
     transform: scale(1.03);
     cursor: grabbing;
 }
 
 .tool-card.sortable-ghost {
-    opacity: 0.4;
-    background-color: #f5f5fa;
-    border: 1px dashed #d0d0d0;
+    opacity: 0.8;
 }
 
 .expandable-card-toggle-btn {

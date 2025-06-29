@@ -657,12 +657,6 @@ function setupGlobalEventListeners() {
         }
     });
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.card-menu-btn-wrapper')) {
-            document.querySelectorAll('.card-dropdown-menu').forEach(menu => menu.classList.add('disabled'));
-        }
-    });
-
     window.timerManager = {
         toggleTimersSection
     };
@@ -703,7 +697,7 @@ function toggleOptionsMenu(optionsBtn) {
         }
     });
 
-    menu.classList.toggle('disabled', !isCurrentlyHidden);
+    menu.classList.remove('disabled', !isCurrentlyHidden);
 }
 
 function handleEditTimer(timerId) {

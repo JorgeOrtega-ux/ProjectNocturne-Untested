@@ -479,19 +479,19 @@
     color: #ffffff;
 }
 
-.dark-mode .timer-card .card-buttons-container {
+.dark-mode .timer-card .card-menu-container {
     background-color: #252627;
     filter: unset;
     border: 1px solid #ffffff20;
 }
 
 .dark-mode .timer-card .card-pin-btn,
-.dark-mode .timer-card .card-options-btn {
+.dark-mode .timer-card .card-menu-btn {
     color: #ffffff;
 }
 
 .dark-mode .timer-card .card-pin-btn:hover,
-.dark-mode .timer-card .card-options-btn:hover {
+.dark-mode .timer-card .card-menu-btn:hover {
     background-color: #ffffff20;
 }
 
@@ -499,13 +499,7 @@
     background-color: #ffffff20;
 }
 
-.dark-mode .timer-card .card-options-menu {
-    background-color: #3a3b3d;
-    filter: drop-shadow(0 4px 12px #00000040);
-    border: 1px solid #ffffff18;
-}
-
-.dark-mode .timer-card .card-options-menu .menu-link:hover {
+.dark-mode .timer-card .card-dropdown-menu .menu-link:hover {
     background-color: #ffffff20;
 }
 /* ================================================================ */

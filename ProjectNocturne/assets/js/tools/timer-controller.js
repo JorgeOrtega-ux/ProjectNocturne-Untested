@@ -237,11 +237,16 @@ function resetTimer(timerId) {
 function initializeSortableGrids() {
     if (!allowCardMovement) return;
 
-    initializeSortable('.timers-grid-container[data-timer-grid="user"]', {
+    const sortableOptions = {
         animation: 150,
+        filter: '.card-pin-btn, .card-menu-btn, .card-dropdown-menu',
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
+    };
+
+    initializeSortable('.timers-grid-container[data-timer-grid="user"]', {
+        ...sortableOptions,
         onEnd: function() {
             const grid = document.querySelector('.timers-grid-container[data-timer-grid="user"]');
             const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
@@ -251,10 +256,7 @@ function initializeSortableGrids() {
     });
 
     initializeSortable('.timers-grid-container[data-timer-grid="default"]', {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        chosenClass: 'sortable-chosen',
-        dragClass: 'sortable-drag',
+        ...sortableOptions,
         onEnd: function() {
             const grid = document.querySelector('.timers-grid-container[data-timer-grid="default"]');
             const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
@@ -399,7 +401,7 @@ function createTimerCard(timer) {
                 <span data-translate="dismiss" data-translate-category="alarms">${getTranslation('dismiss', 'alarms')}</span>
             </button>
         </div>
-        <div class="card-buttons-container">
+        <div class="card-menu-container disabled">
              <button class="card-pin-btn" data-action="pin-timer" data-translate="pin_timer" data-translate-category="tooltips" data-translate-target="tooltip">
                 <span class="material-symbols-rounded">push_pin</span>
             </button>
@@ -430,6 +432,16 @@ function createTimerCard(timer) {
             </div>
         </div>
     `;
+    
+    const menuContainer = card.querySelector('.card-menu-container');
+    card.addEventListener('mouseenter', () => menuContainer?.classList.remove('disabled'));
+    card.addEventListener('mouseleave', () => {
+        const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
+        if (dropdown?.classList.contains('disabled')) {
+            menuContainer?.classList.add('disabled');
+        }
+    });
+
     return card;
 }
 
@@ -645,7 +657,6 @@ function setupGlobalEventListeners() {
         }
     });
 
-    // Este es el listener global que cierra los menús. Ahora buscará la clase estandarizada.
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.card-menu-btn-wrapper')) {
             document.querySelectorAll('.card-dropdown-menu').forEach(menu => menu.classList.add('disabled'));
@@ -686,19 +697,13 @@ function toggleOptionsMenu(optionsBtn) {
 
     const isCurrentlyHidden = menu.classList.contains('disabled');
 
-    // Cierra todos los otros menús primero
     document.querySelectorAll('.card-dropdown-menu').forEach(otherMenu => {
         if (otherMenu !== menu) {
             otherMenu.classList.add('disabled');
         }
     });
 
-    // Alterna el menú actual
-    if (isCurrentlyHidden) {
-        menu.classList.remove('disabled');
-    } else {
-        menu.classList.add('disabled');
-    }
+    menu.classList.toggle('disabled', !isCurrentlyHidden);
 }
 
 function handleEditTimer(timerId) {

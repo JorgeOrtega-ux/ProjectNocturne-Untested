@@ -388,12 +388,15 @@ function createTimerCard(timer) {
 
     card.innerHTML = `
         <div class="card-header">
-            <div class="card-location-details">
-                <span class="location-text" title="${timer.title}">${timer.title}</span>
+            <div class="card-alarm-details">
+                <span class="alarm-title" title="${timer.title}">${timer.title}</span>
+                <span class="alarm-time">${formatTime(timer.remaining, timer.type)}</span>
             </div>
         </div>
-        <div class="card-body">
-            <span class="clock-time">${formatTime(timer.remaining, timer.type)}</span>
+        <div class="card-footer">
+            <div class="alarm-info">
+                 <span class="alarm-sound-name">${isCountdown ? getTranslation(timer.sound, 'sounds') : ''}</span>
+            </div>
         </div>
         <div class="card-options-container">
              <button class="dismiss-timer-btn" data-action="dismiss-timer">
@@ -487,7 +490,7 @@ function updateCardDisplay(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
 
-    const timeElement = card.querySelector('.clock-time');
+    const timeElement = card.querySelector('.alarm-time');
     if (timeElement) {
         timeElement.textContent = formatTime(timer.remaining, timer.type);
     }

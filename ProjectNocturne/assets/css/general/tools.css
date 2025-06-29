@@ -365,159 +365,96 @@
     gap: 8px;
 }
 
-.timer-card {
+.timer-card,
+.world-clock-card,
+.alarm-card {
     position: relative;
     display: flex;
     flex-direction: column;
     padding: 16px;
-    gap: 8px;
+    gap: 12px;
     background-color: #ffffff;
     border: 1px solid #00000020;
     border-radius: 12px;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.timer-card.timer-finished {
+
+.timer-card.timer-finished,
+.alarm-card.alarm-disabled {
     opacity: 0.6;
 }
 
-.timer-card .card-header {
+.timer-card .card-header,
+.world-clock-card .card-header,
+.alarm-card .card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    font-weight: 500;
-    color: #000000;
+    gap: 12px;
 }
 
-.timer-card .card-location-details {
-    overflow: hidden;
-    flex: 1 1 auto;
-}
-
-.timer-card .location-text {
-    font-size: 1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.timer-card .card-body {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 4px 0;
-}
-
-.timer-card .clock-time {
-    font-size: 2.2rem;
-    font-weight: 500;
-    color: #000000;
-    line-height: 1;
-}
-
-.timer-card .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 4px;
-}
-
-.timer-card .card-pin-btn:hover,
-.timer-card .card-menu-btn:hover {
-    background-color: #f5f5fa;
-}
-
-.timer-card .card-pin-btn.active {
-    background-color: #e0e0e0;
-}
-
-.timer-card .card-dropdown-menu .menu-link:hover {
-    background-color: #f5f5fa;
-}
-
-.timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"] .menu-link-text span,
-.timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"] .menu-link-icon span {
-    color: #d32f2f;
-}
-
-.timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"]:hover {
-    background-color: rgba(229, 57, 53, 0.08);
-}
-
-.pinned-clocks-container {
-    margin-bottom: 16px;
-}
-
-.world-clocks-grid {
-    display: grid;
-    padding: 8px;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 8px;
-}
-
-.world-clock-card {
-    position: relative;
+.timer-card .card-alarm-details,
+.world-clock-card .card-alarm-details,
+.alarm-card .card-alarm-details {
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    gap: 8px;
-    background-color: #ffffff;
-    border: 1px solid #00000020;
-    border-radius: 12px;
-    cursor: grab;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
 }
 
-.card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+.timer-card .alarm-title,
+.world-clock-card .alarm-title,
+.alarm-card .alarm-title {
+    font-size: 1rem;
     font-weight: 500;
     color: #000000;
-}
-
-.card-location-details {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
-    overflow: hidden;
-    flex: 1 1 auto;
-}
-
-.location-text {
-    font-size: 1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.card-body {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 4px 0;
-}
-
-.clock-time {
-    font-size: 2.2rem;
-    font-weight: 500;
+.timer-card .alarm-time,
+.world-clock-card .alarm-time,
+.alarm-card .alarm-time {
+    font-size: 1.4rem;
+    font-weight: 600;
     color: #000000;
     line-height: 1;
 }
 
-.card-footer {
+.timer-card .card-footer,
+.world-clock-card .card-footer,
+.alarm-card .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 4px;
 }
 
-.card-fullscreen-btn,
-.card-pin-btn,
-.card-menu-btn {
+.timer-card .alarm-info,
+.world-clock-card .alarm-info,
+.alarm-card .alarm-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timer-card .alarm-sound-name,
+.world-clock-card .alarm-sound-name,
+.alarm-card .alarm-sound-name {
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.7);
+    background-color: #f5f5fa;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.timer-card .card-pin-btn,
+.world-clock-card .card-pin-btn,
+.alarm-card .card-pin-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -533,44 +470,71 @@
     padding: 0;
 }
 
-.dark-mode .card-pin-btn {
-    color: #ffffff;
-}
-
-.dark-mode .card-menu-btn {
-    color: #ffffff;
-}
-
-.dark-mode .card-menu-container {
-    filter: unset;
-    border-color: #ffffff20;
-    background-color: #252627;
-}
-
-.dark-mode .card-pin-btn:hover {
-    background-color: #ffffff20;
-}
-
-.dark-mode .card-pin-btn.active {
-    background-color: #ffffff20;
-}
-
-.card-fullscreen-btn:hover,
-.card-pin-btn:hover,
-.card-menu-btn:hover {
-    background-color: #f5f5fa;
-}
-
-.card-pin-btn.active {
+.timer-card .card-menu-btn,
+.world-clock-card .card-menu-btn,
+.alarm-card .card-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
     color: #000000;
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+
+.timer-card .card-pin-btn:hover,
+.timer-card .card-menu-btn:hover,
+.world-clock-card .card-pin-btn:hover,
+.world-clock-card .card-menu-btn:hover,
+.alarm-card .card-pin-btn:hover,
+.alarm-card .card-menu-btn:hover {
     background-color: #f5f5fa;
 }
 
-.dark-mode .card-pin-btn.active {
-    color: #ffffff;
-    background-color: #ffffff20;
+.timer-card .card-pin-btn.active,
+.world-clock-card .card-pin-btn.active,
+.alarm-card .card-pin-btn.active {
+    background-color: #e0e0e0;
 }
 
+.timer-card .card-dropdown-menu .menu-link:hover,
+.world-clock-card .card-dropdown-menu .menu-link:hover,
+.alarm-card .card-dropdown-menu .menu-link:hover {
+    background-color: #f5f5fa;
+}
+
+.timer-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
+.timer-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span,
+.world-clock-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
+.world-clock-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span,
+.alarm-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
+.alarm-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span {
+    color: #d32f2f;
+}
+
+.timer-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover,
+.world-clock-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover,
+.alarm-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
+    background-color: rgba(229, 57, 53, 0.08);
+}
+
+.pinned-clocks-container {
+    margin-bottom: 16px;
+}
+
+.world-clocks-grid {
+    display: grid;
+    padding: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+}
 
 .card-menu-container {
     position: absolute;
@@ -622,47 +586,6 @@
 .card-dropdown-menu .menu-link {
     height: 36px;
     font-size: 0.875rem;
-}
-
-.card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-text span,
-.card-dropdown-menu .menu-link[data-action="delete-clock"] .menu-link-icon span {
-    font-weight: 500;
-    color: #d32f2f;
-}
-
-.card-dropdown-menu .menu-link[data-action="delete-clock"]:hover {
-    background-color: rgba(229, 57, 53, 0.08);
-}
-
-.card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-text span,
-.card-dropdown-menu .menu-link[data-action="delete-clock"]:hover .menu-link-icon span {
-    color: #b71c1c;
-}
-
-.badges-container {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.badge {
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1.2;
-    white-space: nowrap;
-}
-
-.clock-date {
-    background-color: #f5f5fa;
-    color: rgba(0, 0, 0, 0.7);
-}
-
-.clock-offset {
-    background-color: #f5f5fa;
-    color: rgba(0, 0, 0, 0.7);
 }
 
 .loading-overlay {
@@ -770,19 +693,11 @@
     height: 55px;
 }
 
-.dark-mode .alarms-header {
-    border-bottom-color: #ffffff20;
-}
-
 .alarms-header h3 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 500;
     color: #000000;
-}
-
-.dark-mode .alarms-header h3 {
-    color: #ffffff;
 }
 
 .collapse-alarms-btn {
@@ -807,16 +722,8 @@
     transform: rotate(180deg);
 }
 
-.dark-mode .collapse-alarms-btn {
-    color: #ffffff;
-}
-
 .collapse-alarms-btn:hover {
     background-color: #f5f5fa;
-}
-
-.dark-mode .collapse-alarms-btn:hover {
-    background-color: #ffffff20;
 }
 
 .alarms-grid {
@@ -828,23 +735,6 @@
 
 .alarms-grid.active {
     display: grid;
-}
-
-.alarm-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    gap: 12px;
-    background-color: #ffffff;
-    border: 1px solid #00000020;
-    border-radius: 12px;
-    transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.dark-mode .alarm-card {
-    background-color: #2e2f31;
-    border-color: #ffffff18;
 }
 
 .card-options-container {
@@ -874,14 +764,6 @@
     background-color: #ff2f2f;
 }
 
-.dark-mode .dismiss-alarm-btn {
-    background-color: #e57373;
-}
-
-.dark-mode .dismiss-alarm-btn:hover {
-    background-color: #ef9a9a;
-}
-
 .dismiss-timer-btn {
     padding: 8px 16px;
     background-color: #4CAF50;
@@ -895,209 +777,6 @@
 
 .dismiss-timer-btn:hover {
     background-color: #45a049;
-}
-
-.dark-mode .dismiss-timer-btn {
-    background-color: #66bb6a;
-}
-
-.dark-mode .dismiss-timer-btn:hover {
-    background-color: #81c784;
-}
-
-.alarm-card.alarm-disabled {
-    opacity: 0.6;
-}
-
-.alarm-card .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.alarm-card .card-alarm-details {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-}
-
-.alarm-card .alarm-title {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #000000;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.dark-mode .alarm-card .alarm-title {
-    color: #ffffff;
-}
-
-.alarm-card .alarm-time {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: #000000;
-    line-height: 1;
-}
-
-.dark-mode .alarm-card .alarm-time {
-    color: #ffffff;
-}
-
-.alarm-card .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 4px;
-}
-
-.alarm-card .alarm-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.alarm-card .alarm-sound-name {
-    font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.7);
-    background-color: #f5f5fa;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-weight: 500;
-}
-
-.dark-mode .alarm-card .alarm-sound-name {
-    color: rgba(255, 255, 255, 0.8);
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.alarm-card .card-menu-container {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    padding: 2px;
-    z-index: 5;
-    border-radius: 8px;
-    background: #ffffff;
-    display: flex;
-    border: 1px solid transparent;
-    filter: drop-shadow(0 4px 12px #00000020);
-    gap: 4px;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.dark-mode .alarm-card .card-menu-container {
-    background-color: #252627;
-    border-color: #ffffff20;
-    filter: unset;
-}
-
-.alarm-card .card-menu-container.disabled {
-    display: none;
-}
-
-.alarm-card .card-menu-container.active {
-    display: flex;
-}
-
-.alarm-card .card-menu-btn-wrapper {
-    position: relative;
-}
-
-.alarm-card .card-menu-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    color: #000000;
-    background-color: transparent;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    flex-shrink: 0;
-    padding: 0;
-}
-
-.dark-mode .alarm-card .card-menu-btn {
-    color: #ffffff;
-}
-
-.alarm-card .card-menu-btn:hover {
-    background-color: #f5f5fa;
-}
-
-.dark-mode .alarm-card .card-menu-btn:hover {
-    background-color: #ffffff18;
-}
-
-.alarm-card .card-dropdown-menu {
-    position: absolute;
-    top: calc(100% + 5px);
-    right: 0;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    width: 180px;
-    padding: 8px;
-    margin-top: 4px;
-    gap: 4px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    filter: drop-shadow(0 4px 12px #00000020);
-}
-
-.dark-mode .alarm-card .card-dropdown-menu {
-    background-color: #3a3b3d;
-    border-color: #ffffff18;
-    box-shadow: 0 4px 12px #00000040;
-}
-
-.alarm-card .card-dropdown-menu.disabled {
-    display: none;
-}
-
-.alarm-card .card-dropdown-menu .menu-link {
-    height: 36px;
-    font-size: 0.875rem;
-}
-
-.alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"] .menu-link-text span,
-.alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"] .menu-link-icon span {
-    color: #d32f2f;
-}
-
-.alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"]:hover {
-    background-color: rgba(229, 57, 53, 0.08);
-}
-
-.alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"]:hover .menu-link-text span,
-.alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"]:hover .menu-link-icon span {
-    color: #b71c1c;
-}
-
-.dark-mode .alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"] .menu-link-text span,
-.dark-mode .alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"] .menu-link-icon span {
-    color: #e57373;
-}
-
-.dark-mode .alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"]:hover {
-    background-color: rgba(239, 154, 154, 0.1);
-}
-
-.dark-mode .alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"]:hover .menu-link-text span,
-.dark-mode .alarm-card .card-dropdown-menu .menu-link[data-action="delete-alarm"]:hover .menu-link-icon span {
-    color: #ef9a9a;
-}
-
-.dark-mode .timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"]:hover .menu-link-text span,
-.dark-mode .timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"]:hover .menu-link-icon span {
-    color: #ef9a9a;
 }
 
 @media (max-width: 768px) {
@@ -1121,18 +800,6 @@
     gap: 8px;
 }
 
-.alarms-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #fff;
-    border: 1px solid #00000020;
-    cursor: pointer;
-    border-radius: 8px;
-    padding: 0 8px;
-    height: 55px;
-}
-
 .alarms-header-left {
     display: flex;
     align-items: center;
@@ -1147,12 +814,6 @@
     border-radius: 8px;
     border: 1px solid #00000020;
     height: 40px;
-}
-
-.alarms-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 500;
 }
 
 .alarms-header-right {
@@ -1175,31 +836,8 @@
     border-radius: 12px;
 }
 
-.dark-mode .alarms-header {
-    background: #252627;
-    border-color: #ffffff20;
-}
-
-.dark-mode .alarms-header h3 {
-    color: #ffffff;
-}
-
-.dark-mode .alarm-count-badge {
-    color: #ffffff;
-    background-color: #ffffff20;
-}
-
-.dark-mode .alarms-header-icon {
-    color: #ffffff;
-    border-color: #ffffff20;
-}
-
 .alarms-header:hover {
     background-color: #f5f5fa;
-}
-
-.dark-mode .alarms-header:hover {
-    background-color: #ffffff20;
 }
 
 .timers-list-wrapper {
@@ -1227,18 +865,8 @@
     height: 55px;
 }
 
-.dark-mode .timers-header {
-    border-bottom-color: #ffffff20;
-    background: #252627;
-    border-color: #ffffff20;
-}
-
 .timers-header:hover {
     background-color: #f5f5fa;
-}
-
-.dark-mode .timers-header:hover {
-    background-color: #ffffff20;
 }
 
 
@@ -1272,20 +900,11 @@
     height: 40px;
 }
 
-.dark-mode .timers-header-icon {
-    color: #ffffff;
-    border-color: #ffffff20;
-}
-
 .timers-header h3 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 500;
     color: #000000;
-}
-
-.dark-mode .timers-header h3 {
-    color: #ffffff;
 }
 
 .timers-header-right {
@@ -1308,11 +927,6 @@
     border-radius: 12px;
 }
 
-.dark-mode .timer-count-badge {
-    color: #ffffff;
-    background-color: #ffffff20;
-}
-
 .collapse-timers-btn {
     display: flex;
     align-items: center;
@@ -1327,16 +941,8 @@
     transition: background-color 0.2s ease, transform 0.3s ease;
 }
 
-.dark-mode .collapse-timers-btn {
-    color: #ffffff;
-}
-
 .collapse-timers-btn:hover {
     background-color: #f5f5fa;
-}
-
-.dark-mode .collapse-timers-btn:hover {
-    background-color: #ffffff20;
 }
 
 .collapse-timers-btn.expanded .expand-icon {
@@ -1383,9 +989,4 @@
     opacity: 0.4;
     background-color: #f5f5fa;
     border: 1px dashed #d0d0d0;
-}
-
-.dark-mode .timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"] .menu-link-text span,
-.dark-mode .timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"] .menu-link-icon span {
-    color: #e57373;
 }

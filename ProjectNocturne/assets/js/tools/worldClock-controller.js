@@ -39,26 +39,29 @@ function updateDateTime(element, timezone) {
         }
 
         if (element.classList.contains('world-clock-card')) {
-            const timeElement = element.querySelector('.clock-time');
-            const dateElement = element.querySelector('.clock-date');
+            const timeElement = element.querySelector('.alarm-time');
+            const dateElement = element.querySelector('.alarm-sound-name');
 
             if (timeElement) {
                 timeElement.textContent = timeString;
             }
 
             if (dateElement) {
-                dateElement.textContent = now.toLocaleDateString(currentAppLanguage, {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    timeZone: timezone
-                });
+                const isLocal = element.classList.contains('local-clock-card');
+                if (isLocal) {
+                    dateElement.textContent = now.toLocaleDateString(currentAppLanguage, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        timeZone: timezone
+                    });
+                }
             }
         }
 
     } catch (error) {
         console.error(`Zona horaria inválida: ${timezone}`, error);
-        const targetElement = element.classList.contains('world-clock-card') ? element.querySelector('.clock-time') : element;
+        const targetElement = element.classList.contains('world-clock-card') ? element.querySelector('.alarm-time') : element;
         if (targetElement) {
             targetElement.textContent = "Error";
         }
@@ -93,7 +96,7 @@ async function loadClocksFromStorage() {
         const storedClocks = localStorage.getItem(CLOCKS_STORAGE_KEY);
         if (storedClocks) {
             userClocks = JSON.parse(storedClocks);
-            
+
             userClocks.forEach((clock, index) => {
                 setTimeout(() => {
                     createAndStartClockCard(clock.title, clock.country, clock.timezone, clock.id, false);
@@ -108,7 +111,7 @@ async function loadClocksFromStorage() {
 
 function applyTranslationsToSpecificElement(element) {
     if (!element) return;
-    
+
     const getTranslationSafe = (key, category) => {
         if (typeof window.getTranslation === 'function') {
             const text = window.getTranslation(key, category);
@@ -118,7 +121,7 @@ function applyTranslationsToSpecificElement(element) {
     };
 
     const elementsToTranslate = element.querySelectorAll('[data-translate]');
-    
+
     elementsToTranslate.forEach(targetElement => {
         const translateKey = targetElement.getAttribute('data-translate');
         const translateCategory = targetElement.getAttribute('data-translate-category') || 'world_clock_options';
@@ -171,17 +174,14 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
     const cardHTML = `
         <div class="world-clock-card" id="${cardId}" data-id="${cardId}" data-timezone="${timezone}" data-country="${country}" data-country-code="${countryCode}" data-title="${title}">
             <div class="card-header">
-                <div class="card-location-details">
-                    <span class="location-text" title="${title}">${title}</span>
+                <div class="card-alarm-details">
+                    <span class="alarm-title" title="${title}">${title}</span>
+                    <span class="alarm-time">--:--:--</span>
                 </div>
             </div>
-            <div class="card-body">
-                <span class="clock-time">--:--:--</span>
-            </div>
             <div class="card-footer">
-                <div class="badges-container">
-                    <span class="badge clock-date">---, -- ----</span>
-                    <span class="badge clock-offset">${utcOffsetText}</span>
+                <div class="alarm-info">
+                    <span class="alarm-sound-name">${utcOffsetText}</span>
                 </div>
             </div>
 
@@ -203,16 +203,16 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
                         <div class="menu-link" data-action="edit-clock">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                             <div class="menu-link-text">
-                                <span data-translate="edit_clock" 
-                                      data-translate-category="world_clock_options" 
+                                <span data-translate="edit_clock"
+                                      data-translate-category="world_clock_options"
                                       data-translate-target="text">Edit clock</span>
                             </div>
                         </div>
                         <div class="menu-link" data-action="delete-clock">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
                             <div class="menu-link-text">
-                                <span data-translate="delete_clock" 
-                                      data-translate-category="world_clock_options" 
+                                <span data-translate="delete_clock"
+                                      data-translate-category="world_clock_options"
                                       data-translate-target="text">Delete clock</span>
                             </div>
                         </div>
@@ -242,7 +242,7 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
                 menuContainer?.classList.add('disabled');
             }
         });
-        
+
         setTimeout(() => {
             applyTranslationsToSpecificElement(newCardElement);
             if (window.attachTooltipsToNewElements) {
@@ -250,7 +250,7 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
             }
         }, 0);
     }
-    
+
     if (save) {
         userClocks.push({ id: cardId, title, country, timezone, countryCode });
         saveClocksToStorage();
@@ -265,18 +265,18 @@ function updateClockCard(id, newData) {
     card.setAttribute('data-country', newData.country);
     card.setAttribute('data-timezone', newData.timezone);
 
-    const titleElement = card.querySelector('.location-text');
+    const titleElement = card.querySelector('.alarm-title');
     if (titleElement) {
         titleElement.textContent = newData.title;
         titleElement.setAttribute('title', newData.title);
     }
-    
+
     const ct = window.ct;
     const countryForTimezone = ct.getCountryForTimezone(newData.timezone);
     const timezoneObject = countryForTimezone ? ct.getTimezonesForCountry(countryForTimezone.id)?.find(tz => tz.name === newData.timezone) : null;
     const utcOffsetText = timezoneObject ? `UTC ${timezoneObject.utcOffsetStr}` : '';
-    
-    const offsetElement = card.querySelector('.clock-offset');
+
+    const offsetElement = card.querySelector('.alarm-sound-name');
     if (offsetElement) {
         offsetElement.textContent = utcOffsetText;
     }
@@ -319,20 +319,21 @@ function initializeLocalClock() {
     const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     localClockCard.dataset.timezone = localTimezone;
 
-    const locationText = localClockCard.querySelector('.location-text');
-    const offsetText = localClockCard.querySelector('.clock-offset');
+    const locationText = localClockCard.querySelector('.alarm-title');
+    const dateText = localClockCard.querySelector('.alarm-sound-name');
 
     if (locationText) {
         locationText.textContent = getTranslation('local_time', 'world_clock_options');
     }
 
-    if (offsetText) {
-        const now = new Date();
-        const utcOffset = -now.getTimezoneOffset() / 60;
-        const offsetSign = utcOffset >= 0 ? '+' : '-';
-        const offsetHours = Math.abs(Math.trunc(utcOffset));
-        const offsetMinutes = Math.abs(utcOffset * 60) % 60;
-        offsetText.textContent = `UTC ${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`;
+    if (dateText) {
+         const now = new Date();
+        dateText.textContent = now.toLocaleDateString(navigator.language, {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            timeZone: localTimezone
+        });
     }
 
     const menuContainer = localClockCard.querySelector('.card-menu-container');
@@ -343,12 +344,15 @@ function initializeLocalClock() {
     });
 
     localClockCard.addEventListener('mouseleave', () => {
-        menuContainer?.classList.remove('active');
-        menuContainer?.classList.add('disabled');
+        const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
+        if (dropdown?.classList.contains('disabled')) {
+            menuContainer?.classList.remove('active');
+            menuContainer?.classList.add('disabled');
+        }
     });
 
     startClockForElement(localClockCard, localTimezone);
-    
+
     const localPinBtn = localClockCard.querySelector('.card-pin-btn');
     pinClock(localPinBtn);
 }
@@ -357,7 +361,7 @@ function initializeLocalClock() {
 function updateLocalClockTranslation() {
     const localClockCard = document.querySelector('.local-clock-card');
     if (localClockCard) {
-        const locationText = localClockCard.querySelector('.location-text');
+        const locationText = localClockCard.querySelector('.alarm-title');
         if (locationText) {
             locationText.textContent = getTranslation('local_time', 'world_clock_options');
         }
@@ -394,7 +398,7 @@ function pinClock(button) {
 
     allPinButtons.forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
-    
+
     const timezone = card.dataset.timezone;
     updateZoneInfo(timezone);
     updateMainPinnedDisplay(card);
@@ -410,7 +414,7 @@ function updateMainPinnedDisplay(card) {
 
     const timeEl = pinnedDisplay.querySelector('span');
     const timezone = card.dataset.timezone;
-    
+
     function update() {
         if (!timeEl) return;
         const now = new Date();
@@ -434,7 +438,7 @@ document.addEventListener('languageChanged', (e) => {
     setTimeout(() => {
         updateLocalClockTranslation();
         updateExistingCardsTranslations();
-        
+
         if (typeof window.forceRefresh === 'function') {
             window.forceRefresh({ source: 'worldClockLanguageChange', preset: 'TOOLTIPS_ONLY' });
         }
@@ -454,9 +458,10 @@ if (sectionBottom) {
         const actionTarget = e.target.closest('[data-action]');
         if (!actionTarget) return;
 
-        const action = actionTarget.dataset.action;
         const card = actionTarget.closest('.world-clock-card');
         if (!card) return;
+
+        const action = actionTarget.dataset.action;
 
         if (action === 'toggle-card-menu') {
             e.stopPropagation();
@@ -485,7 +490,7 @@ if (sectionBottom) {
             userClocks = userClocks.filter(clock => clock.id !== cardId);
             saveClocksToStorage();
             card.remove();
-            
+
             if(isPinned){
                 const localClockCard = document.querySelector('.local-clock-card');
                 const localPinBtn = localClockCard.querySelector('.card-pin-btn');
@@ -501,9 +506,9 @@ if (sectionBottom) {
                 timezone: card.dataset.timezone,
                 countryCode: card.dataset.countryCode
             };
-            
+
             prepareWorldClockForEdit(clockData);
-            
+
             if (getCurrentActiveOverlay() !== 'menuWorldClock') {
                 activateModule('toggleMenuWorldClock');
             }

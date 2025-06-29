@@ -231,14 +231,12 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
         const menuContainer = newCardElement.querySelector('.card-menu-container');
 
         newCardElement.addEventListener('mouseenter', () => {
-            menuContainer?.classList.add('active');
             menuContainer?.classList.remove('disabled');
         });
 
         newCardElement.addEventListener('mouseleave', () => {
             const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
             if (dropdown?.classList.contains('disabled')) {
-                menuContainer?.classList.remove('active');
                 menuContainer?.classList.add('disabled');
             }
         });
@@ -339,14 +337,12 @@ function initializeLocalClock() {
     const menuContainer = localClockCard.querySelector('.card-menu-container');
 
     localClockCard.addEventListener('mouseenter', () => {
-        menuContainer?.classList.add('active');
         menuContainer?.classList.remove('disabled');
     });
 
     localClockCard.addEventListener('mouseleave', () => {
         const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
         if (dropdown?.classList.contains('disabled')) {
-            menuContainer?.classList.remove('active');
             menuContainer?.classList.add('disabled');
         }
     });
@@ -373,7 +369,7 @@ function initializeSortableGrid() {
 
     initializeSortable('.world-clocks-grid', {
         animation: 150,
-        filter: '.local-clock-card, .card-menu-btn, .card-dropdown-menu, .card-pin-btn',
+        filter: '.local-clock-card, .card-menu-container', // Ignora clics en el reloj local y en el contenedor del menú
         draggable: '.tool-card.world-clock-card',
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
@@ -452,85 +448,82 @@ document.addEventListener('translationsApplied', (e) => {
     }, 100);
 });
 
-const sectionBottom = document.querySelector('.section-worldClock .section-bottom');
-if (sectionBottom) {
-    sectionBottom.addEventListener('click', function(e) {
-        const actionTarget = e.target.closest('[data-action]');
-        if (!actionTarget) return;
+function setupEventListeners() {
+    const sectionBottom = document.querySelector('.section-worldClock .section-bottom');
+    if (sectionBottom) {
+        sectionBottom.addEventListener('click', function(e) {
+            const card = e.target.closest('.tool-card');
+            const menuButtonClicked = e.target.closest('[data-action="toggle-card-menu"]');
 
-        const card = actionTarget.closest('.tool-card');
-        if (!card) return;
+            if (menuButtonClicked) {
+                e.stopPropagation();
+                const dropdown = menuButtonClicked.closest('.card-menu-btn-wrapper').querySelector('.card-dropdown-menu');
+                const isOpening = dropdown?.classList.contains('disabled');
+                
+                document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
 
-        const action = actionTarget.dataset.action;
-
-        if (action === 'toggle-card-menu') {
-            e.stopPropagation();
-            const currentDropdown = card.querySelector('.card-dropdown-menu');
-
-            document.querySelectorAll('.card-dropdown-menu').forEach(menu => {
-                if (menu !== currentDropdown) {
-                    menu.classList.add('disabled');
-                    const otherCard = menu.closest('.tool-card');
-                    if (otherCard && !otherCard.matches(':hover')) {
-                        otherCard.querySelector('.card-menu-container')?.classList.add('disabled');
-                        otherCard.querySelector('.card-menu-container')?.classList.remove('active');
-                    }
+                if(isOpening) {
+                    dropdown?.classList.remove('disabled');
                 }
+                return;
+            }
+
+            const actionTarget = e.target.closest('[data-action]');
+            if (!actionTarget || !card) {
+                document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+                return;
+            }
+
+            const action = actionTarget.dataset.action;
+
+            if (action === 'delete-clock') {
+                const isPinned = card.querySelector('.card-pin-btn.active');
+
+                if (clockIntervals.has(card)) {
+                    clearInterval(clockIntervals.get(card));
+                    clockIntervals.delete(card);
+                }
+                const cardId = card.id;
+                userClocks = userClocks.filter(clock => clock.id !== cardId);
+                saveClocksToStorage();
+                card.remove();
+
+                if(isPinned){
+                    const localClockCard = document.querySelector('.local-clock-card');
+                    const localPinBtn = localClockCard.querySelector('.card-pin-btn');
+                    pinClock(localPinBtn);
+                }
+
+            } else if (action === 'edit-clock') {
+                e.stopPropagation();
+                const clockData = {
+                    id: card.dataset.id,
+                    title: card.dataset.title,
+                    country: card.dataset.country,
+                    timezone: card.dataset.timezone,
+                    countryCode: card.dataset.countryCode
+                };
+
+                prepareWorldClockForEdit(clockData);
+
+                if (getCurrentActiveOverlay() !== 'menuWorldClock') {
+                    activateModule('toggleMenuWorldClock');
+                }
+            } else if (action === 'pin-clock') {
+                pinClock(actionTarget);
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.card-menu-btn-wrapper')) {
+            document.querySelectorAll('.section-worldClock .card-dropdown-menu').forEach(menu => {
+                menu.classList.add('disabled');
             });
-
-            currentDropdown?.classList.toggle('disabled');
-        } else if (action === 'delete-clock') {
-            const isPinned = card.querySelector('.card-pin-btn.active');
-
-            if (clockIntervals.has(card)) {
-                clearInterval(clockIntervals.get(card));
-                clockIntervals.delete(card);
-            }
-            const cardId = card.id;
-            userClocks = userClocks.filter(clock => clock.id !== cardId);
-            saveClocksToStorage();
-            card.remove();
-
-            if(isPinned){
-                const localClockCard = document.querySelector('.local-clock-card');
-                const localPinBtn = localClockCard.querySelector('.card-pin-btn');
-                pinClock(localPinBtn);
-            }
-
-        } else if (action === 'edit-clock') {
-            e.stopPropagation();
-            const clockData = {
-                id: card.dataset.id,
-                title: card.dataset.title,
-                country: card.dataset.country,
-                timezone: card.dataset.timezone,
-                countryCode: card.dataset.countryCode
-            };
-
-            prepareWorldClockForEdit(clockData);
-
-            if (getCurrentActiveOverlay() !== 'menuWorldClock') {
-                activateModule('toggleMenuWorldClock');
-            }
-        } else if (action === 'pin-clock') {
-            pinClock(actionTarget);
         }
     });
 }
 
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.card-menu-btn-wrapper')) {
-        document.querySelectorAll('.card-dropdown-menu').forEach(menu => {
-            menu.classList.add('disabled');
-            const card = menu.closest('.tool-card');
-            if (card && !card.matches(':hover')) {
-                const menuContainer = card.querySelector('.card-menu-container');
-                menuContainer?.classList.remove('active');
-                menuContainer?.classList.add('disabled');
-            }
-        });
-    }
-});
 
 window.worldClockManager = {
     createAndStartClockCard,
@@ -543,4 +536,5 @@ export function initWorldClock() {
     initializeLocalClock();
     loadClocksFromStorage();
     initializeSortableGrid();
+    setupEventListeners();
 }

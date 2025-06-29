@@ -121,13 +121,11 @@ function createAlarmCard(alarm) {
 function addCardEventListeners(card) {
     const menuContainer = card.querySelector('.card-menu-container');
     card.addEventListener('mouseenter', () => {
-        menuContainer?.classList.add('active');
         menuContainer?.classList.remove('disabled');
     });
     card.addEventListener('mouseleave', () => {
         const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
         if (dropdown?.classList.contains('disabled')) {
-            menuContainer?.classList.remove('active');
             menuContainer?.classList.add('disabled');
         }
     });
@@ -379,11 +377,16 @@ function startClock() {
 function initializeSortableGrids() {
     if (!allowCardMovement) return;
 
-    initializeSortable('.tool-grid[data-alarm-grid="user"]', {
+    const sortableOptions = {
         animation: 150,
+        filter: '.card-menu-container', // Ignorar clics en todo el contenedor del menú
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
+    };
+
+    initializeSortable('.tool-grid[data-alarm-grid="user"]', {
+        ...sortableOptions,
         onEnd: function (evt) {
             const newOrderIds = Array.from(evt.to.children).map(card => card.id);
             userAlarms.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
@@ -392,10 +395,7 @@ function initializeSortableGrids() {
     });
 
     initializeSortable('.tool-grid[data-alarm-grid="default"]', {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        chosenClass: 'sortable-chosen',
-        dragClass: 'sortable-drag',
+        ...sortableOptions,
         onEnd: function (evt) {
             const newOrderIds = Array.from(evt.to.children).map(card => card.id);
             defaultAlarmsState.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
@@ -408,20 +408,32 @@ function setupEventListeners() {
     const sectionBottom = document.querySelector('.section-alarm .section-bottom');
     if (sectionBottom) {
         sectionBottom.addEventListener('click', (e) => {
+            const card = e.target.closest('.tool-card');
+            const menuButtonClicked = e.target.closest('[data-action="toggle-alarm-menu"]');
+
+            if (menuButtonClicked) {
+                e.stopPropagation();
+                const dropdown = menuButtonClicked.closest('.card-menu-btn-wrapper').querySelector('.card-dropdown-menu');
+                const isOpening = dropdown?.classList.contains('disabled');
+                
+                document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+
+                if(isOpening) {
+                    dropdown?.classList.remove('disabled');
+                }
+                return;
+            }
+            
             const target = e.target.closest('[data-action]');
-            if (!target) return;
-            const card = target.closest('.tool-card');
-            if (!card) return;
+            if (!target || !card) {
+                 document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+                 return;
+            };
+
             const alarmId = card.dataset.id;
             const alarm = findAlarmById(alarmId);
 
             switch (target.dataset.action) {
-                case 'toggle-alarm-menu':
-                    e.stopPropagation();
-                    const dropdown = card.querySelector('.card-dropdown-menu');
-                    document.querySelectorAll('.card-dropdown-menu').forEach(m => m !== dropdown && m.classList.add('disabled'));
-                    dropdown?.classList.toggle('disabled');
-                    break;
                 case 'toggle-alarm':
                     toggleAlarm(alarmId);
                     break;
@@ -446,9 +458,10 @@ function setupEventListeners() {
         });
     }
 
+    // Cierra todos los menús si se hace clic fuera de ellos
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.card-menu-btn-wrapper')) {
-            document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+            document.querySelectorAll('.section-alarm .card-dropdown-menu').forEach(m => m.classList.add('disabled'));
         }
     });
 }

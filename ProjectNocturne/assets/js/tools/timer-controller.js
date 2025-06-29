@@ -51,17 +51,13 @@ function initializeTimerController() {
 // --- LÓGICA DE DATOS ---
 
 function loadAndRestoreTimers() {
-    // Cargar temporizadores de usuario
     const storedUserTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
     if (storedUserTimers) {
         try {
             userTimers = JSON.parse(storedUserTimers);
-        } catch (e) {
-            userTimers = [];
-        }
+        } catch (e) { userTimers = []; }
     }
 
-    // Cargar y sincronizar temporizadores predeterminados
     const storedDefaultTimers = localStorage.getItem(DEFAULT_TIMERS_STORAGE_KEY);
     if (storedDefaultTimers) {
         try {
@@ -239,7 +235,7 @@ function initializeSortableGrids() {
 
     const sortableOptions = {
         animation: 150,
-        filter: '.card-pin-btn, .card-menu-btn, .card-dropdown-menu',
+        filter: '.card-menu-container', // Ignorar clics en todo el contenedor del menú
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
@@ -602,8 +598,8 @@ function toggleTimersSection(type) {
     const container = grid.closest('.timers-container');
     if (!container) return;
     const btn = container.querySelector('.expandable-card-toggle-btn');
-    const isActive = grid.classList.toggle('active'); // Guardamos el estado
-    btn.classList.toggle('expanded', isActive); // Usamos el estado para el botón
+    const isActive = grid.classList.toggle('active');
+    btn.classList.toggle('expanded', isActive);
 }
 
 function updateTimerCounts() {
@@ -640,36 +636,52 @@ function setupGlobalEventListeners() {
 
     const listWrapper = section.querySelector('.timers-list-wrapper');
     listWrapper.addEventListener('click', (e) => {
-        const target = e.target.closest('[data-action]');
-        if (!target) return;
+        const card = e.target.closest('.tool-card');
+        const menuButtonClicked = e.target.closest('[data-action="toggle-timer-options"]');
 
-        const card = target.closest('.tool-card');
-        if (!card) return;
+        if (menuButtonClicked) {
+            e.stopPropagation();
+            const dropdown = menuButtonClicked.closest('.card-menu-btn-wrapper').querySelector('.card-dropdown-menu');
+            const isOpening = dropdown?.classList.contains('disabled');
+            
+            document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+
+            if(isOpening) {
+                dropdown?.classList.remove('disabled');
+            }
+            return;
+        }
+
+        const target = e.target.closest('[data-action]');
+        if (!target || !card) {
+            document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+            return;
+        }
         
         const timerId = card.dataset.id;
         const action = target.dataset.action;
 
         switch(action) {
             case 'pin-timer': handlePinTimer(timerId); break;
-            case 'toggle-timer-options': e.stopPropagation(); toggleOptionsMenu(target); break;
-            case 'start-card-timer': startTimer(timerId); closeMenu(target); break;
-            case 'pause-card-timer': pauseTimer(timerId); closeMenu(target); break;
-            case 'reset-card-timer': resetTimer(timerId); closeMenu(target); break;
+            case 'start-card-timer': startTimer(timerId); break;
+            case 'pause-card-timer': pauseTimer(timerId); break;
+            case 'reset-card-timer': resetTimer(timerId); break;
             case 'edit-timer': handleEditTimer(timerId); break;
             case 'delete-timer': handleDeleteTimer(timerId); break;
             case 'dismiss-timer': dismissTimer(timerId); break;
         }
     });
 
+    // Cierra todos los menús si se hace clic fuera de ellos
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.card-menu-btn-wrapper')) {
+            document.querySelectorAll('.section-timer .card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+        }
+    });
+
     window.timerManager = {
         toggleTimersSection
     };
-}
-
-
-function closeMenu(target) {
-    const menu = target.closest('.card-dropdown-menu');
-    if (menu) menu.classList.add('disabled');
 }
 
 function handlePinTimer(timerId) {
@@ -684,24 +696,6 @@ function handlePinTimer(timerId) {
     updateMainControlsState();
     saveTimersToStorage();
     saveDefaultTimersOrder();
-}
-
-function toggleOptionsMenu(optionsBtn) {
-    const menuWrapper = optionsBtn.closest('.card-menu-btn-wrapper');
-    if (!menuWrapper) return;
-
-    const menu = menuWrapper.querySelector('.card-dropdown-menu');
-    if (!menu) return;
-
-    const isCurrentlyHidden = menu.classList.contains('disabled');
-
-    document.querySelectorAll('.card-dropdown-menu').forEach(otherMenu => {
-        if (otherMenu !== menu) {
-            otherMenu.classList.add('disabled');
-        }
-    });
-
-    menu.classList.remove('disabled', !isCurrentlyHidden);
 }
 
 function handleEditTimer(timerId) {

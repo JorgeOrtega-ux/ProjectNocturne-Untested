@@ -36,13 +36,7 @@ function initializeTimerController() {
     updateTimerCounts();
     
     const soundListContainer = document.querySelector('.menu-timer-sound .menu-list');
-    generateSoundList(soundListContainer, (soundId) => {
-        const selectedSoundSpan = document.querySelector('#timer-selected-sound');
-        if (selectedSoundSpan) {
-            const soundName = getTranslation(soundId, 'sounds');
-            selectedSoundSpan.textContent = soundName;
-        }
-    });
+    generateSoundList(soundListContainer, 'selectTimerSound');
 
     console.log('✅ Inicialización de timer completada.');
 

@@ -415,13 +415,7 @@ export function initializeAlarmClock() {
     }
 
     const soundListContainer = document.querySelector('.menu-alarm .menu-list');
-    generateSoundList(soundListContainer, (soundId) => {
-        const selectedSoundSpan = document.querySelector('#alarm-selected-sound');
-        if (selectedSoundSpan) {
-            const soundName = getTranslation(soundId, 'sounds');
-            selectedSoundSpan.textContent = soundName;
-        }
-    });
+    generateSoundList(soundListContainer, 'selectAlarmSound');
 
     window.alarmManager = { 
         createAlarm, 

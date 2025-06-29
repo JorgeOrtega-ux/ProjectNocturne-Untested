@@ -1014,6 +1014,156 @@ export function initializeSortable(gridSelector, options) {
     }
 }
 
+// ========== NUEVA FUNCIÓN CENTRALIZADA PARA EVENTOS DE TARJETAS ==========
+export function initializeCardEventListeners() {
+    const mainContainer = document.querySelector('.general-content-scrolleable');
+    if (!mainContainer) {
+        console.error("Main container for card events not found!");
+        return;
+    }
+
+    mainContainer.addEventListener('click', (e) => {
+        const card = e.target.closest('.tool-card');
+        if (!card) {
+            // Cierra todos los menús si se hace clic fuera de una tarjeta
+            document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
+            return;
+        }
+
+        const cardId = card.dataset.id;
+        const actionTarget = e.target.closest('[data-action]');
+
+        // Lógica para abrir/cerrar el menú de la tarjeta
+        if (e.target.closest('.card-menu-btn')) {
+            e.stopPropagation();
+            const dropdown = card.querySelector('.card-dropdown-menu');
+            if (dropdown) {
+                const isOpening = dropdown.classList.contains('disabled');
+                // Primero, cierra todos los demás menús
+                document.querySelectorAll('.card-dropdown-menu').forEach(m => {
+                    if (m !== dropdown) {
+                        m.classList.add('disabled');
+                    }
+                });
+                // Luego, abre o cierra el menú actual
+                if (isOpening) {
+                    dropdown.classList.remove('disabled');
+                } else {
+                    dropdown.classList.add('disabled');
+                }
+            }
+            return;
+        }
+        
+        // Si no se hizo clic en un botón de acción, no hagas nada más
+        if (!actionTarget) return;
+
+        const action = actionTarget.dataset.action;
+
+        // Delegación de acciones según el tipo de tarjeta
+        if (card.classList.contains('alarm-card')) {
+            handleAlarmCardAction(action, cardId, actionTarget);
+        } else if (card.classList.contains('timer-card')) {
+            handleTimerCardAction(action, cardId, actionTarget);
+        } else if (card.classList.contains('world-clock-card')) {
+            handleWorldClockCardAction(action, cardId, actionTarget);
+        }
+    });
+}
+
+function handleAlarmCardAction(action, alarmId, target) {
+    const alarm = window.alarmManager.findAlarmById(alarmId); // Asumiendo que `findAlarmById` está en `alarmManager`
+
+    switch (action) {
+        case 'toggle-alarm':
+            window.alarmManager.toggleAlarm(alarmId);
+            break;
+        case 'test-alarm':
+            if (alarm) window.alarmManager.playAlarmSound(alarm.sound);
+            break;
+        case 'edit-alarm':
+            if (alarm) {
+                // `prepareAlarmForEdit` ya está importado y disponible en el scope global a través de `menu-interactions`
+                prepareAlarmForEdit({ ...alarm, updateAlarm: window.alarmManager.updateAlarm });
+                if (window.main.getCurrentActiveOverlay() !== 'menuAlarm') {
+                    window.main.activateModule('toggleMenuAlarm');
+                }
+            }
+            break;
+        case 'delete-alarm':
+            if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
+                window.alarmManager.deleteAlarm(alarmId);
+            }
+            break;
+        case 'dismiss-alarm':
+             window.alarmManager.dismissAlarm(alarmId);
+             break;
+    }
+}
+
+function handleTimerCardAction(action, timerId, target) {
+     if (!window.timerManager) {
+        console.error("Timer manager no está disponible.");
+        return;
+    }
+
+    switch (action) {
+        case 'pin-timer':
+            window.timerManager.handlePinTimer(timerId);
+            break;
+        case 'start-card-timer':
+            window.timerManager.startTimer(timerId);
+            break;
+        case 'pause-card-timer':
+            window.timerManager.pauseTimer(timerId);
+            break;
+        case 'reset-card-timer':
+            window.timerManager.resetTimer(timerId);
+            break;
+        case 'edit-timer':
+            window.timerManager.handleEditTimer(timerId);
+            break;
+        case 'delete-timer':
+            window.timerManager.handleDeleteTimer(timerId);
+            break;
+        case 'dismiss-timer':
+            window.timerManager.dismissTimer(timerId);
+            break;
+    }
+}
+
+function handleWorldClockCardAction(action, clockId, target) {
+    if (!window.worldClockManager) {
+        console.error("WorldClock manager no está disponible.");
+        return;
+    }
+
+    switch(action) {
+        case 'pin-clock':
+            window.worldClockManager.pinClock(target);
+            break;
+        case 'edit-clock':
+             const card = document.getElementById(clockId);
+             if (card) {
+                const clockData = {
+                    id: card.dataset.id,
+                    title: card.dataset.title,
+                    country: card.dataset.country,
+                    timezone: card.dataset.timezone,
+                    countryCode: card.dataset.countryCode
+                };
+                prepareWorldClockForEdit(clockData); // Esta función necesita estar en el scope
+                 if (window.main.getCurrentActiveOverlay() !== 'menuWorldClock') {
+                    window.main.activateModule('toggleMenuWorldClock');
+                }
+             }
+            break;
+        case 'delete-clock':
+            window.worldClockManager.deleteClock(clockId);
+            break;
+    }
+}
+
 
 // ========== EXPORTS ==========
 export {

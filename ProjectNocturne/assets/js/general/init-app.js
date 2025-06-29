@@ -48,14 +48,15 @@ import { initColorSearchSystem } from '../tools/color-search-system.js';
 import {
     initializeCategorySliderService,
     initializeCentralizedFontManager,
-    initializeFullScreenManager
+    initializeFullScreenManager,
+    initializeCardEventListeners
 } from '../tools/general-tools.js';
 import { initializeZoneInfoTool } from '../tools/zoneinfo-controller.js';
 import {
     initColorTextSystem,
     refreshColorSystem
 } from '../tools/palette-colors.js';
-import { initializeStopwatch } from '../tools/stopwatch-controller.js'; // <-- AÑADIDO
+import { initializeStopwatch } from '../tools/stopwatch-controller.js';
 import { initializeTimerController } from '../tools/timer-controller.js';
 
 import { initializeAlarmClock } from '../tools/alarm-controller.js';
@@ -381,16 +382,17 @@ function initializeMainComponents() {
     initControlCenter();
     initMobileDragController();
     initNewOverlayModules();
-    initializeZoneInfoTool(); // <--- Agrega esta línea
+    initializeZoneInfoTool();
     initializeCategorySliderService();
     initializeCentralizedFontManager();
     initializeFullScreenManager();
+    initializeCardEventListeners(); // <-- AÑADIDO
     initColorTextSystem();
     initColorSearchSystem(); 
     initializeAlarmClock();
     initWorldClock();
-initializeStopwatch(); // <-- AÑADIDO
-initializeTimerController();
+    initializeStopwatch();
+    initializeTimerController();
     setupEventListeners();
     batchMigrateTooltips();
     initializeMobileSidebarTooltips();

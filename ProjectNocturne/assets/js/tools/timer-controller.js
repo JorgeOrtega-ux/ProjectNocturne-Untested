@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeTimerController() {
     loadAndRestoreTimers();
     renderAllTimerCards();
-    setupGlobalEventListeners();
     updateMainDisplay();
     initializeSortableGrids();
     updateMainControlsState();
@@ -46,7 +45,21 @@ function initializeTimerController() {
     });
 
     console.log('✅ Inicialización de timer completada.');
+
+    // Exponer el gestor de temporizadores globalmente
+    window.timerManager = {
+        startTimer,
+        pauseTimer,
+        resetTimer,
+        handleEditTimer,
+        handleDeleteTimer,
+        dismissTimer,
+        handlePinTimer,
+        toggleTimersSection,
+        findTimerById
+    };
 }
+
 
 // --- LÓGICA DE DATOS ---
 
@@ -619,60 +632,6 @@ function updateTimerCounts() {
     if(defaultContainer) defaultContainer.style.display = defaultTimersCount > 0 ? 'flex' : 'none';
 }
 
-
-function setupGlobalEventListeners() {
-    const section = document.querySelector('.section-timer');
-    if (!section) return;
-
-    section.querySelector('[data-action="start-pinned-timer"]').addEventListener('click', () => {
-        if (pinnedTimerId) startTimer(pinnedTimerId);
-    });
-    section.querySelector('[data-action="pause-pinned-timer"]').addEventListener('click', () => {
-        if (pinnedTimerId) pauseTimer(pinnedTimerId);
-    });
-     section.querySelector('[data-action="reset-pinned-timer"]').addEventListener('click', () => {
-        if (pinnedTimerId) resetTimer(pinnedTimerId);
-    });
-
-    const listWrapper = section.querySelector('.timers-list-wrapper');
-    listWrapper.addEventListener('click', (e) => {
-        const card = e.target.closest('.tool-card');
-        const menuButtonClicked = e.target.closest('[data-action="toggle-timer-options"]');
-
-        if (menuButtonClicked && card) {
-            e.stopPropagation();
-            const dropdown = card.querySelector('.card-dropdown-menu');
-            const isOpening = dropdown?.classList.contains('disabled');
-            
-            document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
-
-            if(isOpening) {
-                dropdown?.classList.remove('disabled');
-            }
-            return;
-        }
-
-        const target = e.target.closest('[data-action]');
-        if (!target || !card) return;
-        
-        const timerId = card.dataset.id;
-        const action = target.dataset.action;
-
-        switch(action) {
-            case 'pin-timer': handlePinTimer(timerId); break;
-            case 'start-card-timer': startTimer(timerId); break;
-            case 'pause-card-timer': pauseTimer(timerId); break;
-            case 'reset-card-timer': resetTimer(timerId); break;
-            case 'edit-timer': handleEditTimer(timerId); break;
-            case 'delete-timer': handleDeleteTimer(timerId); break;
-            case 'dismiss-timer': dismissTimer(timerId); break;
-        }
-    });
-
-    window.timerManager = {
-        toggleTimersSection
-    };
-}
 
 function handlePinTimer(timerId) {
     if (pinnedTimerId === timerId) return;

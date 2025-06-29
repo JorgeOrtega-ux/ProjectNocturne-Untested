@@ -404,63 +404,10 @@ function initializeSortableGrids() {
     });
 }
 
-function setupEventListeners() {
-    const sectionWrapper = document.querySelector('.section-alarm .alarms-list-wrapper');
-    if (sectionWrapper) {
-        sectionWrapper.addEventListener('click', (e) => {
-            const card = e.target.closest('.tool-card');
-            const menuButtonClicked = e.target.closest('[data-action="toggle-alarm-menu"]');
-
-            if (menuButtonClicked && card) {
-                e.stopPropagation();
-                const dropdown = card.querySelector('.card-dropdown-menu');
-                const isOpening = dropdown?.classList.contains('disabled');
-                
-                document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
-
-                if(isOpening) {
-                    dropdown?.classList.remove('disabled');
-                }
-                return;
-            }
-            
-            const target = e.target.closest('[data-action]');
-            if (!target || !card) return;
-
-            const alarmId = card.dataset.id;
-            const alarm = findAlarmById(alarmId);
-
-            switch (target.dataset.action) {
-                case 'toggle-alarm':
-                    toggleAlarm(alarmId);
-                    break;
-                case 'test-alarm':
-                    if (alarm) playAlarmSound(alarm.sound);
-                    break;
-                case 'edit-alarm':
-                    e.stopPropagation();
-                    if (alarm) {
-                        prepareAlarmForEdit({ ...alarm, updateAlarm: updateAlarm });
-                        if (getCurrentActiveOverlay() !== 'menuAlarm') {
-                            activateModule('toggleMenuAlarm');
-                        }
-                    }
-                    break;
-                case 'delete-alarm':
-                    if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
-                        deleteAlarm(alarmId);
-                    }
-                    break;
-            }
-        });
-    }
-}
-
 export function initializeAlarmClock() {
     startClock();
     loadAlarmsFromStorage();
     loadDefaultAlarms();
-    setupEventListeners();
     updateAlarmCounts();
     initializeSortableGrids(); 
     if ('Notification' in window && Notification.permission === 'default') {
@@ -483,6 +430,7 @@ export function initializeAlarmClock() {
         updateAlarm, 
         toggleAlarmsSection, 
         playAlarmSound, 
-        dismissAlarm 
+        dismissAlarm,
+        findAlarmById 
     };
 }

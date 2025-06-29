@@ -1,3 +1,5 @@
+// /assets/js/tools/timer-controller.js
+
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
@@ -121,13 +123,17 @@ function loadAndRestoreTimers() {
     allTimers.forEach(timer => {
         if (timer.isRunning) {
             if (timer.type === 'countdown') {
-                const elapsedSinceLastSave = now - (timer.lastSaveTime || now);
-                const newRemaining = Math.max(0, timer.remaining - elapsedSinceLastSave);
-                timer.remaining = newRemaining;
-                if (newRemaining > 0) {
+                // Si el temporizador estaba corriendo, calculamos el tiempo restante.
+                if (timer.targetTime) {
+                    const newRemaining = timer.targetTime - now;
+                    timer.remaining = Math.max(0, newRemaining);
+                }
+                
+                if (timer.remaining > 0) {
                     startCountdownTimer(timer);
                 } else {
                     timer.isRunning = false;
+                    delete timer.targetTime; // Limpiamos el tiempo objetivo
                 }
             } else if (timer.type === 'count_to_date') {
                 timer.remaining = new Date(timer.targetDate).getTime() - now;
@@ -159,22 +165,10 @@ function saveAllTimersState() {
 }
 
 function saveTimersToStorage() {
-    const now = Date.now();
-    userTimers.forEach(timer => {
-        if (timer.isRunning) {
-            timer.lastSaveTime = now;
-        }
-    });
     localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(userTimers));
 }
 
 function saveDefaultTimersOrder() {
-    const now = Date.now();
-    defaultTimersState.forEach(timer => {
-        if (timer.isRunning) {
-            timer.lastSaveTime = now;
-        }
-    });
     localStorage.setItem(DEFAULT_TIMERS_STORAGE_KEY, JSON.stringify(defaultTimersState));
 }
 
@@ -193,6 +187,8 @@ function startTimer(timerId) {
         startCountToDateTimer(timer);
     } else {
         if (timer.remaining <= 0) return;
+        // Establecemos el tiempo objetivo al iniciar
+        timer.targetTime = Date.now() + timer.remaining;
         startCountdownTimer(timer);
     }
     
@@ -204,13 +200,11 @@ function startTimer(timerId) {
 function startCountdownTimer(timer) {
     timer.isRunning = true;
     const interval = setInterval(() => {
-        timer.remaining -= 1000;
+        // En lugar de decrementar, calculamos el restante desde el objetivo
+        timer.remaining = timer.targetTime ? timer.targetTime - Date.now() : 0;
+        
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
-        
-        if (Math.floor(timer.remaining / 1000) % 2 === 0) {
-            if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
-        }
         
         if (timer.remaining < 1000) {
             handleTimerEnd(timer.id);
@@ -244,6 +238,9 @@ function pauseTimer(timerId) {
     timer.isRunning = false;
     clearInterval(activeTimers.get(timerId));
     activeTimers.delete(timerId);
+
+    // Al pausar, eliminamos el tiempo objetivo para que no se recalcule al recargar
+    delete timer.targetTime;
     
     if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
     updateTimerCardControls(timerId);
@@ -260,6 +257,7 @@ function resetTimer(timerId) {
         timer.remaining = timer.initialDuration;
     }
     timer.isRunning = false;
+    delete timer.targetTime; // Aseguramos que no quede un tiempo objetivo
     
     updateCardDisplay(timerId);
     if (timer.id === pinnedTimerId) {
@@ -370,6 +368,7 @@ export function updateTimer(timerId, newData) {
             remaining: new Date(newData.targetDate).getTime() - Date.now(),
             isRunning: false
         };
+        delete targetArray[index].targetTime; // Nos aseguramos que no haya un targetTime
         startTimer(timerId);
     } else {
         targetArray[index] = {
@@ -381,6 +380,7 @@ export function updateTimer(timerId, newData) {
             sound: newData.sound,
             isRunning: false
         };
+        delete targetArray[index].targetTime;
     }
     
     if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
@@ -623,6 +623,7 @@ function handleTimerEnd(timerId) {
         activeTimers.delete(timerId);
     }
     timer.remaining = 0;
+    delete timer.targetTime; // Limpiamos el tiempo objetivo al finalizar
 
     updateCardDisplay(timerId);
     if (timer.id === pinnedTimerId) updateMainDisplay();

@@ -155,7 +155,10 @@
     "default_alarms": "Default Alarms",
     "activate_alarm": "Activate Alarm",
     "deactivate_alarm": "Deactivate Alarm",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "clean_room": "Clean room",
+    "exercise": "Exercise",
+    "read_book": "Read a book"
   },
   "world_clock": {
     "clock_title": "Clock Title",
@@ -202,7 +205,10 @@
     "timer_limit_reached": "Timer limit of {limit} reached.",
     "my_timers": "My Timers",
     "default_timers": "Default Timers",
-    "timer_options": "Timer options"
+    "timer_options": "Timer options",
+    "pomodoro_25": "Pomodoro (25 min)",
+    "short_break_5": "Short Break (5 min)",
+    "exercise_1": "Exercise (1 min)"
   },
   "world_clock_options": {
     "options": "Clock options",

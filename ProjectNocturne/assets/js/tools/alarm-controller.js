@@ -7,9 +7,9 @@ const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
 
 const DEFAULT_ALARMS = [
-    { id: 'default-1', title: 'Limpiar cuarto', hour: 10, minute: 0, sound: 'gentle-chime', enabled: false, type: 'default' },
-    { id: 'default-2', title: 'Hacer ejercicio', hour: 18, minute: 0, sound: 'digital-alarm', enabled: false, type: 'default' },
-    { id: 'default-3', title: 'Leer un libro', hour: 21, minute: 0, sound: 'peaceful-tone', enabled: false, type: 'default' }
+    { id: 'default-1', title: 'clean_room', hour: 10, minute: 0, sound: 'gentle-chime', enabled: false, type: 'default' },
+    { id: 'default-2', title: 'exercise', hour: 18, minute: 0, sound: 'digital-alarm', enabled: false, type: 'default' },
+    { id: 'default-3', title: 'read_book', hour: 21, minute: 0, sound: 'peaceful-tone', enabled: false, type: 'default' }
 ];
 
 let clockInterval = null;
@@ -63,11 +63,13 @@ function createAlarmCard(alarm) {
     const grid = document.querySelector(`.tool-grid[data-alarm-grid="${alarm.type}"]`);
     if (!grid) return;
 
+    const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+
     const cardHTML = `
         <div class="tool-card alarm-card ${!alarm.enabled ? 'alarm-disabled' : ''}" id="${alarm.id}" data-id="${alarm.id}" data-type="${alarm.type}">
             <div class="card-header">
                 <div class="card-details">
-                    <span class="card-title" title="${alarm.title}">${alarm.title}</span>
+                    <span class="card-title" title="${translatedTitle}">${translatedTitle}</span>
                     <span class="card-value">${formatTime(alarm.hour, alarm.minute)}</span>
                 </div>
             </div>
@@ -164,7 +166,8 @@ function triggerAlarm(alarm) {
         }
     }
     if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(`Alarma: ${alarm.title}`, { body: `${formatTime(alarm.hour, alarm.minute)}`, icon: '/favicon.ico' });
+        const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+        new Notification(`Alarma: ${translatedTitle}`, { body: `${formatTime(alarm.hour, alarm.minute)}`, icon: '/favicon.ico' });
     }
     scheduleAlarm(alarm);
 }
@@ -265,8 +268,10 @@ function updateAlarmCardVisuals(alarm) {
     const toggleLink = card.querySelector('[data-action="toggle-alarm"]');
     const toggleIcon = toggleLink?.querySelector('.material-symbols-rounded');
     const toggleText = toggleLink?.querySelector('.menu-link-text span');
+    
+    const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+    if (title) title.textContent = translatedTitle;
 
-    if (title) title.textContent = alarm.title;
     if (time) time.textContent = formatTime(alarm.hour, alarm.minute);
     if (sound) sound.textContent = getTranslation(alarm.sound, 'sounds');
 

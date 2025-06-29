@@ -91,7 +91,11 @@ const resetAlarmMenu = (menuElement) => {
     state.alarm.sound = 'classic-beep';
 
     const titleInput = menuElement.querySelector('#alarm-title');
-    if (titleInput) titleInput.value = '';
+    if (titleInput) {
+        titleInput.value = '';
+        titleInput.removeAttribute('disabled');
+        titleInput.parentElement.classList.remove('disabled-interactive');
+    }
 
     const searchInput = menuElement.querySelector('.search-content-text input');
     if (searchInput) searchInput.value = '';
@@ -126,9 +130,17 @@ const resetTimerMenu = (menuElement) => {
     state.timer = JSON.parse(JSON.stringify(initialState.timer));
     state.timer.countTo.date = new Date();
     const countdownTitle = menuElement.querySelector('#timer-title');
-    if (countdownTitle) countdownTitle.value = '';
+    if (countdownTitle) {
+        countdownTitle.value = '';
+        countdownTitle.removeAttribute('disabled');
+        countdownTitle.parentElement.classList.remove('disabled-interactive');
+    }
     const countToTitle = menuElement.querySelector('#countto-title');
-    if (countToTitle) countToTitle.value = '';
+    if (countToTitle) {
+        countToTitle.value = '';
+        countToTitle.removeAttribute('disabled');
+        countToTitle.parentElement.classList.remove('disabled-interactive');
+    }
     updateTimerTabView(menuElement);
     updateTimerDurationDisplay(menuElement);
     renderCalendar(menuElement);
@@ -207,7 +219,16 @@ export function prepareAlarmForEdit(alarmData) {
     state.alarm.sound = alarmData.sound;
 
     const titleInput = menuElement.querySelector('#alarm-title');
-    if (titleInput) titleInput.value = alarmData.title;
+    if (titleInput) {
+        titleInput.value = alarmData.title;
+        if (alarmData.type === 'default') {
+            titleInput.setAttribute('disabled', 'true');
+            titleInput.parentElement.classList.add('disabled-interactive');
+        } else {
+            titleInput.removeAttribute('disabled');
+            titleInput.parentElement.classList.remove('disabled-interactive');
+        }
+    }
 
     updateAlarmDisplay(menuElement);
 
@@ -243,7 +264,16 @@ export function prepareTimerForEdit(timerData) {
     state.timer.sound = timerData.sound;
 
     const titleInput = menuElement.querySelector('#timer-title');
-    if (titleInput) titleInput.value = timerData.title;
+    if (titleInput) {
+        titleInput.value = timerData.title;
+        if (timerData.id.startsWith('default-timer-')) {
+            titleInput.setAttribute('disabled', 'true');
+            titleInput.parentElement.classList.add('disabled-interactive');
+        } else {
+            titleInput.removeAttribute('disabled');
+            titleInput.parentElement.classList.remove('disabled-interactive');
+        }
+    }
 
     updateTimerDurationDisplay(menuElement);
     updateDisplay('#timer-selected-end-action', getTranslation(`${timerData.endAction}_timer`, 'timer'), menuElement);
@@ -266,13 +296,20 @@ export function prepareCountToDateForEdit(timerData) {
     const menuElement = getMenuElement('menuTimer');
     if (!menuElement) return;
 
-    // Switch to the 'count_to_date' tab
     state.timer.currentTab = 'count_to_date';
     updateTimerTabView(menuElement);
 
-    // Populate the form fields
     const titleInput = menuElement.querySelector('#countto-title');
-    if (titleInput) titleInput.value = timerData.title;
+    if (titleInput) {
+        titleInput.value = timerData.title;
+        if (timerData.id.startsWith('default-timer-')) {
+            titleInput.setAttribute('disabled', 'true');
+            titleInput.parentElement.classList.add('disabled-interactive');
+        } else {
+            titleInput.removeAttribute('disabled');
+            titleInput.parentElement.classList.remove('disabled-interactive');
+        }
+    }
 
     const targetDate = new Date(timerData.targetDate);
     state.timer.countTo.date = targetDate;
@@ -285,7 +322,6 @@ export function prepareCountToDateForEdit(timerData) {
     updateDisplay('#selected-minute-display', String(targetDate.getMinutes()).padStart(2, '0'), menuElement);
     renderCalendar(menuElement);
 
-    // Change the button to "Save Changes"
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
         createButton.dataset.action = 'saveCountToDateChanges';

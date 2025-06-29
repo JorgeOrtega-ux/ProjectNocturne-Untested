@@ -12,9 +12,9 @@ let activeTimers = new Map();
 let pinnedTimerId = null;
 
 const DEFAULT_TIMERS = [
-    { id: 'default-timer-1', title: 'Pomodoro (25 min)', type: 'countdown', initialDuration: 1500000, remaining: 1500000, endAction: 'restart', sound: 'gentle-chime', isRunning: false, isPinned: false },
-    { id: 'default-timer-2', title: 'Descanso Corto (5 min)', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful-tone', isRunning: false, isPinned: false },
-    { id: 'default-timer-3', title: 'Ejercicio (1 min)', type: 'countdown', initialDuration: 60000, remaining: 60000, endAction: 'restart', sound: 'digital-alarm', isRunning: false, isPinned: false }
+    { id: 'default-timer-1', title: 'pomodoro_25', type: 'countdown', initialDuration: 1500000, remaining: 1500000, endAction: 'restart', sound: 'gentle-chime', isRunning: false, isPinned: false },
+    { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful-tone', isRunning: false, isPinned: false },
+    { id: 'default-timer-3', title: 'exercise_1', type: 'countdown', initialDuration: 60000, remaining: 60000, endAction: 'restart', sound: 'digital-alarm', isRunning: false, isPinned: false }
 ];
 
 export function getTimersCount() {
@@ -375,6 +375,7 @@ function renderAllTimerCards() {
         updatePinnedStatesInUI();
     }, 50);
 }
+
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'tool-card timer-card';
@@ -389,10 +390,13 @@ function createTimerCard(timer) {
     const playPauseIcon = timer.isRunning ? 'pause' : 'play_arrow';
     const playPauseTextKey = timer.isRunning ? 'pause' : 'play';
 
+    const isDefault = timer.id.startsWith('default-timer-');
+    const titleText = isDefault ? getTranslation(timer.title, 'timer') : timer.title;
+
     card.innerHTML = `
         <div class="card-header">
             <div class="card-details">
-                <span class="card-title" title="${timer.title}">${timer.title}</span>
+                <span class="card-title" title="${titleText}">${titleText}</span>
                 <span class="card-value">${formatTime(timer.remaining, timer.type)}</span>
             </div>
         </div>

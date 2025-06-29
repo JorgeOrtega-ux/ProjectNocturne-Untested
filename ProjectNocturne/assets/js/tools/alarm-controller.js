@@ -81,7 +81,7 @@ function createAlarmCard(alarm) {
                     <span data-translate="dismiss" data-translate-category="alarms">Dismiss</span>
                 </button>
             </div>
-            <div class="card-menu-container disabled">
+            <div class="card-menu-container">
                 <div class="card-menu-btn-wrapper">
                     <button class="card-menu-btn" data-action="toggle-alarm-menu"
                             data-translate="options"
@@ -379,7 +379,7 @@ function initializeSortableGrids() {
 
     const sortableOptions = {
         animation: 150,
-        filter: '.card-menu-container', // Ignorar clics en todo el contenedor del menú
+        filter: '.card-menu-container', 
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
@@ -405,15 +405,15 @@ function initializeSortableGrids() {
 }
 
 function setupEventListeners() {
-    const sectionBottom = document.querySelector('.section-alarm .section-bottom');
-    if (sectionBottom) {
-        sectionBottom.addEventListener('click', (e) => {
+    const sectionWrapper = document.querySelector('.section-alarm .alarms-list-wrapper');
+    if (sectionWrapper) {
+        sectionWrapper.addEventListener('click', (e) => {
             const card = e.target.closest('.tool-card');
             const menuButtonClicked = e.target.closest('[data-action="toggle-alarm-menu"]');
 
-            if (menuButtonClicked) {
+            if (menuButtonClicked && card) {
                 e.stopPropagation();
-                const dropdown = menuButtonClicked.closest('.card-menu-btn-wrapper').querySelector('.card-dropdown-menu');
+                const dropdown = card.querySelector('.card-dropdown-menu');
                 const isOpening = dropdown?.classList.contains('disabled');
                 
                 document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
@@ -425,10 +425,7 @@ function setupEventListeners() {
             }
             
             const target = e.target.closest('[data-action]');
-            if (!target || !card) {
-                 document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
-                 return;
-            };
+            if (!target || !card) return;
 
             const alarmId = card.dataset.id;
             const alarm = findAlarmById(alarmId);
@@ -457,13 +454,6 @@ function setupEventListeners() {
             }
         });
     }
-
-    // Cierra todos los menús si se hace clic fuera de ellos
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.card-menu-btn-wrapper')) {
-            document.querySelectorAll('.section-alarm .card-dropdown-menu').forEach(m => m.classList.add('disabled'));
-        }
-    });
 }
 
 export function initializeAlarmClock() {

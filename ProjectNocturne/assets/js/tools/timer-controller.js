@@ -235,7 +235,7 @@ function initializeSortableGrids() {
 
     const sortableOptions = {
         animation: 150,
-        filter: '.card-menu-container', // Ignorar clics en todo el contenedor del menú
+        filter: '.card-menu-container', 
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
@@ -399,7 +399,7 @@ function createTimerCard(timer) {
                 <span data-translate="dismiss" data-translate-category="alarms">${getTranslation('dismiss', 'alarms')}</span>
             </button>
         </div>
-        <div class="card-menu-container disabled">
+        <div class="card-menu-container">
              <button class="card-pin-btn" data-action="pin-timer" data-translate="pin_timer" data-translate-category="tooltips" data-translate-target="tooltip">
                 <span class="material-symbols-rounded">push_pin</span>
             </button>
@@ -639,9 +639,9 @@ function setupGlobalEventListeners() {
         const card = e.target.closest('.tool-card');
         const menuButtonClicked = e.target.closest('[data-action="toggle-timer-options"]');
 
-        if (menuButtonClicked) {
+        if (menuButtonClicked && card) {
             e.stopPropagation();
-            const dropdown = menuButtonClicked.closest('.card-menu-btn-wrapper').querySelector('.card-dropdown-menu');
+            const dropdown = card.querySelector('.card-dropdown-menu');
             const isOpening = dropdown?.classList.contains('disabled');
             
             document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
@@ -653,10 +653,7 @@ function setupGlobalEventListeners() {
         }
 
         const target = e.target.closest('[data-action]');
-        if (!target || !card) {
-            document.querySelectorAll('.card-dropdown-menu').forEach(m => m.classList.add('disabled'));
-            return;
-        }
+        if (!target || !card) return;
         
         const timerId = card.dataset.id;
         const action = target.dataset.action;
@@ -669,13 +666,6 @@ function setupGlobalEventListeners() {
             case 'edit-timer': handleEditTimer(timerId); break;
             case 'delete-timer': handleDeleteTimer(timerId); break;
             case 'dismiss-timer': dismissTimer(timerId); break;
-        }
-    });
-
-    // Cierra todos los menús si se hace clic fuera de ellos
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.card-menu-btn-wrapper')) {
-            document.querySelectorAll('.section-timer .card-dropdown-menu').forEach(m => m.classList.add('disabled'));
         }
     });
 

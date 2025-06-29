@@ -187,16 +187,22 @@ function startTimer(timerId) {
         startCountToDateTimer(timer);
     } else {
         if (timer.remaining <= 0) return;
-        // Establecemos el tiempo objetivo al iniciar
         timer.targetTime = Date.now() + timer.remaining;
         startCountdownTimer(timer);
     }
     
     updateTimerCardControls(timerId);
     updateMainControlsState();
-    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
-}
 
+    // --- CORRECCIÓN ---
+    // Comprueba si el temporizador existe en el array de usuario para decidir qué guardar.
+    const isUserTimer = userTimers.some(t => t.id === timerId);
+    if (isUserTimer) {
+        saveTimersToStorage();
+    } else {
+        saveDefaultTimersOrder();
+    }
+}
 function startCountdownTimer(timer) {
     timer.isRunning = true;
     const interval = setInterval(() => {
@@ -239,13 +245,22 @@ function pauseTimer(timerId) {
     clearInterval(activeTimers.get(timerId));
     activeTimers.delete(timerId);
 
-    // Al pausar, eliminamos el tiempo objetivo para que no se recalcule al recargar
     delete timer.targetTime;
     
-    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
+    // --- CORRECCIÓN ---
+    // Comprueba si el temporizador existe en el array de usuario para decidir qué guardar.
+    const isUserTimer = userTimers.some(t => t.id === timerId);
+    if (isUserTimer) {
+        saveTimersToStorage();
+    } else {
+        saveDefaultTimersOrder();
+    }
+    
     updateTimerCardControls(timerId);
     updateMainControlsState();
 }
+
+
 
 function resetTimer(timerId) {
     const timer = findTimerById(timerId);
@@ -589,12 +604,14 @@ function updatePinnedStatesInUI() {
     });
 }
 
+
 function formatTime(ms, type = 'countdown') {
     if (ms <= 0) {
         return type === 'count_to_date' ? getTranslation('event_finished', 'timer') || "¡Evento finalizado!" : "00:00:00";
     }
 
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    // --- CORRECCIÓN: Cambiado Math.floor por Math.round ---
+    const totalSeconds = Math.max(0, Math.round(ms / 1000));
     
     if (type === 'count_to_date') {
         const days = Math.floor(totalSeconds / 86400);
@@ -612,7 +629,6 @@ function formatTime(ms, type = 'countdown') {
         return `${hours}:${minutes}:${seconds}`;
     }
 }
-
 function handleTimerEnd(timerId) {
     const timer = findTimerById(timerId);
     if (!timer || timer.type === 'count_to_date') return;

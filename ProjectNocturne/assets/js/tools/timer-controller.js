@@ -12,9 +12,9 @@ let activeTimers = new Map();
 let pinnedTimerId = null;
 
 const DEFAULT_TIMERS = [
-    { id: 'default-timer-1', title: 'pomodoro_25', type: 'countdown', initialDuration: 1500000, remaining: 1500000, endAction: 'restart', sound: 'gentle-chime', isRunning: false, isPinned: false },
-    { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful-tone', isRunning: false, isPinned: false },
-    { id: 'default-timer-3', title: 'exercise_1', type: 'countdown', initialDuration: 60000, remaining: 60000, endAction: 'restart', sound: 'digital-alarm', isRunning: false, isPinned: false }
+    { id: 'default-timer-1', title: 'pomodoro_25', type: 'countdown', initialDuration: 1500000, remaining: 1500000, endAction: 'restart', sound: 'gentle_chime', isRunning: false, isPinned: false },
+    { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful_tone', isRunning: false, isPinned: false },
+    { id: 'default-timer-3', title: 'exercise_1', type: 'countdown', initialDuration: 60000, remaining: 60000, endAction: 'restart', sound: 'digital_alarm', isRunning: false, isPinned: false }
 ];
 
 export function getTimersCount() {
@@ -456,7 +456,7 @@ function createTimerCard(timer) {
         </div>
         <div class="card-footer">
             <div class="card-tags">
-                 <span class="card-tag">${isCountdown ? getTranslation(timer.sound, 'sounds') : ''}</span>
+                 <span class="card-tag">${isCountdown ? getTranslation(timer.sound.replace(/-/g, '_'), 'sounds') : ''}</span>
             </div>
         </div>
         <div class="card-options-container">
@@ -760,7 +760,7 @@ function updateTimerCardVisuals(timer) {
     const isCountdown = timer.type === 'countdown';
     const tagElement = card.querySelector('.card-tag');
     if (tagElement) {
-        tagElement.textContent = isCountdown ? getTranslation(timer.sound, 'sounds') : '';
+        tagElement.textContent = isCountdown ? getTranslation(timer.sound.replace(/-/g, '_'), 'sounds') : '';
     }
 
     const dismissButton = card.querySelector('.card-dismiss-btn span');

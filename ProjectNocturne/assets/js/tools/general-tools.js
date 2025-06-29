@@ -1,24 +1,22 @@
-// jorgeortega-ux/projectnocturne-untested/ProjectNocturne-Untested-40cb09d19e05067b15f05652c8beaac6f8a29ff7/ProjectNocturne/assets/js/tools/general-tools.js
-// ========== IMPORTS ==========
 import { getTranslation } from '../general/translations-controller.js';
 import { prepareAlarmForEdit, prepareWorldClockForEdit, prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
 import { activateModule, getCurrentActiveOverlay } from '../general/main.js';
 
 // ========== SOUND LOGIC ==========
 const SOUND_PATTERNS = {
-    'classic-beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
-    'gentle-chime': { frequencies: [523.25, 659.25, 783.99], beepDuration: 300, pauseDuration: 500, type: 'sine' },
-    'digital-alarm': { frequencies: [1200, 800], beepDuration: 100, pauseDuration: 100, type: 'square' },
-    'peaceful-tone': { frequencies: [440, 554.37, 659.25], beepDuration: 400, pauseDuration: 600, type: 'sine' },
-    'urgent-beep': { frequencies: [1600, 1600], beepDuration: 80, pauseDuration: 80, type: 'sawtooth' }
+    'classic_beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
+    'gentle_chime': { frequencies: [523.25, 659.25, 783.99], beepDuration: 300, pauseDuration: 500, type: 'sine' },
+    'digital_alarm': { frequencies: [1200, 800], beepDuration: 100, pauseDuration: 100, type: 'square' },
+    'peaceful_tone': { frequencies: [440, 554.37, 659.25], beepDuration: 400, pauseDuration: 600, type: 'sine' },
+    'urgent_beep': { frequencies: [1600, 1600], beepDuration: 80, pauseDuration: 80, type: 'sawtooth' }
 };
 
 export const AVAILABLE_SOUNDS = [
-    { id: 'classic-beep', nameKey: 'classic_beep', icon: 'volume_up' },
-    { id: 'gentle-chime', nameKey: 'gentle_chime', icon: 'notifications' },
-    { id: 'digital-alarm', nameKey: 'digital_alarm', icon: 'alarm' },
-    { id: 'peaceful-tone', nameKey: 'peaceful_tone', icon: 'self_care' },
-    { id: 'urgent-beep', nameKey: 'urgent_beep', icon: 'priority_high' }
+    { id: 'classic_beep', nameKey: 'classic_beep', icon: 'volume_up' },
+    { id: 'gentle_chime', nameKey: 'gentle_chime', icon: 'notifications' },
+    { id: 'digital_alarm', nameKey: 'digital_alarm', icon: 'alarm' },
+    { id: 'peaceful_tone', nameKey: 'peaceful_tone', icon: 'self_care' },
+    { id: 'urgent_beep', nameKey: 'urgent_beep', icon: 'priority_high' }
 ];
 
 let audioContext = null;
@@ -37,12 +35,12 @@ function initializeAudioContext() {
     return true;
 }
 
-export async function playSound(soundType = 'classic-beep') {
+export async function playSound(soundType = 'classic_beep') {
     if (isPlayingSound || !initializeAudioContext()) return;
     stopSound();
     isPlayingSound = true;
 
-    const pattern = SOUND_PATTERNS[soundType] || SOUND_PATTERNS['classic-beep'];
+    const pattern = SOUND_PATTERNS[soundType] || SOUND_PATTERNS['classic_beep'];
     let freqIndex = 0;
     const playBeep = () => {
         if (!isPlayingSound) return;

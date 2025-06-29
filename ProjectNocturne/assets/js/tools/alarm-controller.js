@@ -1,4 +1,3 @@
-// jorgeortega-ux/projectnocturne-untested/ProjectNocturne-Untested-40cb09d19e05067b15f05652c8beaac6f8a29ff7/ProjectNocturne/assets/js/tools/alarm-controller.js
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable } from './general-tools.js';
@@ -7,9 +6,9 @@ const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
 
 const DEFAULT_ALARMS = [
-    { id: 'default-1', title: 'clean_room', hour: 10, minute: 0, sound: 'gentle-chime', enabled: false, type: 'default' },
-    { id: 'default-2', title: 'exercise', hour: 18, minute: 0, sound: 'digital-alarm', enabled: false, type: 'default' },
-    { id: 'default-3', title: 'read_book', hour: 21, minute: 0, sound: 'peaceful-tone', enabled: false, type: 'default' }
+    { id: 'default-1', title: 'clean_room', hour: 10, minute: 0, sound: 'gentle_chime', enabled: false, type: 'default' },
+    { id: 'default-2', title: 'exercise', hour: 18, minute: 0, sound: 'digital_alarm', enabled: false, type: 'default' },
+    { id: 'default-3', title: 'read_book', hour: 21, minute: 0, sound: 'peaceful_tone', enabled: false, type: 'default' }
 ];
 
 let clockInterval = null;
@@ -105,7 +104,7 @@ function createAlarmCard(alarm) {
             </div>
             <div class="card-footer">
                 <div class="card-tags">
-                    <span class="card-tag" data-translate="${alarm.sound}" data-translate-category="sounds">${getTranslation(alarm.sound, 'sounds')}</span>
+                    <span class="card-tag" data-translate="${alarm.sound.replace(/-/g, '_')}" data-translate-category="sounds">${getTranslation(alarm.sound.replace(/-/g, '_'), 'sounds')}</span>
                 </div>
             </div>
             <div class="card-options-container">
@@ -307,8 +306,9 @@ function updateAlarmCardVisuals(alarm) {
 
     if (time) time.textContent = formatTime(alarm.hour, alarm.minute);
     if (sound) {
-        sound.textContent = getTranslation(alarm.sound, 'sounds');
-        sound.dataset.translate = alarm.sound;
+        const soundKey = alarm.sound.replace(/-/g, '_');
+        sound.textContent = getTranslation(soundKey, 'sounds');
+        sound.dataset.translate = soundKey;
     }
 
     if (toggleIcon) toggleIcon.textContent = alarm.enabled ? 'toggle_on' : 'toggle_off';

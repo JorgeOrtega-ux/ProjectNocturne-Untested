@@ -5,13 +5,13 @@ import { addTimerAndRender, updateTimer, getTimersCount } from './timer-controll
 import { generateSoundList } from './general-tools.js';
 
 const initialState = {
-    alarm: { hour: 0, minute: 0, sound: 'classic-beep' },
+    alarm: { hour: 0, minute: 0, sound: 'classic_beep' },
     timer: {
         currentTab: 'countdown',
         duration: { hours: 0, minutes: 5, seconds: 0 },
         countTo: { date: new Date(), selectedDate: null, selectedHour: null, selectedMinute: null, timeSelectionStep: 'hour' },
         endAction: 'stop',
-        sound: 'classic-beep'
+        sound: 'classic_beep'
     },
     worldClock: { country: '', timezone: '', countryCode: '', isEditing: false, editingId: null }
 };
@@ -88,7 +88,7 @@ const setAlarmDefaults = () => {
 
 const resetAlarmMenu = (menuElement) => {
     setAlarmDefaults();
-    state.alarm.sound = 'classic-beep';
+    state.alarm.sound = 'classic_beep';
 
     const titleInput = menuElement.querySelector('#alarm-title');
     if (titleInput) {
@@ -233,7 +233,18 @@ export function prepareAlarmForEdit(alarmData) {
 
     updateAlarmDisplay(menuElement);
 
-    updateDisplay('#alarm-selected-sound', getTranslation(alarmData.sound, 'sounds'), menuElement);
+    updateDisplay('#alarm-selected-sound', getTranslation(alarmData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
+
+    const soundList = menuElement.querySelector('.menu-alarm-sound .menu-list');
+    if (soundList) {
+        soundList.querySelectorAll('.menu-link').forEach(link => {
+            if (link.dataset.sound === alarmData.sound) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
 
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
@@ -279,7 +290,18 @@ export function prepareTimerForEdit(timerData) {
 
     updateTimerDurationDisplay(menuElement);
     updateDisplay('#timer-selected-end-action', getTranslation(`${timerData.endAction}_timer`, 'timer'), menuElement);
-    updateDisplay('#timer-selected-sound', getTranslation(timerData.sound, 'sounds'), menuElement);
+    updateDisplay('#timer-selected-sound', getTranslation(timerData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
+
+    const soundList = menuElement.querySelector('.menu-timer-sound .menu-list');
+    if (soundList) {
+        soundList.querySelectorAll('.menu-link').forEach(link => {
+            if (link.dataset.sound === timerData.sound) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
     
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
@@ -678,7 +700,16 @@ function setupGlobalEventListeners() {
             case 'decreaseHour': state.alarm.hour = (state.alarm.hour - 1 + 24) % 24; updateAlarmDisplay(parentMenu); break;
             case 'increaseMinute': state.alarm.minute = (state.alarm.minute + 1) % 60; updateAlarmDisplay(parentMenu); break;
             case 'decreaseMinute': state.alarm.minute = (state.alarm.minute - 1 + 60) % 60; updateAlarmDisplay(parentMenu); break;
-            case 'selectAlarmSound': event.stopPropagation(); handleSelect(actionTarget, '#alarm-selected-sound'); state.alarm.sound = actionTarget.dataset.sound; break;
+            case 'selectAlarmSound':
+                event.stopPropagation();
+                handleSelect(actionTarget, '#alarm-selected-sound');
+                state.alarm.sound = actionTarget.dataset.sound;
+                const alarmSoundList = actionTarget.closest('.menu-list');
+                if (alarmSoundList) {
+                    alarmSoundList.querySelectorAll('.menu-link').forEach(link => link.classList.remove('active'));
+                }
+                actionTarget.classList.add('active');
+                break;
             case 'increaseTimerHour': state.timer.duration.hours = (state.timer.duration.hours + 1) % 100; updateTimerDurationDisplay(parentMenu); break;
             case 'decreaseTimerHour': state.timer.duration.hours = (state.timer.duration.hours - 1 + 100) % 100; updateTimerDurationDisplay(parentMenu); break;
             case 'increaseTimerMinute': state.timer.duration.minutes = (state.timer.duration.minutes + 1) % 60; updateTimerDurationDisplay(parentMenu); break;
@@ -686,7 +717,16 @@ function setupGlobalEventListeners() {
             case 'increaseTimerSecond': state.timer.duration.seconds = (state.timer.duration.seconds + 1) % 60; updateTimerDurationDisplay(parentMenu); break;
             case 'decreaseTimerSecond': state.timer.duration.seconds = (state.timer.duration.seconds - 1 + 60) % 60; updateTimerDurationDisplay(parentMenu); break;
             case 'selectTimerEndAction': event.stopPropagation(); handleSelect(actionTarget, '#timer-selected-end-action'); state.timer.endAction = actionTarget.dataset.endAction; break;
-            case 'selectTimerSound': event.stopPropagation(); handleSelect(actionTarget, '#timer-selected-sound'); state.timer.sound = actionTarget.dataset.sound; break;
+            case 'selectTimerSound':
+                event.stopPropagation();
+                handleSelect(actionTarget, '#timer-selected-sound');
+                state.timer.sound = actionTarget.dataset.sound;
+                const timerSoundList = actionTarget.closest('.menu-list');
+                if (timerSoundList) {
+                    timerSoundList.querySelectorAll('.menu-link').forEach(link => link.classList.remove('active'));
+                }
+                actionTarget.classList.add('active');
+                break;
             case 'prev-month': state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() - 1); renderCalendar(parentMenu); break;
             case 'next-month': state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() + 1); renderCalendar(parentMenu); break;
             case 'selectTimerHour':

@@ -245,21 +245,21 @@ function initializeSortableGrids() {
         dragClass: 'sortable-drag',
     };
 
-    initializeSortable('.timers-grid-container[data-timer-grid="user"]', {
+    initializeSortable('.tool-grid[data-timer-grid="user"]', {
         ...sortableOptions,
         onEnd: function() {
-            const grid = document.querySelector('.timers-grid-container[data-timer-grid="user"]');
-            const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
+            const grid = document.querySelector('.tool-grid[data-timer-grid="user"]');
+            const newOrder = Array.from(grid.querySelectorAll('.tool-card')).map(card => card.id);
             userTimers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
             saveTimersToStorage();
         }
     });
 
-    initializeSortable('.timers-grid-container[data-timer-grid="default"]', {
+    initializeSortable('.tool-grid[data-timer-grid="default"]', {
         ...sortableOptions,
         onEnd: function() {
-            const grid = document.querySelector('.timers-grid-container[data-timer-grid="default"]');
-            const newOrder = Array.from(grid.querySelectorAll('.timer-card')).map(card => card.id);
+            const grid = document.querySelector('.tool-grid[data-timer-grid="default"]');
+            const newOrder = Array.from(grid.querySelectorAll('.tool-card')).map(card => card.id);
             defaultTimersState.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
             saveDefaultTimersOrder();
         }
@@ -351,8 +351,8 @@ export function updateTimer(timerId, newData) {
 
 
 function renderAllTimerCards() {
-    const userContainer = document.querySelector('.timers-grid-container[data-timer-grid="user"]');
-    const defaultContainer = document.querySelector('.timers-grid-container[data-timer-grid="default"]');
+    const userContainer = document.querySelector('.tool-grid[data-timer-grid="user"]');
+    const defaultContainer = document.querySelector('.tool-grid[data-timer-grid="default"]');
     if (!userContainer || !defaultContainer) return;
     
     userContainer.innerHTML = '';
@@ -374,7 +374,7 @@ function renderAllTimerCards() {
 }
 function createTimerCard(timer) {
     const card = document.createElement('div');
-    card.className = 'timer-card';
+    card.className = 'tool-card timer-card';
     card.id = timer.id;
     card.dataset.id = timer.id;
     if (!timer.isRunning && timer.remaining <= 0) {
@@ -388,18 +388,18 @@ function createTimerCard(timer) {
 
     card.innerHTML = `
         <div class="card-header">
-            <div class="card-alarm-details">
-                <span class="alarm-title" title="${timer.title}">${timer.title}</span>
-                <span class="alarm-time">${formatTime(timer.remaining, timer.type)}</span>
+            <div class="card-details">
+                <span class="card-title" title="${timer.title}">${timer.title}</span>
+                <span class="card-value">${formatTime(timer.remaining, timer.type)}</span>
             </div>
         </div>
         <div class="card-footer">
-            <div class="alarm-info">
-                 <span class="alarm-sound-name">${isCountdown ? getTranslation(timer.sound, 'sounds') : ''}</span>
+            <div class="card-tags">
+                 <span class="card-tag">${isCountdown ? getTranslation(timer.sound, 'sounds') : ''}</span>
             </div>
         </div>
         <div class="card-options-container">
-             <button class="dismiss-timer-btn" data-action="dismiss-timer">
+             <button class="card-dismiss-btn" data-type="timer" data-action="dismiss-timer">
                 <span data-translate="dismiss" data-translate-category="alarms">${getTranslation('dismiss', 'alarms')}</span>
             </button>
         </div>
@@ -490,7 +490,7 @@ function updateCardDisplay(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
 
-    const timeElement = card.querySelector('.alarm-time');
+    const timeElement = card.querySelector('.card-value');
     if (timeElement) {
         timeElement.textContent = formatTime(timer.remaining, timer.type);
     }
@@ -532,7 +532,7 @@ function updatePinnedStatesInUI() {
         if (firstTimer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
     }
 
-    document.querySelectorAll('.timer-card').forEach(card => {
+    document.querySelectorAll('.tool-card.timer-card').forEach(card => {
         const pinBtn = card.querySelector('.card-pin-btn');
         if (pinBtn) {
             pinBtn.classList.toggle('active', card.id === pinnedTimerId);
@@ -597,7 +597,7 @@ function handleTimerEnd(timerId) {
 }
 
 function toggleTimersSection(type) {
-    const grid = document.querySelector(`.timers-grid-container[data-timer-grid="${type}"]`);
+    const grid = document.querySelector(`.tool-grid[data-timer-grid="${type}"]`);
     if (!grid) return;
     const container = grid.closest('.timers-container');
     if (!container) return;
@@ -643,7 +643,7 @@ function setupGlobalEventListeners() {
         const target = e.target.closest('[data-action]');
         if (!target) return;
 
-        const card = target.closest('.timer-card');
+        const card = target.closest('.tool-card');
         if (!card) return;
         
         const timerId = card.dataset.id;

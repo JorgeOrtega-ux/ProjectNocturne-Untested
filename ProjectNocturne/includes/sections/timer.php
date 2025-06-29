@@ -103,7 +103,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="timers-grid-container" data-timer-grid="user"></div>
+                <div class="tool-grid" data-timer-grid="user"></div>
             </div>
             <div class="timers-container" data-container="default">
                 <div class="timers-header" onclick="window.timerManager.toggleTimersSection('default')">
@@ -120,7 +120,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="timers-grid-container" data-timer-grid="default"></div>
+                <div class="tool-grid" data-timer-grid="default"></div>
             </div>
         </div>
     </div>

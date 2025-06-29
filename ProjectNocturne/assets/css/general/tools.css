@@ -359,15 +359,13 @@
     margin-top: 0;
 }
 
-.timers-grid-container {
+.tool-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 8px;
 }
 
-.timer-card,
-.world-clock-card,
-.alarm-card {
+.tool-card {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -380,23 +378,19 @@
 }
 
 
-.timer-card.timer-finished,
-.alarm-card.alarm-disabled {
+.tool-card.timer-finished,
+.tool-card.alarm-disabled {
     opacity: 0.6;
 }
 
-.timer-card .card-header,
-.world-clock-card .card-header,
-.alarm-card .card-header {
+.tool-card .card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
 }
 
-.timer-card .card-alarm-details,
-.world-clock-card .card-alarm-details,
-.alarm-card .card-alarm-details {
+.tool-card .card-details {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -404,9 +398,7 @@
     min-width: 0;
 }
 
-.timer-card .alarm-title,
-.world-clock-card .alarm-title,
-.alarm-card .alarm-title {
+.tool-card .card-title {
     font-size: 1rem;
     font-weight: 500;
     color: #000000;
@@ -415,35 +407,27 @@
     text-overflow: ellipsis;
 }
 
-.timer-card .alarm-time,
-.world-clock-card .alarm-time,
-.alarm-card .alarm-time {
+.tool-card .card-value {
     font-size: 1.4rem;
     font-weight: 600;
     color: #000000;
     line-height: 1;
 }
 
-.timer-card .card-footer,
-.world-clock-card .card-footer,
-.alarm-card .card-footer {
+.tool-card .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 4px;
 }
 
-.timer-card .alarm-info,
-.world-clock-card .alarm-info,
-.alarm-card .alarm-info {
+.tool-card .card-tags {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.timer-card .alarm-sound-name,
-.world-clock-card .alarm-sound-name,
-.alarm-card .alarm-sound-name {
+.tool-card .card-tag {
     font-size: 0.85rem;
     color: rgba(0, 0, 0, 0.7);
     background-color: #f5f5fa;
@@ -452,9 +436,7 @@
     font-weight: 500;
 }
 
-.timer-card .card-pin-btn,
-.world-clock-card .card-pin-btn,
-.alarm-card .card-pin-btn {
+.tool-card .card-pin-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -470,9 +452,7 @@
     padding: 0;
 }
 
-.timer-card .card-menu-btn,
-.world-clock-card .card-menu-btn,
-.alarm-card .card-menu-btn {
+.tool-card .card-menu-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -489,39 +469,25 @@
 }
 
 
-.timer-card .card-pin-btn:hover,
-.timer-card .card-menu-btn:hover,
-.world-clock-card .card-pin-btn:hover,
-.world-clock-card .card-menu-btn:hover,
-.alarm-card .card-pin-btn:hover,
-.alarm-card .card-menu-btn:hover {
+.tool-card .card-pin-btn:hover,
+.tool-card .card-menu-btn:hover {
     background-color: #f5f5fa;
 }
 
-.timer-card .card-pin-btn.active,
-.world-clock-card .card-pin-btn.active,
-.alarm-card .card-pin-btn.active {
+.tool-card .card-pin-btn.active {
     background-color: #e0e0e0;
 }
 
-.timer-card .card-dropdown-menu .menu-link:hover,
-.world-clock-card .card-dropdown-menu .menu-link:hover,
-.alarm-card .card-dropdown-menu .menu-link:hover {
+.tool-card .card-dropdown-menu .menu-link:hover {
     background-color: #f5f5fa;
 }
 
-.timer-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
-.timer-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span,
-.world-clock-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
-.world-clock-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span,
-.alarm-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
-.alarm-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span {
+.tool-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
+.tool-card .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span {
     color: #d32f2f;
 }
 
-.timer-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover,
-.world-clock-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover,
-.alarm-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
+.tool-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
     background-color: rgba(229, 57, 53, 0.08);
 }
 
@@ -726,14 +692,14 @@
     background-color: #f5f5fa;
 }
 
-.alarms-grid {
-    display: none;
+.tool-grid {
+    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 8px;
     margin-top: 8px;
 }
 
-.alarms-grid.active {
+.tool-grid.active {
     display: grid;
 }
 
@@ -749,9 +715,8 @@
     display: block;
 }
 
-.dismiss-alarm-btn {
+.card-dismiss-btn {
     padding: 8px 16px;
-    background-color: #ff5555;
     color: white;
     border: none;
     border-radius: 8px;
@@ -760,35 +725,32 @@
     transition: background-color 0.2s ease;
 }
 
-.dismiss-alarm-btn:hover {
+.card-dismiss-btn[data-type="alarm"] {
+    background-color: #ff5555;
+}
+
+.card-dismiss-btn[data-type="alarm"]:hover {
     background-color: #ff2f2f;
 }
 
-.dismiss-timer-btn {
-    padding: 8px 16px;
+.card-dismiss-btn[data-type="timer"] {
     background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
 }
 
-.dismiss-timer-btn:hover {
+.card-dismiss-btn[data-type="timer"]:hover {
     background-color: #45a049;
 }
 
 @media (max-width: 768px) {
-    .alarms-grid {
+    .tool-grid {
         grid-template-columns: 1fr;
     }
 
-    .alarm-card {
+    .tool-card {
         padding: 14px;
     }
 
-    .alarm-card .alarm-time {
+    .tool-card .card-value {
         font-size: 1.2rem;
     }
 }
@@ -876,16 +838,12 @@
     gap: 8px;
 }
 
-.alarm-card:has(.card-dropdown-menu:not(.disabled)),
-.world-clock-card:has(.card-dropdown-menu:not(.disabled)),
-.timer-card:has(.card-dropdown-menu:not(.disabled)) {
+.tool-card:has(.card-dropdown-menu:not(.disabled)) {
     z-index: 20;
     position: relative;
 }
 
-.alarm-card.sortable-chosen,
-.world-clock-card.sortable-chosen,
-.timer-card.sortable-chosen {
+.tool-card.sortable-chosen {
     z-index: 30 !important;
     position: relative;
 }
@@ -949,43 +907,23 @@
     transform: rotate(180deg);
 }
 
-.timers-grid-container {
-    display: none;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.timers-grid-container.active {
-    display: grid;
-}
-
-
 /* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
-.alarm-card,
-.world-clock-card,
-.timer-card {
+.tool-card {
     cursor: grab;
 }
 
-.alarm-card.sortable-drag,
-.world-clock-card.sortable-drag,
-.timer-card.sortable-drag {
+.tool-card.sortable-drag {
     cursor: grabbing;
 }
 
-.alarm-card.sortable-chosen,
-.world-clock-card.sortable-chosen,
-.timer-card.sortable-chosen {
+.tool-card.sortable-chosen {
     opacity: 0.9;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     transform: scale(1.03);
     cursor: grabbing;
 }
 
-.alarm-card.sortable-ghost,
-.world-clock-card.sortable-ghost,
-.timer-card.sortable-ghost {
+.tool-card.sortable-ghost {
     opacity: 0.4;
     background-color: #f5f5fa;
     border: 1px dashed #d0d0d0;

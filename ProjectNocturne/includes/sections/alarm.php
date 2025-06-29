@@ -83,7 +83,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="alarms-grid" data-alarm-grid="user"></div>
+                <div class="tool-grid" data-alarm-grid="user"></div>
             </div>
             <div class="alarms-container" data-container="default">
                 <div class="alarms-header" onclick="window.alarmManager.toggleAlarmsSection('default')">
@@ -100,7 +100,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="alarms-grid" data-alarm-grid="default"></div>
+                <div class="tool-grid" data-alarm-grid="default"></div>
             </div>
         </div>
     </div>

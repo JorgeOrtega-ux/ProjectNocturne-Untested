@@ -392,64 +392,42 @@
     background-color: #ffffff40;
 }
 
-.dark-mode .timer-card,
-.dark-mode .world-clock-card,
-.dark-mode .alarm-card {
+.dark-mode .tool-card {
     background-color: #2e2f31;
     border-color: #ffffff18;
 }
 
-.dark-mode .timer-card .card-header,
-.dark-mode .timer-card .alarm-time,
-.dark-mode .world-clock-card .card-header,
-.dark-mode .world-clock-card .alarm-time,
-.dark-mode .alarm-card .card-header,
-.dark-mode .alarm-card .alarm-time {
+.dark-mode .tool-card .card-header,
+.dark-mode .tool-card .card-value {
     color: #ffffff;
 }
 
-.dark-mode .timer-card .alarm-sound-name,
-.dark-mode .world-clock-card .alarm-sound-name,
-.dark-mode .alarm-card .alarm-sound-name {
+.dark-mode .tool-card .card-tag {
     color: rgba(255, 255, 255, 0.8);
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.dark-mode .timer-card .card-menu-container,
-.dark-mode .world-clock-card .card-menu-container,
-.dark-mode .alarm-card .card-menu-container {
+.dark-mode .tool-card .card-menu-container {
     background-color: #252627;
     filter: unset;
     border: 1px solid #ffffff20;
 }
 
-.dark-mode .timer-card .card-pin-btn,
-.dark-mode .timer-card .card-menu-btn,
-.dark-mode .world-clock-card .card-pin-btn,
-.dark-mode .world-clock-card .card-menu-btn,
-.dark-mode .alarm-card .card-pin-btn,
-.dark-mode .alarm-card .card-menu-btn {
+.dark-mode .tool-card .card-pin-btn,
+.dark-mode .tool-card .card-menu-btn {
     color: #ffffff;
 }
 
-.dark-mode .timer-card .card-pin-btn:hover,
-.dark-mode .timer-card .card-menu-btn:hover,
-.dark-mode .world-clock-card .card-pin-btn:hover,
-.dark-mode .world-clock-card .card-menu-btn:hover,
-.dark-mode .alarm-card .card-pin-btn:hover,
-.dark-mode .alarm-card .card-menu-btn:hover {
+.dark-mode .tool-card .card-pin-btn:hover,
+.dark-mode .tool-card .card-menu-btn:hover {
     background-color: #ffffff20;
 }
 
-.dark-mode .timer-card .card-pin-btn.active,
-.dark-mode .world-clock-card .card-pin-btn.active,
-.dark-mode .alarm-card .card-pin-btn.active {
+.dark-mode .tool-card .card-pin-btn.active {
     background-color: #ffffff20;
 }
 
-.dark-mode .timer-card .card-dropdown-menu .menu-link:hover,
-.dark-mode .world-clock-card .card-dropdown-menu .menu-link:hover,
-.dark-mode .alarm-card .card-dropdown-menu .menu-link:hover {
+.dark-mode .tool-card .card-dropdown-menu .menu-link:hover {
     background-color: #ffffff20;
 }
 
@@ -500,16 +478,12 @@
     border-color: #ffffff20;
 }
 
-.dark-mode .alarm-card.sortable-chosen,
-.dark-mode .world-clock-card.sortable-chosen,
-.dark-mode .timer-card.sortable-chosen {
+.dark-mode .tool-card.sortable-chosen {
     background-color: #3a3b3d;
     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
 }
 
-.dark-mode .alarm-card.sortable-ghost,
-.dark-mode .world-clock-card.sortable-ghost,
-.dark-mode .timer-card.sortable-ghost {
+.dark-mode .tool-card.sortable-ghost {
     opacity: 0.5;
     background-color: #252627;
     border: 1px solid #444;

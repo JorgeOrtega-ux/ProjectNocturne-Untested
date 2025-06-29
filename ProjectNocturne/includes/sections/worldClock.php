@@ -67,17 +67,17 @@
         </div>
     </div>
     <div class="section-bottom">
-        <div class="world-clocks-grid">
-            <div class="world-clock-card local-clock-card" data-id="local">
+        <div class="tool-grid world-clocks-grid">
+            <div class="tool-card world-clock-card local-clock-card" data-id="local">
                 <div class="card-header">
-                    <div class="card-alarm-details">
-                        <span class="alarm-title" data-translate="local_time" data-translate-category="world_clock_options">Tiempo Local</span>
-                        <span class="alarm-time">--:--:--</span>
+                    <div class="card-details">
+                        <span class="card-title" data-translate="local_time" data-translate-category="world_clock_options">Tiempo Local</span>
+                        <span class="card-value">--:--:--</span>
                     </div>
                 </div>
                 <div class="card-footer">
-                    <div class="alarm-info">
-                        <span class="alarm-sound-name">---, -- ----</span>
+                    <div class="card-tags">
+                        <span class="card-tag">---, -- ----</span>
                     </div>
                 </div>
                 <div class="card-menu-container disabled">

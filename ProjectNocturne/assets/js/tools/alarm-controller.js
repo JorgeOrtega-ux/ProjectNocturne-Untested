@@ -60,24 +60,24 @@ function createAlarm(title, hour, minute, sound) {
 }
 
 function createAlarmCard(alarm) {
-    const grid = document.querySelector(`.alarms-grid[data-alarm-grid="${alarm.type}"]`);
+    const grid = document.querySelector(`.tool-grid[data-alarm-grid="${alarm.type}"]`);
     if (!grid) return;
 
     const cardHTML = `
-        <div class="alarm-card ${!alarm.enabled ? 'alarm-disabled' : ''}" id="${alarm.id}" data-id="${alarm.id}" data-type="${alarm.type}">
+        <div class="tool-card alarm-card ${!alarm.enabled ? 'alarm-disabled' : ''}" id="${alarm.id}" data-id="${alarm.id}" data-type="${alarm.type}">
             <div class="card-header">
-                <div class="card-alarm-details">
-                    <span class="alarm-title" title="${alarm.title}">${alarm.title}</span>
-                    <span class="alarm-time">${formatTime(alarm.hour, alarm.minute)}</span>
+                <div class="card-details">
+                    <span class="card-title" title="${alarm.title}">${alarm.title}</span>
+                    <span class="card-value">${formatTime(alarm.hour, alarm.minute)}</span>
                 </div>
             </div>
             <div class="card-footer">
-                <div class="alarm-info">
-                    <span class="alarm-sound-name">${getTranslation(alarm.sound, 'sounds')}</span>
+                <div class="card-tags">
+                    <span class="card-tag">${getTranslation(alarm.sound, 'sounds')}</span>
                 </div>
             </div>
             <div class="card-options-container">
-                <button class="dismiss-alarm-btn" data-action="dismiss-alarm">
+                <button class="card-dismiss-btn" data-type="alarm" data-action="dismiss-alarm">
                     <span data-translate="dismiss" data-translate-category="alarms">Dismiss</span>
                 </button>
             </div>
@@ -261,9 +261,9 @@ function updateAlarm(alarmId, newData) {
 function updateAlarmCardVisuals(alarm) {
     const card = document.getElementById(alarm.id);
     if (!card) return;
-    const title = card.querySelector('.alarm-title');
-    const time = card.querySelector('.alarm-time');
-    const sound = card.querySelector('.alarm-sound-name');
+    const title = card.querySelector('.card-title');
+    const time = card.querySelector('.card-value');
+    const sound = card.querySelector('.card-tag');
     const toggleLink = card.querySelector('[data-action="toggle-alarm"]');
     const toggleIcon = toggleLink?.querySelector('.material-symbols-rounded');
     const toggleText = toggleLink?.querySelector('.menu-link-text span');
@@ -352,7 +352,7 @@ function getTranslation(key, category) {
 }
 
 function toggleAlarmsSection(type) {
-    const grid = document.querySelector(`.alarms-grid[data-alarm-grid="${type}"]`);
+    const grid = document.querySelector(`.tool-grid[data-alarm-grid="${type}"]`);
     if (!grid) return;
     const container = grid.closest('.alarms-container');
     if (!container) return;
@@ -379,7 +379,7 @@ function startClock() {
 function initializeSortableGrids() {
     if (!allowCardMovement) return;
 
-    initializeSortable('.alarms-grid[data-alarm-grid="user"]', {
+    initializeSortable('.tool-grid[data-alarm-grid="user"]', {
         animation: 150,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
@@ -391,7 +391,7 @@ function initializeSortableGrids() {
         }
     });
 
-    initializeSortable('.alarms-grid[data-alarm-grid="default"]', {
+    initializeSortable('.tool-grid[data-alarm-grid="default"]', {
         animation: 150,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
@@ -410,7 +410,7 @@ function setupEventListeners() {
         sectionBottom.addEventListener('click', (e) => {
             const target = e.target.closest('[data-action]');
             if (!target) return;
-            const card = target.closest('.alarm-card');
+            const card = target.closest('.tool-card');
             if (!card) return;
             const alarmId = card.dataset.id;
             const alarm = findAlarmById(alarmId);

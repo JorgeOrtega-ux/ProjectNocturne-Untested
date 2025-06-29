@@ -695,7 +695,64 @@ function handleDeleteTimer(timerId) {
     updateTimerCounts();
 }
 
+function updateTimerCardVisuals(timer) {
+    const card = document.getElementById(timer.id);
+    if (!card) return;
 
+    // Actualizar título de la tarjeta
+    const titleElement = card.querySelector('.card-title');
+    if (titleElement) {
+        const isDefault = timer.id.startsWith('default-timer-');
+        const titleText = isDefault ? getTranslation(timer.title, 'timer') : timer.title;
+        titleElement.textContent = titleText;
+        titleElement.title = titleText;
+    }
+
+    // Actualizar el tiempo restante
+    const timeElement = card.querySelector('.card-value');
+    if (timeElement) {
+        timeElement.textContent = formatTime(timer.remaining, timer.type);
+    }
+
+    // Actualizar etiqueta (sonido o tipo)
+    const isCountdown = timer.type === 'countdown';
+    const tagElement = card.querySelector('.card-tag');
+    if (tagElement) {
+        tagElement.textContent = isCountdown ? getTranslation(timer.sound, 'sounds') : '';
+    }
+
+    // Actualizar texto del botón "Descartar"
+    const dismissButton = card.querySelector('.card-dismiss-btn span');
+    if (dismissButton) {
+        dismissButton.textContent = getTranslation('dismiss', 'alarms');
+    }
+
+    // Actualizar textos del menú desplegable
+    const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
+    if (playPauseLink) {
+        const textElement = playPauseLink.querySelector('.menu-link-text span');
+        const textKey = timer.isRunning ? 'pause' : 'play';
+        if (textElement) {
+            textElement.dataset.translate = textKey;
+            textElement.textContent = getTranslation(textKey, 'tooltips');
+        }
+    }
+
+    const resetLink = card.querySelector('[data-action="reset-card-timer"] .menu-link-text span');
+    if (resetLink) {
+        resetLink.textContent = getTranslation('reset', 'tooltips');
+    }
+
+    const editLink = card.querySelector('[data-action="edit-timer"] .menu-link-text span');
+    if (editLink) {
+        editLink.textContent = getTranslation('edit_timer', 'timer');
+    }
+
+    const deleteLink = card.querySelector('[data-action="delete-timer"] .menu-link-text span');
+    if (deleteLink) {
+        deleteLink.textContent = getTranslation('delete_timer', 'timer');
+    }
+}
 
 function dismissTimer(timerId) {
     stopSound();
@@ -712,7 +769,12 @@ function dismissTimer(timerId) {
     }
 }
 document.addEventListener('translationsApplied', () => {
-    renderAllTimerCards();
+    // Obtenemos todos los temporizadores sin recargar las tarjetas
+    const allTimers = [...userTimers, ...defaultTimersState];
+    allTimers.forEach(timer => {
+        // Actualizamos cada tarjeta individualmente
+        updateTimerCardVisuals(timer);
+    });
+    // Los tooltips de los controles principales se actualizan en sus respectivas funciones
 });
-
 export { initializeTimerController };

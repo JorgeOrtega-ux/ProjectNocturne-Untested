@@ -20,56 +20,6 @@ let audioContext = null;
 let activeSoundSource = null;
 let isPlayingSound = false;
 
-// ========== IndexedDB for Custom Sounds ==========
-const DB_NAME = 'ProjectNocturneDB';
-const DB_VERSION = 1;
-const SOUNDS_STORE_NAME = 'customSounds';
-
-function openDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onerror = () => reject("Error opening DB");
-        request.onsuccess = () => resolve(request.result);
-        request.onupgradeneeded = event => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains(SOUNDS_STORE_NAME)) {
-                db.createObjectStore(SOUNDS_STORE_NAME, { keyPath: 'id' });
-            }
-        };
-    });
-}
-
-async function saveCustomSound(id, name, data) {
-    const db = await openDB();
-    const transaction = db.transaction(SOUNDS_STORE_NAME, 'readwrite');
-    const store = transaction.objectStore(SOUNDS_STORE_NAME);
-    store.put({ id, name, data });
-    return transaction.complete;
-}
-
-async function getCustomSound(id) {
-    const db = await openDB();
-    const transaction = db.transaction(SOUNDS_STORE_NAME, 'readonly');
-    const store = transaction.objectStore(SOUNDS_STORE_NAME);
-    const request = store.get(id);
-    return new Promise(resolve => {
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-    });
-}
-
-async function getAllCustomSounds() {
-    const db = await openDB();
-    const transaction = db.transaction(SOUNDS_STORE_NAME, 'readonly');
-    const store = transaction.objectStore(SOUNDS_STORE_NAME);
-    const request = store.getAll();
-    return new Promise(resolve => {
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => resolve([]);
-    });
-}
-
-
 function initializeAudioContext() {
     if (!audioContext) {
         try {
@@ -87,56 +37,36 @@ export async function playSound(soundType = 'classic-beep') {
     stopSound();
     isPlayingSound = true;
 
-    if (soundType.startsWith('custom-')) {
-        const soundData = await getCustomSound(soundType);
-        if (soundData) {
-            const source = audioContext.createBufferSource();
-            const audioBuffer = await audioContext.decodeAudioData(soundData.data.slice(0)); // Create a copy
-            source.buffer = audioBuffer;
-            source.connect(audioContext.destination);
-            source.start(0);
-            activeSoundSource = { sourceNode: source, type: 'custom' };
-            source.onended = () => {
-                if (activeSoundSource && activeSoundSource.sourceNode === source) {
-                    isPlayingSound = false;
-                    activeSoundSource = null;
-                }
-            };
+    const pattern = SOUND_PATTERNS[soundType] || SOUND_PATTERNS['classic-beep'];
+    let freqIndex = 0;
+    const playBeep = () => {
+        if (!isPlayingSound) return;
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
         }
-    } else {
-        const pattern = SOUND_PATTERNS[soundType] || SOUND_PATTERNS['classic-beep'];
-        let freqIndex = 0;
-        const playBeep = () => {
-            if (!isPlayingSound) return;
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-            const freq = pattern.frequencies[freqIndex % pattern.frequencies.length];
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            oscillator.type = pattern.type;
-            oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + (pattern.beepDuration / 1000));
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + (pattern.beepDuration / 1000));
-            freqIndex++;
-        };
-        playBeep();
-        const intervalId = setInterval(playBeep, pattern.beepDuration + pattern.pauseDuration);
-        activeSoundSource = { intervalId: intervalId, type: 'pattern' };
-    }
+        const freq = pattern.frequencies[freqIndex % pattern.frequencies.length];
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.type = pattern.type;
+        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + (pattern.beepDuration / 1000));
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + (pattern.beepDuration / 1000));
+        freqIndex++;
+    };
+    playBeep();
+    const intervalId = setInterval(playBeep, pattern.beepDuration + pattern.pauseDuration);
+    activeSoundSource = { intervalId: intervalId, type: 'pattern' };
 }
 
 
 export function stopSound() {
     if (activeSoundSource) {
-        if (activeSoundSource.type === 'custom' && activeSoundSource.sourceNode) {
-            activeSoundSource.sourceNode.stop();
-        } else if (activeSoundSource.type === 'pattern' && activeSoundSource.intervalId) {
+        if (activeSoundSource.type === 'pattern' && activeSoundSource.intervalId) {
             clearInterval(activeSoundSource.intervalId);
         }
     }
@@ -162,30 +92,6 @@ export async function generateSoundList(listElement, onSelectCallback) {
         menuLink.addEventListener('click', () => {
             if (typeof onSelectCallback === 'function') {
                 onSelectCallback(sound.id, getTranslation(sound.nameKey, 'sounds'));
-            }
-        });
-        listElement.appendChild(menuLink);
-    });
-
-    // Add custom sounds from DB
-    const customSounds = await getAllCustomSounds();
-    if (customSounds.length > 0) {
-        const separator = document.createElement('hr');
-        separator.style.margin = '8px 0';
-        listElement.appendChild(separator);
-    }
-    customSounds.forEach(sound => {
-        const menuLink = document.createElement('div');
-        menuLink.className = 'menu-link';
-        menuLink.dataset.action = 'selectSound';
-        menuLink.dataset.sound = sound.id;
-        menuLink.innerHTML = `
-            <div class="menu-link-icon"><span class="material-symbols-rounded">music_note</span></div>
-            <div class="menu-link-text"><span>${sound.name}</span></div>
-        `;
-        menuLink.addEventListener('click', () => {
-            if (typeof onSelectCallback === 'function') {
-                onSelectCallback(sound.id, sound.name);
             }
         });
         listElement.appendChild(menuLink);
@@ -1114,6 +1020,5 @@ export {
     initializeCategorySliderService,
     initializeCentralizedFontManager,
     initializeTextStyleManager,
-    initializeFullScreenManager,
-    saveCustomSound,
+    initializeFullScreenManager
 };

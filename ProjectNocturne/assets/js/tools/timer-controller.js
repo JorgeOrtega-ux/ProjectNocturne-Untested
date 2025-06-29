@@ -45,16 +45,6 @@ function initializeTimerController() {
         }
     });
 
-    document.addEventListener('customSoundUploaded', () => {
-        const soundListContainer = document.querySelector('.menu-timer-sound .menu-list');
-        generateSoundList(soundListContainer, (soundId, soundName) => {
-            const selectedSoundSpan = document.querySelector('#timer-selected-sound');
-            if (selectedSoundSpan) {
-                selectedSoundSpan.textContent = soundName;
-            }
-        });
-    });
-
     console.log('✅ Inicialización de timer completada.');
 }
 

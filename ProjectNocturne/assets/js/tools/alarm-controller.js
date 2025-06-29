@@ -356,7 +356,7 @@ function toggleAlarmsSection(type) {
     if (!grid) return;
     const container = grid.closest('.alarms-container');
     if (!container) return;
-    const btn = container.querySelector('.collapse-alarms-btn');
+    const btn = container.querySelector('.expandable-card-toggle-btn');
     const isActive = grid.classList.toggle('active');
     btn.classList.toggle('expanded', isActive);
 }

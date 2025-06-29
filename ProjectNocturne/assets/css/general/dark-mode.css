@@ -473,11 +473,6 @@
     border-color: #ffffff20;
 }
 
-.dark-mode .alarms-header {
-    background-color: transparent;
-    border-color: #ffffff20;
-}
-
 .dark-mode .tool-card.sortable-chosen {
     background-color: #3a3b3d;
     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
@@ -489,51 +484,38 @@
     border: 1px solid #444;
 }
 
-.dark-mode .alarms-header-icon {
-    color: #ffffff;
+.dark-mode .expandable-card-header {
+    background-color: transparent;
+    border-color: #ffffff20;
 }
 
-.dark-mode .alarms-header h3 {
-    color: #ffffff;
-}
-
-.dark-mode .collapse-alarms-btn {
-    color: #ffffff;
-}
-
-.dark-mode .alarms-header:hover {
+.dark-mode .expandable-card-header:hover {
     background-color: #ffffff20;
+}
+
+.dark-mode .expandable-card-header-icon {
+    color: #ffffff;
+}
+
+.dark-mode .expandable-card-header h3 {
+    color: #ffffff;
+}
+
+.dark-mode .collapse-alarms-btn,
+.dark-mode .collapse-timers-btn {
+    color: #ffffff;
+}
+
+.dark-mode .alarm-count-badge,
+.dark-mode .timer-count-badge {
+    background-color: #ffffff20;
+    color: #fff;
 }
 
 .dark-mode .tool-card .card-title{
     color: #ffffff;
 }
 
-.dark-mode .alarm-count-badge {
-    background-color: #ffffff20;
-    color: #fff;
-}
-
-.dark-mode .timers-header {
-    border-color: #ffffff20;
-    background-color: transparent;
-}
-
-.dark-mode .timers-header-icon {
-    color: #ffffff;
-}
-
-.dark-mode .timers-header h3 {
-    color: #ffffff;
-}.dark-mode .timers-header:hover {
-   background-color: #ffffff20;
-}
-
-.dark-mode .collapse-timers-btn {
-    color: #ffffff;
-}
-
-.dark-mode .timer-count-badge {
-    background-color: #ffffff20;
+.dark-mode .expandable-card-toggle-btn {
     color: #fff;
 }

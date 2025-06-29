@@ -601,7 +601,7 @@ function toggleTimersSection(type) {
     if (!grid) return;
     const container = grid.closest('.timers-container');
     if (!container) return;
-    const btn = container.querySelector('.collapse-timers-btn');
+    const btn = container.querySelector('.expandable-card-toggle-btn');
     const isActive = grid.classList.toggle('active'); // Guardamos el estado
     btn.classList.toggle('expanded', isActive); // Usamos el estado para el botón
 }

@@ -360,9 +360,13 @@
 }
 
 .tool-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 8px;
+}
+
+.tool-grid.active {
+    display: grid;
 }
 
 .tool-card {
@@ -376,7 +380,6 @@
     border-radius: 12px;
     transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 
 .tool-card.timer-finished,
 .tool-card.alarm-disabled {
@@ -641,13 +644,20 @@
     opacity: 0.7;
 }
 
-.alarms-container {
+.alarms-list-wrapper, .timers-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+}
+
+.alarms-container, .timers-container {
     width: 100%;
     display: flex;
     flex-direction: column;
 }
 
-.alarms-header {
+.expandable-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -660,14 +670,54 @@
     height: 55px;
 }
 
-.alarms-header h3 {
+.expandable-card-header:hover {
+    background-color: #f5f5fa;
+}
+
+.expandable-card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.expandable-card-header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    border-radius: 8px;
+    border: 1px solid #00000020;
+    height: 40px;
+}
+
+.expandable-card-header h3 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 500;
     color: #000000;
 }
 
-.collapse-alarms-btn {
+.expandable-card-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alarm-count-badge, .timer-count-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #000000;
+    background-color: #f5f5fa;
+    border-radius: 12px;
+}
+
+.collapse-alarms-btn, .collapse-timers-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -678,29 +728,16 @@
     border-radius: 50%;
     cursor: pointer;
     color: #000000;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.3s ease;
 }
 
-.collapse-alarms-btn .expand-icon {
-    transition: transform 0.3s ease;
-}
-
-.collapse-alarms-btn.expanded .expand-icon {
-    transform: rotate(180deg);
-}
-
-.collapse-alarms-btn:hover {
+.collapse-alarms-btn:hover, .collapse-timers-btn:hover {
     background-color: #f5f5fa;
 }
 
-.tool-grid {
-    display: none;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 8px;
-}
-
-.tool-grid.active {
-    display: grid;
+.collapse-alarms-btn.expanded .expand-icon,
+.collapse-timers-btn.expanded .expand-icon {
+    transform: rotate(180deg);
 }
 
 .card-options-container {
@@ -755,90 +792,6 @@
     }
 }
 
-.alarms-list-wrapper {
-    display: flex;
-    flex-direction: column;
-    padding: 8px;
-    gap: 8px;
-}
-
-.alarms-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.alarms-header-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    border-radius: 8px;
-    border: 1px solid #00000020;
-    height: 40px;
-}
-
-.alarms-header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.alarm-count-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 8px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #000000;
-    background-color: #f5f5fa;
-    border-radius: 12px;
-}
-
-.alarms-header:hover {
-    background-color: #f5f5fa;
-}
-
-.timers-list-wrapper {
-    display: flex;
-    flex-direction: column;
-    padding: 8px;
-    gap: 8px;
-}
-
-.timers-container {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.timers-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #fff;
-    border: 1px solid #00000020;
-    cursor: pointer;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    padding: 0 8px;
-    height: 55px;
-}
-
-.timers-header:hover {
-    background-color: #f5f5fa;
-}
-
-
-.timers-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .tool-card:has(.card-dropdown-menu:not(.disabled)) {
     z-index: 20;
     position: relative;
@@ -849,66 +802,6 @@
     position: relative;
 }
 
-.timers-header-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    border-radius: 8px;
-    border: 1px solid #00000020;
-    height: 40px;
-}
-
-.timers-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #000000;
-}
-
-.timers-header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.timer-count-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 8px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #000000;
-    background-color: #f5f5fa;
-    border-radius: 12px;
-}
-
-.collapse-timers-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: none;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    color: #000000;
-    transition: background-color 0.2s ease, transform 0.3s ease;
-}
-
-.collapse-timers-btn:hover {
-    background-color: #f5f5fa;
-}
-
-.collapse-timers-btn.expanded .expand-icon {
-    transform: rotate(180deg);
-}
-
-/* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
 .tool-card {
     cursor: grab;
 }
@@ -928,4 +821,30 @@
     opacity: 0.4;
     background-color: #f5f5fa;
     border: 1px dashed #d0d0d0;
+}
+
+.expandable-card-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #000000;
+    transition: background-color 0.2s ease;
+}
+
+.expandable-card-toggle-btn .expand-icon {
+    transition: transform 0.3s ease;
+}
+
+.expandable-card-toggle-btn:hover {
+    background-color: #f5f5fa;
+}
+
+.expandable-card-toggle-btn.expanded .expand-icon {
+    transform: rotate(180deg);
 }

@@ -220,11 +220,12 @@ export function prepareAlarmForEdit(alarmData) {
 
     const titleInput = menuElement.querySelector('#alarm-title');
     if (titleInput) {
-        titleInput.value = alarmData.title;
         if (alarmData.type === 'default') {
+            titleInput.value = getTranslation(alarmData.title, 'alarms');
             titleInput.setAttribute('disabled', 'true');
             titleInput.parentElement.classList.add('disabled-interactive');
         } else {
+            titleInput.value = alarmData.title;
             titleInput.removeAttribute('disabled');
             titleInput.parentElement.classList.remove('disabled-interactive');
         }
@@ -265,11 +266,12 @@ export function prepareTimerForEdit(timerData) {
 
     const titleInput = menuElement.querySelector('#timer-title');
     if (titleInput) {
-        titleInput.value = timerData.title;
         if (timerData.id.startsWith('default-timer-')) {
+            titleInput.value = getTranslation(timerData.title, 'timer');
             titleInput.setAttribute('disabled', 'true');
             titleInput.parentElement.classList.add('disabled-interactive');
         } else {
+            titleInput.value = timerData.title;
             titleInput.removeAttribute('disabled');
             titleInput.parentElement.classList.remove('disabled-interactive');
         }
@@ -301,11 +303,12 @@ export function prepareCountToDateForEdit(timerData) {
 
     const titleInput = menuElement.querySelector('#countto-title');
     if (titleInput) {
-        titleInput.value = timerData.title;
         if (timerData.id.startsWith('default-timer-')) {
+            titleInput.value = getTranslation(timerData.title, 'timer');
             titleInput.setAttribute('disabled', 'true');
             titleInput.parentElement.classList.add('disabled-interactive');
         } else {
+            titleInput.value = timerData.title;
             titleInput.removeAttribute('disabled');
             titleInput.parentElement.classList.remove('disabled-interactive');
         }

@@ -105,7 +105,7 @@ function createAlarmCard(alarm) {
             </div>
             <div class="card-footer">
                 <div class="card-tags">
-                    <span class="card-tag">${getTranslation(alarm.sound, 'sounds')}</span>
+                    <span class="card-tag" data-translate="${alarm.sound}" data-translate-category="sounds">${getTranslation(alarm.sound, 'sounds')}</span>
                 </div>
             </div>
             <div class="card-options-container">
@@ -124,19 +124,19 @@ function createAlarmCard(alarm) {
                     <div class="card-dropdown-menu disabled body-title">
                         <div class="menu-link" data-action="toggle-alarm">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">${alarm.enabled ? 'toggle_on' : 'toggle_off'}</span></div>
-                            <div class="menu-link-text"><span data-translate="${alarm.enabled ? 'deactivate_alarm' : 'activate_alarm'}" data-translate-category="alarms">${alarm.enabled ? 'Deactivate Alarm' : 'Activate Alarm'}</span></div>
+                            <div class="menu-link-text"><span data-translate="${alarm.enabled ? 'deactivate_alarm' : 'activate_alarm'}" data-translate-category="alarms">${getTranslation(alarm.enabled ? 'deactivate_alarm' : 'activate_alarm', 'alarms')}</span></div>
                         </div>
                         <div class="menu-link" data-action="test-alarm">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">volume_up</span></div>
-                            <div class="menu-link-text"><span data-translate="test_alarm" data-translate-category="alarms">Test Alarm</span></div>
+                            <div class="menu-link-text"><span data-translate="test_alarm" data-translate-category="alarms">${getTranslation('test_alarm', 'alarms')}</span></div>
                         </div>
                         <div class="menu-link" data-action="edit-alarm">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
-                            <div class="menu-link-text"><span data-translate="edit_alarm" data-translate-category="alarms">Edit Alarm</span></div>
+                            <div class="menu-link-text"><span data-translate="edit_alarm" data-translate-category="alarms">${getTranslation('edit_alarm', 'alarms')}</span></div>
                         </div>
                         <div class="menu-link" data-action="delete-alarm">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
-                            <div class="menu-link-text"><span data-translate="delete_alarm" data-translate-category="alarms">Delete Alarm</span></div>
+                            <div class="menu-link-text"><span data-translate="delete_alarm" data-translate-category="alarms">${getTranslation('delete_alarm', 'alarms')}</span></div>
                         </div>
                     </div>
                 </div>
@@ -300,10 +300,16 @@ function updateAlarmCardVisuals(alarm) {
     const toggleText = toggleLink?.querySelector('.menu-link-text span');
     
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-    if (title) title.textContent = translatedTitle;
+    if (title) {
+        title.textContent = translatedTitle;
+        title.title = translatedTitle;
+    }
 
     if (time) time.textContent = formatTime(alarm.hour, alarm.minute);
-    if (sound) sound.textContent = getTranslation(alarm.sound, 'sounds');
+    if (sound) {
+        sound.textContent = getTranslation(alarm.sound, 'sounds');
+        sound.dataset.translate = alarm.sound;
+    }
 
     if (toggleIcon) toggleIcon.textContent = alarm.enabled ? 'toggle_on' : 'toggle_off';
     if (toggleText) {
@@ -472,9 +478,15 @@ export function initializeAlarmClock() {
         findAlarmById 
     };
     document.addEventListener('translationsApplied', () => {
-    const allAlarms = [...userAlarms, ...defaultAlarmsState];
-    allAlarms.forEach(alarm => {
-        updateAlarmCardVisuals(alarm);
+        const allAlarms = [...userAlarms, ...defaultAlarmsState];
+        allAlarms.forEach(alarm => {
+            updateAlarmCardVisuals(alarm);
+        });
+        document.querySelectorAll('[data-translate-category="alarms"]').forEach(element => {
+            const key = element.dataset.translate;
+            if (key) {
+                element.textContent = getTranslation(key, 'alarms');
+            }
+        });
     });
-});
 }

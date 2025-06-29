@@ -1,4 +1,9 @@
 // jorgeortega-ux/projectnocturne-untested/ProjectNocturne-Untested-40cb09d19e05067b15f05652c8beaac6f8a29ff7/ProjectNocturne/assets/js/tools/general-tools.js
+// ========== IMPORTS ==========
+import { getTranslation } from '../general/translations-controller.js';
+import { prepareAlarmForEdit, prepareWorldClockForEdit, prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
+import { activateModule, getCurrentActiveOverlay } from '../general/main.js';
+
 // ========== SOUND LOGIC ==========
 const SOUND_PATTERNS = {
     'classic-beep': { frequencies: [800], beepDuration: 150, pauseDuration: 150, type: 'square' },
@@ -1072,7 +1077,7 @@ export function initializeCardEventListeners() {
 }
 
 function handleAlarmCardAction(action, alarmId, target) {
-    const alarm = window.alarmManager.findAlarmById(alarmId); // Asumiendo que `findAlarmById` está en `alarmManager`
+    const alarm = window.alarmManager.findAlarmById(alarmId);
 
     switch (action) {
         case 'toggle-alarm':
@@ -1083,10 +1088,9 @@ function handleAlarmCardAction(action, alarmId, target) {
             break;
         case 'edit-alarm':
             if (alarm) {
-                // `prepareAlarmForEdit` ya está importado y disponible en el scope global a través de `menu-interactions`
                 prepareAlarmForEdit({ ...alarm, updateAlarm: window.alarmManager.updateAlarm });
-                if (window.main.getCurrentActiveOverlay() !== 'menuAlarm') {
-                    window.main.activateModule('toggleMenuAlarm');
+                if (getCurrentActiveOverlay() !== 'menuAlarm') {
+                    activateModule('toggleMenuAlarm');
                 }
             }
             break;
@@ -1102,7 +1106,7 @@ function handleAlarmCardAction(action, alarmId, target) {
 }
 
 function handleTimerCardAction(action, timerId, target) {
-     if (!window.timerManager) {
+    if (!window.timerManager) {
         console.error("Timer manager no está disponible.");
         return;
     }
@@ -1152,9 +1156,9 @@ function handleWorldClockCardAction(action, clockId, target) {
                     timezone: card.dataset.timezone,
                     countryCode: card.dataset.countryCode
                 };
-                prepareWorldClockForEdit(clockData); // Esta función necesita estar en el scope
-                 if (window.main.getCurrentActiveOverlay() !== 'menuWorldClock') {
-                    window.main.activateModule('toggleMenuWorldClock');
+                prepareWorldClockForEdit(clockData);
+                 if (getCurrentActiveOverlay() !== 'menuWorldClock') {
+                    activateModule('toggleMenuWorldClock');
                 }
              }
             break;
@@ -1163,7 +1167,6 @@ function handleWorldClockCardAction(action, clockId, target) {
             break;
     }
 }
-
 
 // ========== EXPORTS ==========
 export {

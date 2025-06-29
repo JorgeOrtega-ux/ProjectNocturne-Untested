@@ -68,40 +68,6 @@
     </div>
     <div class="section-bottom">
         <div class="alarms-list-wrapper">
-            <div class="alarms-container" data-container="user">
-                <div class="expandable-card-header" onclick="window.alarmManager.toggleAlarmsSection('user')">
-                    <div class="expandable-card-header-left">
-                        <div class="expandable-card-header-icon">
-                            <span class="material-symbols-rounded">alarm</span>
-                        </div>
-                        <h3 data-translate="my_alarms" data-translate-category="alarms">Mis Alarmas</h3>
-                    </div>
-                    <div class="expandable-card-header-right">
-                        <span class="alarm-count-badge" data-count-for="user">0</span>
-                        <button class="expandable-card-toggle-btn">
-                            <span class="material-symbols-rounded expand-icon">expand_more</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="tool-grid" data-alarm-grid="user"></div>
             </div>
-            <div class="alarms-container" data-container="default">
-                <div class="expandable-card-header" onclick="window.alarmManager.toggleAlarmsSection('default')">
-                    <div class="expandable-card-header-left">
-                        <div class="expandable-card-header-icon">
-                            <span class="material-symbols-rounded">alarm_on</span>
-                        </div>
-                        <h3 data-translate="default_alarms" data-translate-category="alarms">Alarmas Predeterminadas</h3>
-                    </div>
-                    <div class="expandable-card-header-right">
-                        <span class="alarm-count-badge" data-count-for="default">0</span>
-                        <button class="expandable-card-toggle-btn">
-                            <span class="material-symbols-rounded expand-icon">expand_more</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="tool-grid" data-alarm-grid="default"></div>
-            </div>
-        </div>
     </div>
 </div>

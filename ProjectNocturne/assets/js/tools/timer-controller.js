@@ -21,12 +21,45 @@ export function getTimersCount() {
     return userTimers.length;
 }
 
-// --- INICIALIZACIÓN ---
-document.addEventListener('DOMContentLoaded', () => {
-    initializeTimerController();
-});
+function createExpandableTimerContainer(type, titleKey, icon) {
+    const container = document.createElement('div');
+    container.className = 'timers-container';
+    container.dataset.container = type;
+
+    container.innerHTML = `
+        <div class="expandable-card-header">
+            <div class="expandable-card-header-left">
+                <div class="expandable-card-header-icon">
+                    <span class="material-symbols-rounded">${icon}</span>
+                </div>
+                <h3 data-translate="${titleKey}" data-translate-category="timer">${getTranslation(titleKey, 'timer')}</h3>
+            </div>
+            <div class="expandable-card-header-right">
+                <span class="timer-count-badge" data-count-for="${type}">0</span>
+                <button class="expandable-card-toggle-btn">
+                    <span class="material-symbols-rounded expand-icon">expand_more</span>
+                </button>
+            </div>
+        </div>
+        <div class="tool-grid" data-timer-grid="${type}"></div>
+    `;
+    
+    const header = container.querySelector('.expandable-card-header');
+    header.addEventListener('click', () => toggleTimersSection(type));
+
+    return container;
+}
+
 
 function initializeTimerController() {
+    const wrapper = document.querySelector('.timers-list-wrapper');
+    if(wrapper){
+        const userContainer = createExpandableTimerContainer('user', 'my_timers', 'timer');
+        const defaultContainer = createExpandableTimerContainer('default', 'default_timers', 'timelapse');
+        wrapper.appendChild(userContainer);
+        wrapper.appendChild(defaultContainer);
+    }
+
     loadAndRestoreTimers();
     renderAllTimerCards();
     updateMainDisplay();
@@ -38,7 +71,6 @@ function initializeTimerController() {
     const soundListContainer = document.querySelector('.menu-timer-sound .menu-list');
     generateSoundList(soundListContainer, 'selectTimerSound');
 
-    // Listener para guardar el estado antes de cerrar la página
     window.addEventListener('beforeunload', () => {
         saveAllTimersState();
     });
@@ -124,7 +156,6 @@ function loadAndRestoreTimers() {
     saveDefaultTimersOrder();
 }
 
-// Función unificada para guardar el estado de todos los temporizadores.
 function saveAllTimersState() {
     saveTimersToStorage();
     saveDefaultTimersOrder();
@@ -385,7 +416,6 @@ function renderAllTimerCards() {
     }, 50);
 }
 
-// =================== INICIO DE LA CORRECCIÓN DE SINTAXIS ===================
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'tool-card timer-card';
@@ -471,8 +501,6 @@ function createTimerCard(timer) {
 
     return card;
 }
-// =================== FIN DE LA CORRECCIÓN DE SINTAXIS ===================
-
 function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
     if (!mainDisplay) return;

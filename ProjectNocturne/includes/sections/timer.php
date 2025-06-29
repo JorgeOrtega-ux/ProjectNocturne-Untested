@@ -88,40 +88,6 @@
     </div>
     <div class="section-bottom">
         <div class="timers-list-wrapper">
-            <div class="timers-container" data-container="user">
-                <div class="expandable-card-header" onclick="window.timerManager.toggleTimersSection('user')">
-                    <div class="expandable-card-header-left">
-                        <div class="expandable-card-header-icon">
-                            <span class="material-symbols-rounded">timer</span>
-                        </div>
-                        <h3 data-translate="my_timers" data-translate-category="timer">Mis Temporizadores</h3>
-                    </div>
-                    <div class="expandable-card-header-right">
-                        <span class="timer-count-badge" data-count-for="user">0</span>
-                        <button class="expandable-card-toggle-btn">
-                            <span class="material-symbols-rounded expand-icon">expand_more</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="tool-grid" data-timer-grid="user"></div>
             </div>
-            <div class="timers-container" data-container="default">
-                <div class="expandable-card-header" onclick="window.timerManager.toggleTimersSection('default')">
-                    <div class="expandable-card-header-left">
-                        <div class="expandable-card-header-icon">
-                            <span class="material-symbols-rounded">timelapse</span>
-                        </div>
-                        <h3 data-translate="default_timers" data-translate-category="timer">Temporizadores Predeterminados</h3>
-                    </div>
-                    <div class="expandable-card-header-right">
-                        <span class="timer-count-badge" data-count-for="default">0</span>
-                        <button class="expandable-card-toggle-btn">
-                            <span class="material-symbols-rounded expand-icon">expand_more</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="tool-grid" data-timer-grid="default"></div>
-            </div>
-        </div>
     </div>
 </div>

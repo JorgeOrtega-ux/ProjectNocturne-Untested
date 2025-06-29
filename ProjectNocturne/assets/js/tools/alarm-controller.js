@@ -17,6 +17,36 @@ let userAlarms = [];
 let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
 
+function createExpandableContainer(type, titleKey, icon) {
+    const container = document.createElement('div');
+    container.className = 'alarms-container';
+    container.dataset.container = type;
+
+    container.innerHTML = `
+        <div class="expandable-card-header">
+            <div class="expandable-card-header-left">
+                <div class="expandable-card-header-icon">
+                    <span class="material-symbols-rounded">${icon}</span>
+                </div>
+                <h3 data-translate="${titleKey}" data-translate-category="alarms">${getTranslation(titleKey, 'alarms')}</h3>
+            </div>
+            <div class="expandable-card-header-right">
+                <span class="alarm-count-badge" data-count-for="${type}">0</span>
+                <button class="expandable-card-toggle-btn">
+                    <span class="material-symbols-rounded expand-icon">expand_more</span>
+                </button>
+            </div>
+        </div>
+        <div class="tool-grid" data-alarm-grid="${type}"></div>
+    `;
+    
+    const header = container.querySelector('.expandable-card-header');
+    header.addEventListener('click', () => toggleAlarmsSection(type));
+
+    return container;
+}
+
+
 function updateAlarmCounts() {
     const userAlarmsCount = userAlarms.length;
     const defaultAlarmsCount = defaultAlarmsState.length;
@@ -411,6 +441,15 @@ function initializeSortableGrids() {
 
 export function initializeAlarmClock() {
     startClock();
+    
+    const wrapper = document.querySelector('.alarms-list-wrapper');
+    if(wrapper) {
+        const userContainer = createExpandableContainer('user', 'my_alarms', 'alarm');
+        const defaultContainer = createExpandableContainer('default', 'default_alarms', 'alarm_on');
+        wrapper.appendChild(userContainer);
+        wrapper.appendChild(defaultContainer);
+    }
+
     loadAlarmsFromStorage();
     loadDefaultAlarms();
     updateAlarmCounts();

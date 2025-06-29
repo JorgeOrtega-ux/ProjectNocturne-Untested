@@ -68,9 +68,6 @@ function initializeTimerController() {
     updatePinnedStatesInUI();
     updateTimerCounts();
     
-    const soundListContainer = document.querySelector('.menu-timer-sound .menu-list');
-    generateSoundList(soundListContainer, 'selectTimerSound');
-
     window.addEventListener('beforeunload', () => {
         saveAllTimersState();
     });

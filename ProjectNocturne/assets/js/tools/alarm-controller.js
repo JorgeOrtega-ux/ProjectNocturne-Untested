@@ -464,9 +464,6 @@ export function initializeAlarmClock() {
         Notification.requestPermission();
     }
 
-    const soundListContainer = document.querySelector('.menu-alarm .menu-list');
-    generateSoundList(soundListContainer, 'selectAlarmSound');
-
     window.alarmManager = { 
         createAlarm, 
         toggleAlarm, 

@@ -79,7 +79,7 @@ export function stopSound() {
 
 // ========== EXTRACTO MODIFICADO ==========
 
-export async function generateSoundList(listElement, actionName) { // Modificación: Se cambia onSelectCallback por actionName
+export async function generateSoundList(listElement, actionName, activeSoundId = null) {
     if (!listElement) return;
     listElement.innerHTML = '';
     const getTranslation = window.getTranslation || ((key, category) => key);
@@ -87,13 +87,17 @@ export async function generateSoundList(listElement, actionName) { // Modificaci
     AVAILABLE_SOUNDS.forEach(sound => {
         const menuLink = document.createElement('div');
         menuLink.className = 'menu-link';
-        menuLink.dataset.action = actionName; // Modificación: Se usa el actionName proporcionado
+        menuLink.dataset.action = actionName;
         menuLink.dataset.sound = sound.id;
+
+        if (sound.id === activeSoundId) {
+            menuLink.classList.add('active');
+        }
+
         menuLink.innerHTML = `
             <div class="menu-link-icon"><span class="material-symbols-rounded">${sound.icon}</span></div>
             <div class="menu-link-text"><span data-translate="${sound.nameKey}" data-translate-category="sounds">${getTranslation(sound.nameKey, 'sounds')}</span></div>
         `;
-        // Modificación: Se elimina el addEventListener de aquí para centralizarlo en menu-interactions.js
         listElement.appendChild(menuLink);
     });
 }

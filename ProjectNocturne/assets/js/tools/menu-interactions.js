@@ -103,6 +103,10 @@ const resetAlarmMenu = (menuElement) => {
     updateAlarmDisplay(menuElement);
     resetDropdownDisplay(menuElement, '#alarm-selected-sound', 'classic_beep', 'sounds');
 
+    // Regenerate sound list with default active sound
+    const soundListContainer = menuElement.querySelector('.menu-alarm-sound .menu-list');
+    generateSoundList(soundListContainer, 'selectAlarmSound', state.alarm.sound);
+
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
         if (createButton.classList.contains('disabled-interactive')) {
@@ -149,6 +153,10 @@ const resetTimerMenu = (menuElement) => {
     updateDisplay('#selected-minute-display', '--', menuElement);
     resetDropdownDisplay(menuElement, '#timer-selected-end-action', 'stop_timer', 'timer');
     resetDropdownDisplay(menuElement, '#timer-selected-sound', 'classic_beep', 'sounds');
+
+    // Regenerate sound list with default active sound
+    const soundListContainer = menuElement.querySelector('.menu-timer-sound .menu-list');
+    generateSoundList(soundListContainer, 'selectTimerSound', state.timer.sound);
 
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
@@ -232,19 +240,10 @@ export function prepareAlarmForEdit(alarmData) {
     }
 
     updateAlarmDisplay(menuElement);
-
     updateDisplay('#alarm-selected-sound', getTranslation(alarmData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
 
-    const soundList = menuElement.querySelector('.menu-alarm-sound .menu-list');
-    if (soundList) {
-        soundList.querySelectorAll('.menu-link').forEach(link => {
-            if (link.dataset.sound === alarmData.sound) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-        });
-    }
+    const soundListContainer = menuElement.querySelector('.menu-alarm-sound .menu-list');
+    generateSoundList(soundListContainer, 'selectAlarmSound', alarmData.sound);
 
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
@@ -292,16 +291,8 @@ export function prepareTimerForEdit(timerData) {
     updateDisplay('#timer-selected-end-action', getTranslation(`${timerData.endAction}_timer`, 'timer'), menuElement);
     updateDisplay('#timer-selected-sound', getTranslation(timerData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
 
-    const soundList = menuElement.querySelector('.menu-timer-sound .menu-list');
-    if (soundList) {
-        soundList.querySelectorAll('.menu-link').forEach(link => {
-            if (link.dataset.sound === timerData.sound) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-        });
-    }
+    const soundListContainer = menuElement.querySelector('.menu-timer-sound .menu-list');
+    generateSoundList(soundListContainer, 'selectTimerSound', timerData.sound);
 
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
@@ -403,10 +394,22 @@ export function prepareWorldClockForEdit(clockData) {
 const initializeAlarmMenu = (menuElement) => {
     if (!menuElement.hasAttribute('data-editing-id')) {
         setAlarmDefaults();
+        const soundListContainer = menuElement.querySelector('.menu-alarm-sound .menu-list');
+        generateSoundList(soundListContainer, 'selectAlarmSound', state.alarm.sound);
     }
     updateAlarmDisplay(menuElement);
 };
-const initializeTimerMenu = (menuElement) => { updateTimerDurationDisplay(menuElement); renderCalendar(menuElement); populateHourSelectionMenu(menuElement); };
+
+const initializeTimerMenu = (menuElement) => {
+    if (!menuElement.hasAttribute('data-editing-id')) {
+        const soundListContainer = menuElement.querySelector('.menu-timer-sound .menu-list');
+        generateSoundList(soundListContainer, 'selectTimerSound', state.timer.sound);
+    }
+    updateTimerDurationDisplay(menuElement); 
+    renderCalendar(menuElement); 
+    populateHourSelectionMenu(menuElement);
+};
+
 const initializeWorldClockMenu = (menuElement) => {
     const timezoneSelector = menuElement.querySelector('[data-action="toggleTimezoneDropdown"]');
     if (timezoneSelector) timezoneSelector.classList.add('disabled-interactive');

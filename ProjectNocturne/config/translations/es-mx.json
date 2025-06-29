@@ -201,7 +201,8 @@
     "event_finished": "¡Evento finalizado!",
     "timer_limit_reached": "Se alcanzó el límite de {limit} temporizadores.",
     "my_timers": "Mis Temporizadores",
-    "default_timers": "Temporizadores Predeterminados"
+    "default_timers": "Temporizadores Predeterminados",
+    "timer_options": "Opciones del temporizador"
   },
   "world_clock_options": {
     "options": "Opciones del reloj",

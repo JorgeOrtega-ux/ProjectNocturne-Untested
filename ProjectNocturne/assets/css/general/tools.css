@@ -766,7 +766,7 @@
     border: 1px solid #00000020;
     cursor: pointer;
     border-radius: 8px;
-    padding: 0 8px; 
+    padding: 0 8px;
     height: 55px;
 }
 
@@ -1120,6 +1120,7 @@
     padding: 8px;
     gap: 8px;
 }
+
 .alarms-header {
     display: flex;
     align-items: center;
@@ -1128,7 +1129,7 @@
     border: 1px solid #00000020;
     cursor: pointer;
     border-radius: 8px;
-    padding: 0 8px; 
+    padding: 0 8px;
     height: 55px;
 }
 
@@ -1147,6 +1148,7 @@
     border: 1px solid #00000020;
     height: 40px;
 }
+
 .alarms-header h3 {
     margin: 0;
     font-size: 1.1rem;
@@ -1206,11 +1208,13 @@
     padding: 8px;
     gap: 8px;
 }
+
 .timers-container {
     width: 100%;
     display: flex;
     flex-direction: column;
 }
+
 .timers-header {
     display: flex;
     align-items: center;
@@ -1219,7 +1223,7 @@
     border: 1px solid #00000020;
     cursor: pointer;
     border-radius: 8px;
-    padding: 0 8px; 
+    padding: 0 8px;
     height: 55px;
 }
 
@@ -1243,6 +1247,7 @@
     align-items: center;
     gap: 8px;
 }
+
 .alarm-card:has(.card-dropdown-menu:not(.disabled)),
 .world-clock-card:has(.card-dropdown-menu:not(.disabled)),
 .timer-card:has(.card-dropdown-menu:not(.disabled)) {
@@ -1256,6 +1261,7 @@
     z-index: 30 !important;
     position: relative;
 }
+
 .timers-header-icon {
     display: flex;
     align-items: center;
@@ -1352,13 +1358,13 @@
 /* --- ESTILOS UNIFICADOS PARA DRAG & DROP --- */
 .alarm-card,
 .world-clock-card,
-.timer-card { 
+.timer-card {
     cursor: grab;
 }
 
 .alarm-card.sortable-drag,
 .world-clock-card.sortable-drag,
-.timer-card.sortable-drag { 
+.timer-card.sortable-drag {
     cursor: grabbing;
 }
 
@@ -1366,7 +1372,7 @@
 .world-clock-card.sortable-chosen,
 .timer-card.sortable-chosen {
     opacity: 0.9;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     transform: scale(1.03);
     cursor: grabbing;
 }
@@ -1377,4 +1383,9 @@
     opacity: 0.4;
     background-color: #f5f5fa;
     border: 1px dashed #d0d0d0;
+}
+
+.dark-mode .timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"] .menu-link-text span,
+.dark-mode .timer-card .card-dropdown-menu .menu-link[data-action="delete-timer"] .menu-link-icon span {
+    color: #e57373;
 }

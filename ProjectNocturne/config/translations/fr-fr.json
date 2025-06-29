@@ -201,7 +201,8 @@
     "event_finished": "Événement terminé !",
     "timer_limit_reached": "Limite de {limit} minuteries atteinte.",
     "my_timers": "Mes Minuteries",
-    "default_timers": "Minuteries par Défaut"
+    "default_timers": "Minuteries par Défaut",
+    "timer_options": "Options de la minuterie"
   },
   "world_clock_options": {
     "options": "Options de l'horloge",

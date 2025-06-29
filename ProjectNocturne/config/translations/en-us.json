@@ -105,7 +105,7 @@
     "tints": "Tints (+ White)",
     "tones": "Tones (+ Gray)"
   },
-"tooltips": {
+  "tooltips": {
     "add": "Increase Font Size",
     "add_alarm": "Add Alarm",
     "add_clock": "Add Clock",
@@ -201,7 +201,8 @@
     "event_finished": "Event finished!",
     "timer_limit_reached": "Timer limit of {limit} reached.",
     "my_timers": "My Timers",
-    "default_timers": "Default Timers"
+    "default_timers": "Default Timers",
+    "timer_options": "Timer options"
   },
   "world_clock_options": {
     "options": "Clock options",

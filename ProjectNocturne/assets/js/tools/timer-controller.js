@@ -372,7 +372,6 @@ function renderAllTimerCards() {
         updatePinnedStatesInUI();
     }, 50);
 }
-
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'timer-card';
@@ -406,10 +405,13 @@ function createTimerCard(timer) {
                 <span class="material-symbols-rounded">push_pin</span>
             </button>
             <div class="card-menu-btn-wrapper">
-                 <button class="card-menu-btn" data-action="toggle-timer-options" data-translate="options" data-translate-category="tooltips" data-translate-target="tooltip">
+                 <button class="card-menu-btn" data-action="toggle-timer-options"
+                    data-translate="timer_options"
+                    data-translate-category="timer"
+                    data-translate-target="tooltip">
                     <span class="material-symbols-rounded">more_horiz</span>
                 </button>
-                <div class="card-dropdown-menu disabled">
+                <div class="card-dropdown-menu body-title disabled">
                     ${isCountdown ? `
                     <div class="menu-link" data-action="${playPauseAction}">
                         <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
@@ -444,7 +446,6 @@ function createTimerCard(timer) {
 
     return card;
 }
-
 function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
     if (!mainDisplay) return;

@@ -2,6 +2,7 @@
 import { use24HourFormat, deactivateModule, PREMIUM_FEATURES } from '../general/main.js';
 import { getTranslation } from '../general/translations-controller.js';
 import { addTimerAndRender, updateTimer, getTimersCount } from './timer-controller.js';
+import { saveCustomSound, generateSoundList } from './general-tools.js';
 
 const initialState = {
     alarm: { hour: 0, minute: 0, sound: 'classic-beep' },
@@ -571,6 +572,33 @@ async function populateTimezoneDropdown(parentMenu, countryCode) {
     }
 }
 
+async function handleAudioUpload(file, currentParentMenu) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const audioData = event.target.result;
+        const soundId = `custom-${Date.now()}`;
+        const soundName = file.name.replace(/\.[^/.]+$/, "");
+
+        await saveCustomSound(soundId, soundName, audioData);
+        
+        document.dispatchEvent(new CustomEvent('customSoundUploaded'));
+
+        // Update the display of the menu where the upload was initiated
+        const displaySelector = currentParentMenu.classList.contains('menu-alarm') ? '#alarm-selected-sound' : '#timer-selected-sound';
+        const displayEl = currentParentMenu.querySelector(displaySelector);
+        if(displayEl) displayEl.textContent = soundName;
+        
+        if (currentParentMenu.classList.contains('menu-alarm')) {
+            state.alarm.sound = soundId;
+        } else {
+            state.timer.sound = soundId;
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
 function setupGlobalEventListeners() {
     document.addEventListener('click', (event) => {
         const isClickInsideDropdown = event.target.closest('.dropdown-menu-container');
@@ -634,6 +662,17 @@ function setupGlobalEventListeners() {
         if (dropdownMap[action]) { toggleDropdown(action, parentMenu); return; }
 
         switch (action) {
+            case 'upload-sound':
+                const inputId = actionTarget.dataset.targetInput;
+                const fileInput = document.getElementById(inputId);
+                if (fileInput) {
+                    fileInput.click();
+                    fileInput.onchange = (e) => {
+                        const file = e.target.files[0];
+                        handleAudioUpload(file, parentMenu);
+                    };
+                }
+                break;
             case 'increaseHour': state.alarm.hour = (state.alarm.hour + 1) % 24; updateAlarmDisplay(parentMenu); break;
             case 'decreaseHour': state.alarm.hour = (state.alarm.hour - 1 + 24) % 24; updateAlarmDisplay(parentMenu); break;
             case 'increaseMinute': state.alarm.minute = (state.alarm.minute + 1) % 60; updateAlarmDisplay(parentMenu); break;
@@ -947,6 +986,32 @@ case 'saveCountToDateChanges': {
                 }, 500);
                 break;
             }
+        }
+    });
+    
+    document.addEventListener('customSoundUploaded', async () => {
+        // Update Alarm List
+        const alarmMenu = document.querySelector('.menu-alarm[data-menu="Alarm"]');
+        if (alarmMenu) {
+            const alarmListElement = alarmMenu.querySelector('.menu-list');
+            const alarmSelectCallback = (id, name) => {
+                const display = alarmMenu.querySelector('#alarm-selected-sound');
+                if (display) display.textContent = name;
+                state.alarm.sound = id;
+            };
+            await generateSoundList(alarmListElement, alarmSelectCallback);
+        }
+
+        // Update Timer List
+        const timerMenu = document.querySelector('.menu-timer[data-menu="Timer"]');
+        if (timerMenu) {
+            const timerListElement = timerMenu.querySelector('.menu-list');
+            const timerSelectCallback = (id, name) => {
+                const display = timerMenu.querySelector('#timer-selected-sound');
+                if (display) display.textContent = name;
+                state.timer.sound = id;
+            };
+            await generateSoundList(timerListElement, timerSelectCallback);
         }
     });
 

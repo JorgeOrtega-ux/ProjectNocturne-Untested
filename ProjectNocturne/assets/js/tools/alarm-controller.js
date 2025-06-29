@@ -473,6 +473,16 @@ export function initializeAlarmClock() {
         }
     });
 
+    document.addEventListener('customSoundUploaded', () => {
+        const soundListContainer = document.querySelector('.menu-alarm .menu-list');
+        generateSoundList(soundListContainer, (soundId, soundName) => {
+            const selectedSoundSpan = document.querySelector('#alarm-selected-sound');
+            if (selectedSoundSpan) {
+                selectedSoundSpan.textContent = soundName;
+            }
+        });
+    });
+
     window.alarmManager = { 
         createAlarm, 
         toggleAlarm, 

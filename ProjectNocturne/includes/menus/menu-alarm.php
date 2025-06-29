@@ -78,7 +78,7 @@
                                 </div>
                                 <div class="dropdown-menu-container dropdown-menu--structured menu-alarm-sound disabled body-title" data-menu="alarmSoundMenu">
                                     <div class="dropdown-menu-top">
-                                        <div class="menu-link" data-action="upload-sound">
+                                        <div class="menu-link" data-action="upload-sound" data-target-input="alarm-audio-upload">
                                             <div class="menu-link-icon"><span class="material-symbols-rounded">upload</span></div>
                                             <div class="menu-link-text"><span data-translate="upload_audio" data-translate-category="sounds">Subir audio</span></div>
                                             <input type="file" accept="audio/*" style="display: none;" id="alarm-audio-upload">

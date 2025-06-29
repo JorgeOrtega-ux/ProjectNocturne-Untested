@@ -602,8 +602,8 @@ function toggleTimersSection(type) {
     const container = grid.closest('.timers-container');
     if (!container) return;
     const btn = container.querySelector('.collapse-timers-btn');
-    grid.classList.toggle('active');
-    btn.classList.toggle('expanded');
+    const isActive = grid.classList.toggle('active'); // Guardamos el estado
+    btn.classList.toggle('expanded', isActive); // Usamos el estado para el botón
 }
 
 function updateTimerCounts() {
@@ -753,6 +753,7 @@ function handleDeleteTimer(timerId) {
     updateMainControlsState();
     updateTimerCounts();
 }
+
 
 
 function dismissTimer(timerId) {

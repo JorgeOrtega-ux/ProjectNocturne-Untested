@@ -655,6 +655,7 @@
     border: 1px solid #00000020;
     cursor: pointer;
     border-radius: 8px;
+    margin-bottom: 8px;
     padding: 0 8px;
     height: 55px;
 }
@@ -693,10 +694,9 @@
 }
 
 .tool-grid {
-    display: grid;
+    display: none;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 8px;
-    margin-top: 8px;
 }
 
 .tool-grid.active {
@@ -822,6 +822,7 @@
     background: #fff;
     border: 1px solid #00000020;
     cursor: pointer;
+    margin-bottom: 8px;
     border-radius: 8px;
     padding: 0 8px;
     height: 55px;

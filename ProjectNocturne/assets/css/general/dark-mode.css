@@ -488,3 +488,52 @@
     background-color: #252627;
     border: 1px solid #444;
 }
+
+.dark-mode .alarms-header-icon {
+    color: #ffffff;
+}
+
+.dark-mode .alarms-header h3 {
+    color: #ffffff;
+}
+
+.dark-mode .collapse-alarms-btn {
+    color: #ffffff;
+}
+
+.dark-mode .alarms-header:hover {
+    background-color: #ffffff20;
+}
+
+.dark-mode .tool-card .card-title{
+    color: #ffffff;
+}
+
+.dark-mode .alarm-count-badge {
+    background-color: #ffffff20;
+    color: #fff;
+}
+
+.dark-mode .timers-header {
+    border-color: #ffffff20;
+    background-color: transparent;
+}
+
+.dark-mode .timers-header-icon {
+    color: #ffffff;
+}
+
+.dark-mode .timers-header h3 {
+    color: #ffffff;
+}.dark-mode .timers-header:hover {
+   background-color: #ffffff20;
+}
+
+.dark-mode .collapse-timers-btn {
+    color: #ffffff;
+}
+
+.dark-mode .timer-count-badge {
+    background-color: #ffffff20;
+    color: #fff;
+}

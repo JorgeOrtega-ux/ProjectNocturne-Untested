@@ -67,7 +67,7 @@
         </div>
     </div>
     <div class="section-bottom">
-        <div class="tool-grid world-clocks-grid">
+        <div class="tool-grid world-clocks-grid active">
             <div class="tool-card world-clock-card local-clock-card" data-id="local">
                 <div class="card-header">
                     <div class="card-details">

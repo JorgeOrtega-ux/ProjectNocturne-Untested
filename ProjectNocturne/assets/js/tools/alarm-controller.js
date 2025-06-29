@@ -112,7 +112,7 @@ function createAlarmCard(alarm) {
                     <span data-translate="dismiss" data-translate-category="alarms">Dismiss</span>
                 </button>
             </div>
-            <div class="card-menu-container">
+            <div class="card-menu-container disabled">
                 <div class="card-menu-btn-wrapper">
                     <button class="card-menu-btn" data-action="toggle-alarm-menu"
                             data-translate="options"

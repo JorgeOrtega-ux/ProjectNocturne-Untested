@@ -476,7 +476,7 @@ function createTimerCard(timer) {
                  <span data-translate="dismiss" data-translate-category="alarms">${getTranslation('dismiss', 'alarms')}</span>
              </button>
         </div>
-        <div class="card-menu-container">
+        <div class="card-menu-container disabled">
              <button class="card-pin-btn" data-action="pin-timer" data-translate="pin_timer" data-translate-category="tooltips" data-translate-target="tooltip">
                  <span class="material-symbols-rounded">push_pin</span>
              </button>

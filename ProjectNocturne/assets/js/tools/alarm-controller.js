@@ -432,4 +432,10 @@ export function initializeAlarmClock() {
         dismissAlarm,
         findAlarmById 
     };
+    document.addEventListener('translationsApplied', () => {
+    const allAlarms = [...userAlarms, ...defaultAlarmsState];
+    allAlarms.forEach(alarm => {
+        updateAlarmCardVisuals(alarm);
+    });
+});
 }

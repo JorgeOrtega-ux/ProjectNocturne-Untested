@@ -711,5 +711,8 @@ function dismissTimer(timerId) {
         resetTimer(timerId);
     }
 }
+document.addEventListener('translationsApplied', () => {
+    renderAllTimerCards();
+});
 
 export { initializeTimerController };

@@ -519,3 +519,11 @@
 .dark-mode .expandable-card-toggle-btn {
     color: #fff;
 }
+
+.dark-mode .laps-table th, .dark-mode .laps-table td {
+    border-bottom: 1px solid #ffffff20;
+}
+
+.dark-mode .laps-table tbody tr:hover {
+    background-color: #ffffff20;
+}

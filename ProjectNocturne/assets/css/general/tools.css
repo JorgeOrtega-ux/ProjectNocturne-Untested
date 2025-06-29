@@ -800,7 +800,7 @@
 }
 
 .tool-card.sortable-chosen {
-    z-index: 30 !important;
+    z-index: 30;
     position: relative;
 }
 
@@ -849,4 +849,23 @@
 
 .expandable-card-toggle-btn.expanded .expand-icon {
     transform: rotate(180deg);
+}
+
+.laps-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.laps-table th, .laps-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #00000020;
+}
+
+.laps-table tbody tr:hover {
+    background-color: #f5f5fa;
+}
+
+.laps-table tbody tr:last-child td {
+    border-bottom: none;
 }

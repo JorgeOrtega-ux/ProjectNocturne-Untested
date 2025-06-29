@@ -403,11 +403,11 @@ function createTimerCard(timer) {
              <button class="card-pin-btn" data-action="pin-timer" data-translate="pin_timer" data-translate-category="tooltips" data-translate-target="tooltip">
                 <span class="material-symbols-rounded">push_pin</span>
             </button>
-            <div class="card-options-btn-wrapper">
-                 <button class="card-options-btn" data-action="toggle-timer-options" data-translate="options" data-translate-category="tooltips" data-translate-target="tooltip">
+            <div class="card-menu-btn-wrapper">
+                 <button class="card-menu-btn" data-action="toggle-timer-options" data-translate="options" data-translate-category="tooltips" data-translate-target="tooltip">
                     <span class="material-symbols-rounded">more_horiz</span>
                 </button>
-                <div class="card-options-menu" style="display: none;">
+                <div class="card-dropdown-menu disabled">
                     ${isCountdown ? `
                     <div class="menu-link" data-action="${playPauseAction}">
                         <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
@@ -645,9 +645,10 @@ function setupGlobalEventListeners() {
         }
     });
 
+    // Este es el listener global que cierra los menús. Ahora buscará la clase estandarizada.
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.card-options-btn-wrapper')) {
-            document.querySelectorAll('.card-options-menu').forEach(menu => menu.style.display = 'none');
+        if (!e.target.closest('.card-menu-btn-wrapper')) {
+            document.querySelectorAll('.card-dropdown-menu').forEach(menu => menu.classList.add('disabled'));
         }
     });
 
@@ -658,8 +659,8 @@ function setupGlobalEventListeners() {
 
 
 function closeMenu(target) {
-    const menu = target.closest('.card-options-menu');
-    if (menu) menu.style.display = 'none';
+    const menu = target.closest('.card-dropdown-menu');
+    if (menu) menu.classList.add('disabled');
 }
 
 function handlePinTimer(timerId) {
@@ -676,12 +677,28 @@ function handlePinTimer(timerId) {
     saveDefaultTimersOrder();
 }
 
-
 function toggleOptionsMenu(optionsBtn) {
-    const menu = optionsBtn.parentElement.querySelector('.card-options-menu');
-    const isHidden = menu.style.display === 'none' || menu.style.display === '';
-    document.querySelectorAll('.card-options-menu').forEach(m => m.style.display = 'none');
-    if (isHidden) menu.style.display = 'flex';
+    const menuWrapper = optionsBtn.closest('.card-menu-btn-wrapper');
+    if (!menuWrapper) return;
+
+    const menu = menuWrapper.querySelector('.card-dropdown-menu');
+    if (!menu) return;
+
+    const isCurrentlyHidden = menu.classList.contains('disabled');
+
+    // Cierra todos los otros menús primero
+    document.querySelectorAll('.card-dropdown-menu').forEach(otherMenu => {
+        if (otherMenu !== menu) {
+            otherMenu.classList.add('disabled');
+        }
+    });
+
+    // Alterna el menú actual
+    if (isCurrentlyHidden) {
+        menu.classList.remove('disabled');
+    } else {
+        menu.classList.add('disabled');
+    }
 }
 
 function handleEditTimer(timerId) {

@@ -1,4 +1,35 @@
 {
+  "general": {
+    "dismiss": "Rejeter",
+    "created": "créée",
+    "updated": "mise à jour",
+    "deleted": "supprimée",
+    "ringing": "sonne"
+  },
+  "notifications": {
+    "created_title": "{type} Créée",
+    "updated_title": "{type} Mise à jour",
+    "deleted_title": "{type} Supprimée",
+    "ringing_title": "{type} Sonne",
+    "info_title": "Information",
+    "error_title": "Erreur",
+    "premium_title": "Fonctionnalité Premium",
+    "limit_reached_title": "Limite Atteinte",
+    "alarm_created": "Alarme '{title}' a été créée.",
+    "alarm_updated": "Alarme '{title}' a été mise à jour.",
+    "alarm_deleted": "Alarme '{title}' a été supprimée.",
+    "alarm_ringing": "C'est l'heure de '{title}'.",
+    "timer_created": "Minuteur '{title}' démarré.",
+    "timer_updated": "Minuteur '{title}' a été mis à jour.",
+    "timer_deleted": "Minuteur '{title}' a été supprimé.",
+    "timer_ringing": "Le temps est écoulé pour '{title}'!",
+    "worldclock_created": "Horloge '{title}' a été ajoutée.",
+    "worldclock_updated": "Horloge '{title}' a été mise à jour.",
+    "worldclock_deleted": "Horloge '{title}' a été supprimée.",
+    "limit_reached": "Limite de {limit} {type}s atteinte.",
+    "loading_countries_error": "Erreur lors du chargement de la liste des pays.",
+    "dismiss": "Rejeter"
+  },
   "color_system": {
     "color_unavailable": "Non disponible",
     "default_colors": "Couleurs par Défaut",

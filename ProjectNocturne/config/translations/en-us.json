@@ -1,4 +1,35 @@
 {
+  "general": {
+    "dismiss": "Dismiss",
+    "created": "created",
+    "updated": "updated",
+    "deleted": "deleted",
+    "ringing": "ringing"
+  },
+  "notifications": {
+    "created_title": "{type} Created",
+    "updated_title": "{type} Updated",
+    "deleted_title": "{type} Deleted",
+    "ringing_title": "{type} Ringing",
+    "info_title": "Information",
+    "error_title": "Error",
+    "premium_title": "Premium Feature",
+    "limit_reached_title": "Limit Reached",
+    "alarm_created": "Alarm '{title}' has been set.",
+    "alarm_updated": "Alarm '{title}' has been updated.",
+    "alarm_deleted": "Alarm '{title}' was deleted.",
+    "alarm_ringing": "It's time for '{title}'.",
+    "timer_created": "Timer '{title}' started.",
+    "timer_updated": "Timer '{title}' was updated.",
+    "timer_deleted": "Timer '{title}' was removed.",
+    "timer_ringing": "Time's up for '{title}'!",
+    "worldclock_created": "Clock '{title}' was added.",
+    "worldclock_updated": "Clock '{title}' was updated.",
+    "worldclock_deleted": "Clock '{title}' was deleted.",
+    "limit_reached": "Limit of {limit} {type}s reached.",
+    "loading_countries_error": "Error loading countries list.",
+    "dismiss": "Dismiss"
+  },
   "color_system": {
     "color_unavailable": "Not available",
     "default_colors": "Default Colors",

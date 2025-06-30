@@ -1,4 +1,35 @@
 {
+  "general": {
+    "dismiss": "Descartar",
+    "created": "creada",
+    "updated": "actualizada",
+    "deleted": "eliminada",
+    "ringing": "sonando"
+  },
+  "notifications": {
+    "created_title": "{type} Creada",
+    "updated_title": "{type} Actualizada",
+    "deleted_title": "{type} Eliminada",
+    "ringing_title": "{type} Sonando",
+    "info_title": "Información",
+    "error_title": "Error",
+    "premium_title": "Función Premium",
+    "limit_reached_title": "Límite Alcanzado",
+    "alarm_created": "Alarma '{title}' ha sido creada.",
+    "alarm_updated": "Alarma '{title}' ha sido actualizada.",
+    "alarm_deleted": "Alarma '{title}' fue eliminada.",
+    "alarm_ringing": "Es hora de '{title}'.",
+    "timer_created": "Temporizador '{title}' iniciado.",
+    "timer_updated": "Temporizador '{title}' fue actualizado.",
+    "timer_deleted": "Temporizador '{title}' fue eliminado.",
+    "timer_ringing": "¡Se acabó el tiempo para '{title}'!",
+    "worldclock_created": "Reloj '{title}' fue añadido.",
+    "worldclock_updated": "Reloj '{title}' fue actualizado.",
+    "worldclock_deleted": "Reloj '{title}' fue eliminado.",
+    "limit_reached": "Límite de {limit} {type}s alcanzado.",
+    "loading_countries_error": "Error al cargar la lista de países.",
+    "dismiss": "Descartar"
+  },
   "color_system": {
     "color_unavailable": "No disponible",
     "default_colors": "Colores Predeterminados",

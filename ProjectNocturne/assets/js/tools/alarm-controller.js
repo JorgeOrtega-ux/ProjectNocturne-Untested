@@ -1,8 +1,8 @@
-// jorgeortega-ux/projectnocturne-alpha/ProjectNocturne-Alpha-32dae5d9be5dbd76db6b6638608d9bf9b2fb28e3/ProjectNocturne/assets/js/tools/alarm-controller.js
+// /assets/js/tools/alarm-controller.js
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable } from './general-tools.js';
-import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js'; // NEW LINE
+import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
@@ -74,11 +74,10 @@ export function getAlarmLimit() {
 }
 
 function createAlarm(title, hour, minute, sound) {
-    const alarmLimit = PREMIUM_FEATURES ? 100 : 10;
+    const alarmLimit = getAlarmLimit();
     if (userAlarms.length >= alarmLimit) {
-        // Corrected: Replaced alert() with dynamic island notification for alarm limit
-        showDynamicIslandNotification('system', 'premium_required', 'limit_reached_generic', 'notifications', {
-            type: getTranslation('alarms', 'tooltips'), // "Alarm"
+        showDynamicIslandNotification('alarm', 'limit_reached', 'limit_reached', {
+            type: getTranslation('alarms', 'tooltips'),
             limit: alarmLimit
         });
         return false;
@@ -99,11 +98,7 @@ function createAlarm(title, hour, minute, sound) {
     scheduleAlarm(alarm);
     updateAlarmCounts();
 
-    // Show dynamic island notification on creation
-    showDynamicIslandNotification('alarm', 'created', 'notifications_message_placeholder', 'notifications', { // Placeholder, since the title is dynamic
-        title: alarm.title,
-        time: formatTime(alarm.hour, alarm.minute)
-    });
+    showDynamicIslandNotification('alarm', 'created', 'alarm_created', { title: alarm.title });
 
     return true;
 }
@@ -219,20 +214,16 @@ function triggerAlarm(alarm) {
         new Notification(`Alarma: ${translatedTitle}`, { body: `${formatTime(alarm.hour, alarm.minute)}`, icon: '/favicon.ico' });
     }
 
-    // Show dynamic island notification when alarm is ringing
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-    showDynamicIslandNotification('alarm', 'ringing', 'notifications_message_placeholder', 'notifications', { // Placeholder
+    showDynamicIslandNotification('alarm', 'ringing', 'alarm_ringing', { 
         title: translatedTitle,
-        time: formatTime(alarm.hour, alarm.minute),
-        toolId: alarm.id
+        toolId: alarm.id 
     }, (dismissedId) => {
-        // This callback is executed when the dynamic island's dismiss button is clicked
         if (dismissedId === alarm.id) {
             dismissAlarm(alarm.id);
         }
     });
 
-    // Re-schedule the alarm for the next day after it triggers
     scheduleAlarm(alarm);
 }
 
@@ -247,12 +238,8 @@ function dismissAlarm(alarmId) {
     }
     const alarm = findAlarmById(alarmId);
     if (alarm && alarm.enabled) {
-        // If alarm is ringing and dismissed, typically it should be toggled off or snoozed.
-        // For simplicity here, we'll just ensure it's not ringing visually/audibly.
-        // If you want dismissing to turn off the alarm, you'd call toggleAlarm(alarmId) here.
         console.log(`Alarm ${alarmId} dismissed.`);
     }
-    // Ensure the dynamic island is hidden if it was showing this alarm
     if (window.hideDynamicIsland) {
         window.hideDynamicIsland();
     }
@@ -291,6 +278,8 @@ function deleteAlarm(alarmId) {
         activeAlarmTimers.delete(alarmId);
     }
 
+    const originalTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+
     if (alarm.type === 'user') {
         userAlarms = userAlarms.filter(a => a.id !== alarmId);
         saveAlarmsToStorage();
@@ -304,16 +293,11 @@ function deleteAlarm(alarmId) {
         alarmCard.remove();
     }
     updateAlarmCounts();
-    // Also hide dynamic island if this alarm was ringing
     if (window.hideDynamicIsland) {
         window.hideDynamicIsland();
     }
     
-    // Show dynamic island notification on successful deletion
-    const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-    showDynamicIslandNotification('alarm', 'deleted', 'alarm_deleted_success', 'notifications', {
-        title: translatedTitle
-    });
+    showDynamicIslandNotification('alarm', 'deleted', 'alarm_deleted', { title: originalTitle });
 }
 
 function updateAlarm(alarmId, newData) {
@@ -338,15 +322,12 @@ function updateAlarm(alarmId, newData) {
     }
 
     updateAlarmCardVisuals(alarm);
-
-    // Show dynamic island notification on update
+    
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-    showDynamicIslandNotification('alarm', 'updated', 'notifications_message_placeholder', 'notifications', { // Placeholder
-        title: translatedTitle,
-        time: formatTime(alarm.hour, alarm.minute)
-    });
+    showDynamicIslandNotification('alarm', 'updated', 'alarm_updated', { title: translatedTitle });
 }
 
+// ... (El resto de las funciones como updateAlarmCardVisuals, saveAlarmsToStorage, formatTime, etc., permanecen igual)
 function updateAlarmCardVisuals(alarm) {
     const card = document.getElementById(alarm.id);
     if (!card) return;
@@ -381,13 +362,11 @@ function updateAlarmCardVisuals(alarm) {
 }
 
 function saveAlarmsToStorage() {
-    // MODIFICACIÓN: Añadido console.log para depuración
     console.log(`[LocalStorage Save] Guardando datos de alarmas en la clave: '${ALARMS_STORAGE_KEY}'`, userAlarms);
     localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(userAlarms));
 }
 
 function saveDefaultAlarmsOrder() {
-    // MODIFICACIÓN: Añadido console.log para depuración
     console.log(`[LocalStorage Save] Guardando orden de alarmas por defecto en la clave: '${DEFAULT_ALARMS_STORAGE_KEY}'`, defaultAlarmsState);
     localStorage.setItem(DEFAULT_ALARMS_STORAGE_KEY, JSON.stringify(defaultAlarmsState));
 }
@@ -402,7 +381,6 @@ function loadDefaultAlarmsOrder() {
             DEFAULT_ALARMS.forEach(defaultAlarm => {
                 if (!defaultIds.has(defaultAlarm.id)) {
                     defaultAlarmsState.push({...defaultAlarm});
-                    // A diferencia del script de timers, este no guarda automáticamente aquí.
                 }
             });
         } catch (error) {
@@ -444,8 +422,6 @@ function formatTime(hour, minute) {
     h12 = h12 ? h12 : 12;
     return `${h12}:${String(minute).padStart(2, '0')} ${ampm}`;
 }
-
-// Se ha eliminado la función getTranslation duplicada para usar la versión global importada.
 
 function toggleAlarmsSection(type) {
     const grid = document.querySelector(`.tool-grid[data-alarm-grid="${type}"]`);
@@ -520,10 +496,7 @@ export function initializeAlarmClock() {
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
     }
-
-    // Se ha movido la lógica de 'getTranslation' a la importación global
-    // y se ha eliminado la función local duplicada.
-
+    
     window.alarmManager = { 
         createAlarm, 
         toggleAlarm, 
@@ -544,7 +517,6 @@ export function initializeAlarmClock() {
         document.querySelectorAll('[data-translate-category="alarms"]').forEach(element => {
             const key = element.dataset.translate;
             if (key) {
-                // Asumiendo que getTranslation está disponible globalmente a través del import
                 element.textContent = getTranslation(key, 'alarms');
             }
         });

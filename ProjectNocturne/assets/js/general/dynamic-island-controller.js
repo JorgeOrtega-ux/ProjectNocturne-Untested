@@ -1,63 +1,52 @@
-// ========== DYNAMIC ISLAND CONTROLLER ==========
+// /assets/js/general/dynamic-island-controller.js
 
 let dynamicIslandElement = null;
 let notificationTimeout = null;
-let dismissCallback = null; // Store the callback for the dismiss button
-let currentRingingToolId = null; // Store the ID of the tool currently ringing
+let dismissCallback = null;
+let currentRingingToolId = null;
 
-const NOTIFICATION_DISPLAY_DURATION = 3000; // 3 seconds for regular notifications
-// The RINGING_NOTIFICATION_DURATION constant is no longer strictly used for auto-dismissal.
+const NOTIFICATION_DISPLAY_DURATION = 3000;
 
-// Define icons based on the tool type or message type
 const ICONS = {
     'alarm': 'alarm',
     'timer': 'timer',
     'worldClock': 'schedule',
-    'system_info': 'info', // For general info messages
-    'system_error': 'error', // For error messages
-    'system_premium': 'workspace_premium', // For premium features
-    'system_success': 'check_circle', // For success messages
-    'default': 'info' // Fallback icon
+    'system_info': 'info',
+    'system_error': 'error',
+    'system_premium': 'workspace_premium',
+    'system_success': 'check_circle',
+    'default': 'info'
 };
 
 /**
  * Initializes the dynamic island DOM element and appends it to the body.
  */
 export function initDynamicIsland() {
-    if (dynamicIslandElement) {
-        return; // Already initialized
-    }
+    if (dynamicIslandElement) return;
 
-    // Create the main dynamic island element
     dynamicIslandElement = document.createElement('div');
     dynamicIslandElement.id = 'dynamic-island';
-    
-    // Set initial classes for collapsed state (CSS handles opacity transitions)
-    dynamicIslandElement.classList.remove('expanded');
-    dynamicIslandElement.classList.remove('active-tool-ringing');
+    dynamicIslandElement.classList.remove('expanded', 'active-tool-ringing');
 
-    // Construct the inner HTML structure
-dynamicIslandElement.innerHTML = `
-    <div class="island-notification-content">
-        <div class="island-left-group">
-            <div class="island-circle">
-                <span class="material-symbols-rounded notification-icon-symbol"></span>
+    // Estructura HTML mejorada
+    dynamicIslandElement.innerHTML = `
+        <div class="island-notification-content">
+            <div class="island-left-group">
+                <div class="island-circle">
+                    <span class="material-symbols-rounded notification-icon-symbol"></span>
+                </div>
+                <div class="notification-text-info">
+                    <p class="notification-title"></p>
+                    <p class="notification-message"></p>
+                </div>
             </div>
-            <div class="notification-text-info">
-                <p class="notification-title"></p>
-                <p class="notification-message"></p>
-            </div>
+            <button class="island-dismiss-button" data-action="dismiss-active-tool">
+                </button>
         </div>
-        <button class="island-dismiss-button" data-action="dismiss-active-tool">
-            ${getTranslation('dismiss', 'general')}
-        </button>
-    </div>
-`;
-    
-    // Append the dynamic island to the body
+    `;
+
     document.body.appendChild(dynamicIslandElement);
 
-    // Attach event listener for the dismiss button
     const dismissButton = dynamicIslandElement.querySelector('.island-dismiss-button');
     if (dismissButton) {
         dismissButton.addEventListener('click', () => {
@@ -72,86 +61,64 @@ dynamicIslandElement.innerHTML = `
 }
 
 /**
- * Displays a notification in the dynamic island.
- * @param {string} toolType - The type of tool (e.g., 'alarm', 'timer', 'worldClock', 'system' for general messages).
- * @param {string} actionType - The action performed (e.g., 'created', 'updated', 'ringing', 'deleted', 'limit_reached', 'error', 'info').
- * @param {string} messageKey - The key for the main message (e.g., 'alarm_deleted_success', 'feature_premium_required').
- * @param {string} messageCategory - The category for messageKey (e.g., 'notifications', 'general').
- * @param {object} [data={}] - An object containing data for message placeholders (e.g., {title: 'My Alarm', limit: 5}) or additional details like 'time' or 'duration'.
- * @param {function} [onDismiss=null] - Callback function to execute when dismiss button is clicked (for ringing tools).
+ * Muestra una notificación en la isla dinámica.
+ * @param {string} toolType - El tipo de herramienta ('alarm', 'timer', 'system').
+ * @param {string} actionType - La acción ('created', 'updated', 'ringing', 'deleted', 'limit_reached').
+ * @param {string} messageKey - La clave del mensaje principal.
+ * @param {object} [data={}] - Datos para los marcadores de posición del mensaje (ej. {title: 'Mi Alarma'}).
+ * @param {function} [onDismiss=null] - Callback para el botón de descarte.
  */
-export function showDynamicIslandNotification(toolType, actionType, messageKey, messageCategory, data = {}, onDismiss = null) {
-    if (!dynamicIslandElement) {
-        initDynamicIsland(); // Attempt to initialize if not already
-        if (!dynamicIslandElement) return; // If still not found, exit
-    }
+export function showDynamicIslandNotification(toolType, actionType, messageKey, data = {}, onDismiss = null) {
+    if (!dynamicIslandElement) initDynamicIsland();
+    if (!dynamicIslandElement) return;
 
-    // Clear any existing timeout
-    if (notificationTimeout) {
-        clearTimeout(notificationTimeout);
-        notificationTimeout = null; // Ensure the timeout is cleared and set to null
-    }
+    if (notificationTimeout) clearTimeout(notificationTimeout);
 
-    // Remove any ringing state classes from previous notifications
     dynamicIslandElement.classList.remove('active-tool-ringing');
-    
-    // Set icon, title, and message elements
+
     const iconSymbol = dynamicIslandElement.querySelector('.notification-icon-symbol');
     const titleP = dynamicIslandElement.querySelector('.notification-title');
     const messageP = dynamicIslandElement.querySelector('.notification-message');
+    const dismissButton = dynamicIslandElement.querySelector('.island-dismiss-button');
 
-    if (!iconSymbol || !titleP || !messageP) {
-        console.error('Dynamic Island internal elements not found. Check HTML structure after dynamic creation.');
-        return;
-    }
+    if (!iconSymbol || !titleP || !messageP || !dismissButton) return;
 
-    // Determine the icon
-    let iconToUse = ICONS[toolType] || ICONS.default; // Default to tool type icon
+    // 1. Determinar el Icono
+    let iconKey = toolType;
     if (toolType === 'system') {
-        if (actionType === 'error') iconToUse = ICONS.system_error;
-        else if (actionType === 'premium_required') iconToUse = ICONS.system_premium;
-        else if (actionType === 'deleted' || actionType === 'success') iconToUse = ICONS.system_success; // For generic success messages
-        else iconToUse = ICONS.system_info; // For generic info messages
+        if (actionType.includes('error')) iconKey = 'system_error';
+        else if (actionType.includes('premium')) iconKey = 'system_premium';
+        else if (actionType.includes('success') || actionType.includes('deleted')) iconKey = 'system_success';
+        else iconKey = 'system_info';
     }
-    iconSymbol.textContent = iconToUse;
-
-    // Set the main title (e.g., "Alarm Created", "Timer Ringing")
-    const translatedToolType = getTranslation(toolType, 'tooltips');
-    const translatedActionType = getTranslation(actionType, 'general');
-    titleP.textContent = `${translatedToolType} ${translatedActionType}`;
-
-    // Set the message (e.g., "Alarm 'My Alarm' deleted.", "Limit of 5 reached.")
-    let formattedMessage = formatMessage(messageKey, messageCategory, data);
+    iconSymbol.textContent = ICONS[iconKey] || ICONS.default;
     
-    // Add time/duration to message if present and not already part of key
-    if (data.time && !formattedMessage.includes(data.time)) {
-        formattedMessage += ` (${data.time})`;
-    } else if (data.duration && !formattedMessage.includes(data.duration)) {
-        formattedMessage += ` (${data.duration})`;
-    }
-    messageP.textContent = formattedMessage;
+    // 2. Construir el Título
+    const translatedTool = getTranslation(toolType, 'tooltips');
+    const translatedAction = getTranslation(`${actionType}_title`, 'notifications');
+    titleP.textContent = translatedAction.replace('{type}', translatedTool);
 
-    // Handle ringing state and dismiss button
+    // 3. Construir el Mensaje
+    messageP.textContent = formatMessage(messageKey, 'notifications', data);
+
+    // 4. Configurar el botón de Descarte
+    dismissButton.textContent = getTranslation('dismiss', 'notifications');
+
+    // 5. Manejar el estado de 'sonando'
     if (actionType === 'ringing') {
-        dynamicIslandElement.classList.add('active-tool-ringing'); // Add class to trigger CSS for dismiss button and wider width
+        dynamicIslandElement.classList.add('active-tool-ringing');
         dismissCallback = onDismiss;
         currentRingingToolId = data.toolId;
-        // IMPORTANT: DO NOT set a timeout for auto-hiding when ringing.
-        // It will only be hidden when the dismiss button is clicked or hideDynamicIsland() is called manually.
     } else {
         dismissCallback = null;
         currentRingingToolId = null;
-        // Set timeout to collapse the island after a duration for non-ringing notifications
-        notificationTimeout = setTimeout(() => {
-            hideDynamicIsland();
-        }, NOTIFICATION_DISPLAY_DURATION);
+        notificationTimeout = setTimeout(hideDynamicIsland, NOTIFICATION_DISPLAY_DURATION);
     }
 
-    // Trigger the expansion animation
     dynamicIslandElement.classList.add('expanded');
-
     console.log(`Dynamic Island: ${toolType} ${actionType} - ${messageKey} - Data:`, data);
 }
+
 
 /**
  * Formats a message string with placeholders.
@@ -175,14 +142,12 @@ function formatMessage(key, category, placeholders = {}) {
  * Hides the dynamic island.
  */
 export function hideDynamicIsland() {
-    if (notificationTimeout) {
-        clearTimeout(notificationTimeout);
-        notificationTimeout = null;
-    }
-    dynamicIslandElement.classList.remove('expanded');
-    dynamicIslandElement.classList.remove('active-tool-ringing'); // Ensure ringing state is removed
-    dismissCallback = null; // Clear callback on hide
-    currentRingingToolId = null; // Clear current tool ID
+    if (notificationTimeout) clearTimeout(notificationTimeout);
+    notificationTimeout = null;
+    
+    dynamicIslandElement.classList.remove('expanded', 'active-tool-ringing');
+    dismissCallback = null;
+    currentRingingToolId = null;
 }
 
 /**
@@ -194,11 +159,9 @@ export function hideDynamicIsland() {
 function getTranslation(key, category = 'general') {
     if (typeof window.getTranslation === 'function') {
         const translated = window.getTranslation(key, category);
-        // Fallback to a readable string if translation system returns the key itself
         return (translated && translated !== key) ? translated : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
-    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Simple fallback if translation system is not ready
+    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-// Optionally, expose a public API to manually hide the island
 window.hideDynamicIsland = hideDynamicIsland;

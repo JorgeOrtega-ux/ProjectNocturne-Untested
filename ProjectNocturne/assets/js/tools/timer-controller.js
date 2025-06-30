@@ -240,7 +240,7 @@ function startCountdownTimer(timer) {
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
 
-        if (timer.remaining < 1000) {
+        if (timer.remaining <= 0) { //  CORREGIDO 
             handleTimerEnd(timer.id);
         }
     }, 1000);

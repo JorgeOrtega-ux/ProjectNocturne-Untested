@@ -68,27 +68,6 @@
     </div>
     <div class="section-bottom">
         <div class="tool-grid world-clocks-grid active">
-            <div class="tool-card world-clock-card local-clock-card" data-id="local">
-                <div class="card-header">
-                    <div class="card-details">
-                        <span class="card-title" data-translate="local_time" data-translate-category="world_clock_options">Tiempo Local</span>
-                        <span class="card-value">--:--:--</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <div class="card-tags">
-                        <span class="card-tag">---, -- ----</span>
-                    </div>
-                </div>
-                <div class="card-menu-container disabled">
-                    <button class="card-pin-btn active" data-action="pin-clock"
-                            data-translate="pin_clock"
-                            data-translate-category="tooltips"
-                            data-translate-target="tooltip">
-                        <span class="material-symbols-rounded">push_pin</span>
-                    </button>
-                </div>
             </div>
-        </div>
     </div>
 </div>

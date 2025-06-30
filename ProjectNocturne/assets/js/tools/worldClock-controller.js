@@ -150,6 +150,36 @@ function applyTranslationsToSpecificElement(element) {
     });
 }
 
+function createLocalClockCardAndAppend() {
+    const grid = document.querySelector('.world-clocks-grid');
+    if (!grid) return;
+
+    const cardHTML = `
+        <div class="tool-card world-clock-card local-clock-card" data-id="local">
+            <div class="card-header">
+                <div class="card-details">
+                    <span class="card-title" data-translate="local_time" data-translate-category="world_clock_options">Tiempo Local</span>
+                    <span class="card-value">--:--:--</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="card-tags">
+                    <span class="card-tag">---, -- ----</span>
+                </div>
+            </div>
+            <div class="card-menu-container disabled">
+                <button class="card-pin-btn active" data-action="pin-clock"
+                        data-translate="pin_clock"
+                        data-translate-category="tooltips"
+                        data-translate-target="tooltip">
+                    <span class="material-symbols-rounded">push_pin</span>
+                </button>
+            </div>
+        </div>
+    `;
+    grid.insertAdjacentHTML('afterbegin', cardHTML); // Use afterbegin to ensure it's the first card
+}
+
 function createAndStartClockCard(title, country, timezone, existingId = null, save = true) {
     const grid = document.querySelector('.world-clocks-grid');
     if (!grid) return;
@@ -185,7 +215,7 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
                 </div>
             </div>
 
-            <div class="card-menu-container">
+            <div class="card-menu-container disabled">
                  <button class="card-pin-btn" data-action="pin-clock"
                         data-translate="pin_clock"
                         data-translate-category="tooltips"
@@ -342,7 +372,8 @@ function initializeLocalClock() {
 
     localClockCard.addEventListener('mouseleave', () => {
         const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
-        if (dropdown?.classList.contains('disabled')) {
+        // If there is no dropdown (like in the local card), or if it's closed, hide the container.
+        if (!dropdown || dropdown.classList.contains('disabled')) {
             menuContainer?.classList.add('disabled');
         }
     });
@@ -479,6 +510,7 @@ window.worldClockManager = {
 };
 
 export function initWorldClock() {
+    createLocalClockCardAndAppend();
     initializeLocalClock();
     loadClocksFromStorage();
     initializeSortableGrid();

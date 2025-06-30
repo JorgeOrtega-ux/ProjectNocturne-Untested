@@ -178,7 +178,9 @@
   "stopwatch": {
     "lap_header": "Vuelta",
     "time_header": "Tiempo",
-    "total_time_header": "Tiempo total"
+    "total_time_header": "Tiempo total",
+    "running": "Corriendo",
+    "paused": "Pausado"
   },
   "alarms": {
     "alarm_title": "Título de la alarma",
@@ -259,5 +261,22 @@
     "edit_not_implemented": "La funcionalidad para editar el reloj aún no está implementada.",
     "fullscreen_not_implemented": "La funcionalidad de pantalla completa aún no está implementada.",
     "save_changes": "Guardar cambios"
+  },
+  "everything": {
+    "main_panel": "Panel Principal",
+    "local_time": "Hora Local",
+    "active_alarms": "Alarmas Activas",
+    "running_timers": "Timers Corriendo",
+    "world_clocks": "Relojes Mundiales",
+    "upcoming_events": "Próximos Eventos",
+    "next_alarm": "Próxima Alarma",
+    "active_timer": "Temporizador Activo",
+    "stopwatch": "Cronómetro",
+    "quick_actions": "Acciones Rápidas",
+    "new_alarm": "Nueva Alarma",
+    "new_timer": "Nuevo Timer",
+    "add_clock": "Añadir Reloj",
+    "no_active_alarms": "No hay alarmas activas",
+    "no_running_timers": "No hay timers corriendo"
   }
 }

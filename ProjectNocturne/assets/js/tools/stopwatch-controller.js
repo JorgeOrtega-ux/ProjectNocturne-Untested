@@ -187,7 +187,23 @@ function updateButtonStates() {
     lapBtn.classList.toggle('disabled-interactive', isLapDisabled);
     resetBtn.classList.toggle('disabled-interactive', stopwatchState.isRunning || !hasTime);
 }
+function getStopwatchDetails() {
+    const state = stopwatchState;
+    const time = formatTime(state.isRunning ? (Date.now() - state.startTime) : state.elapsedTime);
+    const statusKey = state.isRunning ? 'running' : 'paused';
+    const statusText = getTranslation(statusKey, 'stopwatch');
 
+    if (state.elapsedTime === 0 && !state.isRunning) {
+        return getTranslation('paused', 'stopwatch') + ' en 00:00:00.00';
+    }
+
+    return `${statusText} en ${time}`;
+}
+
+// Expone el controlador del cronómetro globalmente para que `everything-controller` pueda acceder a él.
+window.stopwatchController = {
+    getStopwatchDetails
+};
 export function initializeStopwatch() {
     const stopwatchSection = document.querySelector('.section-stopwatch');
     if (!stopwatchSection) return;

@@ -9,7 +9,6 @@
     <link rel="stylesheet" type="text/css" href="assets/css/general/styles.css">
     <link rel="stylesheet" type="text/css" href="assets/css/general/dark-mode.css">
     <link rel="stylesheet" type="text/css" href="assets/css/general/tools.css">
-    <link rel="stylesheet" type="text/css" href="assets/css/sections/everything.css">
     <script src="assets/js/general/initial-theme.js"></script>
     <title>ProjectNocturne - Home</title>
 </head>

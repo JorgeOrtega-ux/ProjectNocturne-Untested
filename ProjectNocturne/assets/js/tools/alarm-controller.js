@@ -17,7 +17,34 @@ let clockInterval = null;
 let userAlarms = [];
 let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
+function getActiveAlarmsCount() {
+    const allAlarms = [...userAlarms, ...defaultAlarmsState];
+    return allAlarms.filter(alarm => alarm.enabled).length;
+}
 
+function getNextAlarmDetails() {
+    const now = new Date();
+    const activeAlarms = [...userAlarms, ...defaultAlarmsState].filter(a => a.enabled);
+
+    if (activeAlarms.length === 0) {
+        return null;
+    }
+
+    const upcomingAlarms = activeAlarms.map(alarm => {
+        const alarmTime = new Date();
+        alarmTime.setHours(alarm.hour, alarm.minute, 0, 0);
+        if (alarmTime <= now) {
+            alarmTime.setDate(alarmTime.getDate() + 1);
+        }
+        return { ...alarm, time: alarmTime };
+    }).sort((a, b) => a.time - b.time);
+
+    const nextAlarm = upcomingAlarms[0];
+    const title = nextAlarm.type === 'default' ? getTranslation(nextAlarm.title, 'alarms') : nextAlarm.title;
+    const timeString = nextAlarm.time.toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', hour12: !use24HourFormat });
+
+    return `${title} (${timeString})`;
+}
 function createExpandableContainer(type, titleKey, icon) {
     const container = document.createElement('div');
     container.className = 'alarms-container';
@@ -506,9 +533,11 @@ export function initializeAlarmClock() {
         toggleAlarmsSection, 
         playAlarmSound, 
         dismissAlarm,
+        
         findAlarmById,
         getAlarmCount,
-        getAlarmLimit
+        getAlarmLimit, getActiveAlarmsCount, // <-- NUEVA FUNCIÓN EXPUESTA
+    getNextAlarmDetails   // <-- NUEVA FUNCIÓN EXPUESTA
     };
     document.addEventListener('translationsApplied', () => {
         const allAlarms = [...userAlarms, ...defaultAlarmsState];

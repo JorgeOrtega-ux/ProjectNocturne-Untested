@@ -1,8 +1,8 @@
 <div class="section-everything active">
 
     <div class="everything-header">
-        <h1 class="everything-title">Panel Principal</h1>
-        <p class="everything-subtitle" id="current-date-subtitle">lunes, 30 de junio de 2025</p>
+        <h1 class="everything-title" data-translate="main_panel" data-translate-category="everything">Panel Principal</h1>
+        <p class="everything-subtitle" id="current-date-subtitle"></p>
     </div>
 
     <div class="everything-main-container">
@@ -11,19 +11,19 @@
             <div class="summary-content">
                 <div class="summary-item">
                     <div class="summary-value" id="main-clock-time-short">16:14</div>
-                    <div class="summary-label">Hora Local</div>
+                    <div class="summary-label" data-translate="local_time" data-translate-category="everything">Hora Local</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-value" id="active-alarms-count">3</div>
-                    <div class="summary-label">Alarmas Activas</div>
+                    <div class="summary-value" id="active-alarms-count">0</div>
+                    <div class="summary-label" data-translate="active_alarms" data-translate-category="everything">Alarmas Activas</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-value" id="active-timers-count">1</div>
-                    <div class="summary-label">Timers Corriendo</div>
+                    <div class="summary-value" id="active-timers-count">0</div>
+                    <div class="summary-label" data-translate="running_timers" data-translate-category="everything">Timers Corriendo</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-value" id="world-clocks-count">2</div>
-                    <div class="summary-label">Relojes Mundiales</div>
+                    <div class="summary-value" id="world-clocks-count">0</div>
+                    <div class="summary-label" data-translate="world_clocks" data-translate-category="everything">Relojes Mundiales</div>
                 </div>
             </div>
         </div>
@@ -33,7 +33,7 @@
             <div class="widget widget-upcoming">
                 <div class="widget-header">
                     <div class="widget-icon bg-orange"><span class="material-symbols-rounded">notifications_active</span></div>
-                    <h2 class="widget-title">Próximos Eventos</h2>
+                    <h2 class="widget-title" data-translate="upcoming_events" data-translate-category="everything">Próximos Eventos</h2>
                 </div>
                 <div class="upcoming-list">
                     <div class="upcoming-item">
@@ -41,8 +41,8 @@
                             <span class="material-symbols-rounded upcoming-item-icon">alarm</span>
                         </div>
                         <div class="upcoming-item-details">
-                            <div class="upcoming-item-title">Próxima Alarma</div>
-                            <div class="upcoming-item-time" id="next-alarm-details">Hacer ejercicio (18:00)</div>
+                            <div class="upcoming-item-title" data-translate="next_alarm" data-translate-category="everything">Próxima Alarma</div>
+                            <div class="upcoming-item-time" id="next-alarm-details">--</div>
                         </div>
                     </div>
                     <div class="upcoming-item">
@@ -50,8 +50,8 @@
                             <span class="material-symbols-rounded upcoming-item-icon">hourglass_top</span>
                         </div>
                         <div class="upcoming-item-details">
-                            <div class="upcoming-item-title">Temporizador Activo</div>
-                            <div class="upcoming-item-time" id="active-timer-details">Pomodoro (23:10 restantes)</div>
+                            <div class="upcoming-item-title" data-translate="active_timer" data-translate-category="everything">Temporizador Activo</div>
+                            <div class="upcoming-item-time" id="active-timer-details">--</div>
                         </div>
                     </div>
                     <div class="upcoming-item">
@@ -59,8 +59,8 @@
                             <span class="material-symbols-rounded upcoming-item-icon">timer</span>
                         </div>
                         <div class="upcoming-item-details">
-                            <div class="upcoming-item-title">Cronómetro</div>
-                            <div class="upcoming-item-time" id="stopwatch-details">Detenido en 00:15:30</div>
+                            <div class="upcoming-item-title" data-translate="stopwatch" data-translate-category="everything">Cronómetro</div>
+                            <div class="upcoming-item-time" id="stopwatch-details">--</div>
                         </div>
                     </div>
                 </div>
@@ -69,20 +69,20 @@
             <div class="widget widget-actions">
                 <div class="widget-header">
                     <div class="widget-icon bg-blue"><span class="material-symbols-rounded">bolt</span></div>
-                    <h2 class="widget-title">Acciones Rápidas</h2>
+                    <h2 class="widget-title" data-translate="quick_actions" data-translate-category="everything">Acciones Rápidas</h2>
                 </div>
                 <div class="actions-container">
                     <div class="action-card" data-module="toggleMenuAlarm">
                         <span class="material-symbols-rounded action-card-icon color-blue">add_alarm</span>
-                        <span class="action-card-label">Nueva Alarma</span>
+                        <span class="action-card-label" data-translate="new_alarm" data-translate-category="everything">Nueva Alarma</span>
                     </div>
                     <div class="action-card" data-module="toggleMenuTimer">
                         <span class="material-symbols-rounded action-card-icon color-orange">add_circle</span>
-                        <span class="action-card-label">Nuevo Timer</span>
+                        <span class="action-card-label" data-translate="new_timer" data-translate-category="everything">Nuevo Timer</span>
                     </div>
                     <div class="action-card" data-module="toggleMenuWorldClock">
                         <span class="material-symbols-rounded action-card-icon color-green">public</span>
-                        <span class="action-card-label">Añadir Reloj</span>
+                        <span class="action-card-label" data-translate="add_clock" data-translate-category="everything">Añadir Reloj</span>
                     </div>
                 </div>
             </div>
@@ -91,12 +91,11 @@
 
     </div>
 </div>
-
 <style>
     /* /assets/css/sections/everything.css - Versión con alineación de iconos corregida */
     .section-everything {
         padding: 24px;
-        display: flex;
+
         flex-direction: column;
         gap: 24px;
     }
@@ -139,7 +138,6 @@
     }
 
     .widget {
-        background-color: #ffffff;
         border-radius: 20px;
         padding: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;

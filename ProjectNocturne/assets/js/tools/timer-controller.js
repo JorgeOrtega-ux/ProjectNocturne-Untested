@@ -26,6 +26,21 @@ export function getTimersCount() {
 
 export function getTimerLimit() {
     return PREMIUM_FEATURES ? 10 : 3;
+}function getRunningTimersCount() {
+    const allTimers = [...userTimers, ...defaultTimersState];
+    return allTimers.filter(timer => timer.isRunning).length;
+}
+
+function getActiveTimerDetails() {
+    const runningTimer = [...userTimers, ...defaultTimersState].find(t => t.isRunning);
+    if (!runningTimer) {
+        return null;
+    }
+
+    const title = runningTimer.id.startsWith('default-timer-') ? getTranslation(runningTimer.title, 'timer') : runningTimer.title;
+    const remainingTime = formatTime(runningTimer.remaining, runningTimer.type);
+
+    return `${title} (${remainingTime} ${getTranslation('remaining', 'everything') || 'restantes'})`;
 }
 
 function createExpandableTimerContainer(type, titleKey, icon) {
@@ -116,7 +131,8 @@ if (resetBtn) {
         toggleTimersSection,
         findTimerById,
         getTimersCount,
-        getTimerLimit
+        getTimerLimit,    getRunningTimersCount, // <-- NUEVA FUNCIÓN EXPUESTA
+    getActiveTimerDetails   // <-- NUEVA FUNCIÓN EXPUESTA
     };
 }
 

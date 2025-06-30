@@ -178,7 +178,9 @@
    "stopwatch": {
     "lap_header": "Tour",
     "time_header": "Temps",
-    "total_time_header": "Temps total"
+    "total_time_header": "Temps total",
+    "running": "En cours",
+    "paused": "En pause"
   },
   "alarms": {
     "alarm_title": "Titre de l'alarme",
@@ -259,5 +261,22 @@
     "edit_not_implemented": "La fonctionnalité de modification d'horloge n'est pas encore implémentée.",
     "fullscreen_not_implemented": "La fonctionnalité de plein écran n'est pas encore implémentée.",
     "save_changes": "Enregistrer les modifications"
+  },
+  "everything": {
+    "main_panel": "Panneau Principal",
+    "local_time": "Heure Locale",
+    "active_alarms": "Alarmes Actives",
+    "running_timers": "Minuteurs Actifs",
+    "world_clocks": "Horloges Mondiales",
+    "upcoming_events": "Événements à Venir",
+    "next_alarm": "Prochaine Alarme",
+    "active_timer": "Minuteur Actif",
+    "stopwatch": "Chronomètre",
+    "quick_actions": "Actions Rapides",
+    "new_alarm": "Nouvelle Alarme",
+    "new_timer": "Nouveau Minuteur",
+    "add_clock": "Ajouter une Horloge",
+    "no_active_alarms": "Aucune alarme active",
+    "no_running_timers": "Aucun minuteur en cours"
   }
 }

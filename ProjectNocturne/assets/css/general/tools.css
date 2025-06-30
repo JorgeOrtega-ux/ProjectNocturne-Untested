@@ -874,15 +874,22 @@
     transform: rotate(180deg);
 }
 
+.laps-table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
 .laps-table {
     width: 100%;
+    min-width: 400px;
     border-collapse: collapse;
 }
 
 .laps-table th, .laps-table td {
-    padding: 8px 12px;
+    padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid #00000020;
+    white-space: nowrap;
 }
 
 .laps-table tbody tr:hover {
@@ -891,4 +898,8 @@
 
 .laps-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+.laps-table tbody tr {
+    cursor: pointer;
 }

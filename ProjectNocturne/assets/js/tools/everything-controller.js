@@ -15,27 +15,54 @@ const UIElements = {
     stopwatchDetails: document.getElementById('stopwatch-details')
 };
 
-let updateInterval = null;
+let smartUpdateInterval = null;
 
 /**
  * Inicializa el controlador de la sección "Everything".
  */
 export function initializeEverything() {
-    if (updateInterval) {
-        clearInterval(updateInterval);
+    if (smartUpdateInterval) {
+        clearInterval(smartUpdateInterval);
     }
-    updateAllWidgets();
-    updateInterval = setInterval(updateAllWidgets, 1000); // Actualiza cada segundo
-    console.log('✅ Controlador "Everything" inicializado.');
+    // Llama a todas las actualizaciones una vez al inicio para evitar datos vacíos
+    updateEverythingWidgets();
+
+    // Inicia un intervalo inteligente
+    smartUpdateInterval = setInterval(smartUpdate, 1000);
+    console.log('✅ Controlador "Everything" inicializado con intervalo inteligente.');
 }
 
 /**
- * Función principal que actualiza todos los widgets en la pantalla.
+ * Función que actualiza los widgets de resumen y eventos.
+ * Esta función será exportada para ser llamada por otros módulos en eventos específicos.
  */
-function updateAllWidgets() {
-    updateCurrentDate();
+export function updateEverythingWidgets() {
+    console.log('🔄 Actualizando widgets de "Everything" por un evento...');
+    updateCurrentDate(); // Se asegura que la fecha esté siempre correcta
     updateSummaryWidgets();
     updateUpcomingEvents();
+}
+
+/**
+ * El nuevo intervalo inteligente que se ejecuta cada segundo.
+ */
+function smartUpdate() {
+    // La fecha y hora local siempre se actualizan.
+    updateCurrentDate();
+
+    // El cronómetro solo se actualiza si está corriendo.
+    if (window.stopwatchController && typeof window.stopwatchController.isStopwatchRunning === 'function' && window.stopwatchController.isStopwatchRunning()) {
+        if (UIElements.stopwatchDetails) {
+            UIElements.stopwatchDetails.textContent = window.stopwatchController.getStopwatchDetails();
+        }
+    }
+    
+    // El temporizador activo también necesita actualización constante.
+    if (window.timerManager && typeof window.timerManager.getRunningTimersCount === 'function' && window.timerManager.getRunningTimersCount() > 0) {
+        if (UIElements.activeTimerDetails) {
+            UIElements.activeTimerDetails.textContent = window.timerManager.getActiveTimerDetails();
+        }
+    }
 }
 
 /**
@@ -44,21 +71,16 @@ function updateAllWidgets() {
 function updateCurrentDate() {
     const now = new Date();
 
-    // Actualización de la fecha con sistema de traducción
     if (UIElements.currentDateSubtitle) {
         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-
         const dayOfWeek = getTranslation(dayNames[now.getDay()], 'weekdays');
         const month = getTranslation(monthNames[now.getMonth()], 'months');
         const dayOfMonth = now.getDate();
         const year = now.getFullYear();
-
-        // Formato: "lunes, 30 de junio de 2025"
         UIElements.currentDateSubtitle.textContent = `${dayOfWeek}, ${dayOfMonth} de ${month} de ${year}`;
     }
 
-    // Actualización de la hora (sin cambios)
     if (UIElements.mainClockTime) {
         const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: !use24HourFormat };
         UIElements.mainClockTime.textContent = now.toLocaleTimeString(navigator.language, timeOptions);
@@ -69,18 +91,13 @@ function updateCurrentDate() {
  * Actualiza los widgets de resumen (conteos).
  */
 function updateSummaryWidgets() {
-    // Conteo de Alarmas Activas
-    if (window.alarmManager && typeof window.alarmManager.getActiveAlarmsCount === 'function' && UIElements.activeAlarmsCount) {
+    if (window.alarmManager && UIElements.activeAlarmsCount) {
         UIElements.activeAlarmsCount.textContent = window.alarmManager.getActiveAlarmsCount();
     }
-
-    // Conteo de Temporizadores Corriendo
-    if (window.timerManager && typeof window.timerManager.getRunningTimersCount === 'function' && UIElements.activeTimersCount) {
+    if (window.timerManager && UIElements.activeTimersCount) {
         UIElements.activeTimersCount.textContent = window.timerManager.getRunningTimersCount();
     }
-
-    // Conteo de Relojes Mundiales
-    if (window.worldClockManager && typeof window.worldClockManager.getClockCount === 'function' && UIElements.worldClocksCount) {
+    if (window.worldClockManager && UIElements.worldClocksCount) {
         UIElements.worldClocksCount.textContent = window.worldClockManager.getClockCount();
     }
 }
@@ -89,21 +106,15 @@ function updateSummaryWidgets() {
  * Actualiza la lista de próximos eventos.
  */
 function updateUpcomingEvents() {
-    // Próxima Alarma
-    if (window.alarmManager && typeof window.alarmManager.getNextAlarmDetails === 'function' && UIElements.nextAlarmDetails) {
+    if (window.alarmManager && UIElements.nextAlarmDetails) {
         const nextAlarm = window.alarmManager.getNextAlarmDetails();
         UIElements.nextAlarmDetails.textContent = nextAlarm || getTranslation('no_active_alarms', 'everything');
     }
-
-    // Temporizador Activo
-    if (window.timerManager && typeof window.timerManager.getActiveTimerDetails === 'function' && UIElements.activeTimerDetails) {
+    if (window.timerManager && UIElements.activeTimerDetails) {
         const activeTimer = window.timerManager.getActiveTimerDetails();
         UIElements.activeTimerDetails.textContent = activeTimer || getTranslation('no_running_timers', 'everything');
     }
-
-    // Cronómetro
-    if (window.stopwatchController && typeof window.stopwatchController.getStopwatchDetails === 'function' && UIElements.stopwatchDetails) {
-        const stopwatchStatus = window.stopwatchController.getStopwatchDetails();
-        UIElements.stopwatchDetails.textContent = stopwatchStatus;
+    if (window.stopwatchController && UIElements.stopwatchDetails) {
+        UIElements.stopwatchDetails.textContent = window.stopwatchController.getStopwatchDetails();
     }
 }

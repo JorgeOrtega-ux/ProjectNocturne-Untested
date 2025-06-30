@@ -1,9 +1,11 @@
+// jorgeortega-ux/projectnocturne-alpha/ProjectNocturne-Alpha-32dae5d9be5dbd76db6b6638608d9bf9b2fb28e3/ProjectNocturne/assets/js/tools/timer-controller.js
 // /assets/js/tools/timer-controller.js
 
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
 import { playSound, stopSound, generateSoundList, initializeSortable } from './general-tools.js';
+import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
 // --- ESTADO Y CONSTANTES ---
 const TIMERS_STORAGE_KEY = 'user-timers';
@@ -21,6 +23,10 @@ const DEFAULT_TIMERS = [
 
 export function getTimersCount() {
     return userTimers.length;
+}
+
+export function getTimerLimit() {
+    return PREMIUM_FEATURES ? 10 : 3;
 }
 
 function createExpandableTimerContainer(type, titleKey, icon) {
@@ -96,7 +102,6 @@ if (resetBtn) {
     updateMainDisplay();
     initializeSortableGrids();
     updateMainControlsState();
-    updatePinnedStatesInUI();
     updateTimerCounts();
 
     console.log('✅ Inicialización de timer completada.');
@@ -110,7 +115,9 @@ if (resetBtn) {
         dismissTimer,
         handlePinTimer,
         toggleTimersSection,
-        findTimerById
+        findTimerById,
+        getTimersCount,
+        getTimerLimit
     };
 }
 
@@ -179,8 +186,7 @@ function loadAndRestoreTimers() {
     pinnedTimerId = pinnedTimer ? pinnedTimer.id : null;
     allTimers.forEach(t => t.isPinned = (t.id === pinnedTimerId));
 
-    saveTimersToStorage();
-    saveDefaultTimersOrder();
+    saveAllTimersState();
 }
 
 function saveAllTimersState() {
@@ -349,6 +355,16 @@ export function addTimerAndRender(timerData) {
         isPinned: false,
     };
 
+    const timerLimit = PREMIUM_FEATURES ? 10 : 3;
+    if (userTimers.length >= timerLimit) {
+        // Corrected: Replaced alert() with dynamic island notification for timer limit
+        showDynamicIslandNotification('system', 'premium_required', 'limit_reached_generic', 'notifications', {
+            type: getTranslation('timer', 'tooltips'), // "Timer"
+            limit: timerLimit
+        });
+        return; // Prevent creating timer if limit reached
+    }
+
     if (timerData.type === 'count_to_date') {
         newTimer.targetDate = timerData.targetDate;
         newTimer.remaining = new Date(timerData.targetDate).getTime() - Date.now();
@@ -374,6 +390,12 @@ export function addTimerAndRender(timerData) {
     if (newTimer.type === 'count_to_date') {
         startTimer(newTimer.id);
     }
+
+    // Show dynamic island notification on creation
+    showDynamicIslandNotification('timer', 'created', 'notifications_message_placeholder', 'notifications', { // Placeholder
+        title: newTimer.title,
+        duration: formatTime(newTimer.remaining, newTimer.type)
+    });
 }
 
 export function updateTimer(timerId, newData) {
@@ -409,6 +431,12 @@ export function updateTimer(timerId, newData) {
     renderAllTimerCards();
     updateMainDisplay();
     updateMainControlsState();
+
+    // Show dynamic island notification on update
+    showDynamicIslandNotification('timer', 'updated', 'notifications_message_placeholder', 'notifications', { // Placeholder
+        title: updatedTimer.title,
+        duration: formatTime(updatedTimer.remaining, updatedTimer.type)
+    });
 }
 
 
@@ -672,6 +700,19 @@ function handleTimerEnd(timerId) {
     } else {
         const card = document.getElementById(timerId);
         card?.querySelector('.card-options-container')?.classList.add('active');
+
+        // Show dynamic island notification when timer ends
+        const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
+        showDynamicIslandNotification('timer', 'ringing', 'notifications_message_placeholder', 'notifications', { // Placeholder
+            title: translatedTitle,
+            duration: formatTime(timer.remaining, timer.type),
+            toolId: timer.id
+        }, (dismissedId) => {
+            // This callback is executed when the dynamic island's dismiss button is clicked
+            if (dismissedId === timer.id) {
+                dismissTimer(timer.id);
+            }
+        });
     }
 }
 
@@ -768,6 +809,16 @@ function handleDeleteTimer(timerId) {
     updateMainDisplay();
     updateMainControlsState();
     updateTimerCounts();
+    // Also hide dynamic island if this timer was ringing
+    if (window.hideDynamicIsland) {
+        window.hideDynamicIsland();
+    }
+
+    // Show dynamic island notification on successful deletion
+    const translatedTitle = findTimerById(timerId)?.id.startsWith('default-timer-') ? getTranslation(findTimerById(timerId).title, 'timer') : findTimerById(timerId)?.title;
+    showDynamicIslandNotification('timer', 'deleted', 'timer_deleted_success', 'notifications', {
+        title: translatedTitle
+    });
 }
 
 function updateTimerCardVisuals(timer) {

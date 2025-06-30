@@ -2,6 +2,7 @@ import { PREMIUM_FEATURES, use24HourFormat, activateModule, getCurrentActiveOver
 import { prepareWorldClockForEdit } from './menu-interactions.js';
 import { updateZoneInfo } from './zoneinfo-controller.js';
 import { initializeSortable } from './general-tools.js';
+import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
 const clockIntervals = new Map();
 const CLOCKS_STORAGE_KEY = 'world-clocks';
@@ -13,7 +14,11 @@ const loadCountriesAndTimezones = () => new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/gh/manuelmhtr/countries-and-timezones@latest/dist/index.min.js';
     script.onload = () => window.ct ? resolve(window.ct) : reject(new Error('Library loaded but ct object not found'));
-    script.onerror = (error) => reject(new Error('Failed to load countries-and-timezones script'));
+    script.onerror = (error) => {
+        // Show dynamic island notification on error
+        showDynamicIslandNotification('system', 'error', 'loading_countries_error', 'notifications');
+        reject(new Error('Failed to load countries-and-timezones script'));
+    };
     document.head.appendChild(script);
 });
 
@@ -180,6 +185,25 @@ function createLocalClockCardAndAppend() {
     grid.insertAdjacentHTML('afterbegin', cardHTML); // Use afterbegin to ensure it's the first card
 }
 
+function getTranslation(key, category) {
+    if (typeof window.getTranslation === 'function') {
+        const text = window.getTranslation(key, category);
+        return text === key ? key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : text;
+    }
+    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// Function to get the current number of user-created clocks
+function getClockCount() {
+    return userClocks.length;
+}
+
+// Function to get the clock limit based on PREMIUM_FEATURES
+function getClockLimit() {
+    return PREMIUM_FEATURES ? 100 : 5;
+}
+
+
 function createAndStartClockCard(title, country, timezone, existingId = null, save = true) {
     const grid = document.querySelector('.world-clocks-grid');
     if (!grid) return;
@@ -187,10 +211,17 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
     const totalClockLimit = PREMIUM_FEATURES ? 100 : 5;
     const totalCurrentClocks = grid.querySelectorAll('.tool-card').length;
 
-    if (save && totalCurrentClocks >= totalClockLimit) {
-        const limitMessage = getTranslation('clock_limit_reached', 'world_clock').replace('{limit}', totalClockLimit);
-        alert(limitMessage);
-        return;
+    // Check if the local clock card exists and count it if it's not the one being created
+    const hasLocalClock = document.querySelector('.local-clock-card');
+    const actualCurrentClocks = hasLocalClock && existingId !== 'local' ? totalCurrentClocks - 1 : totalCurrentClocks;
+
+
+    if (save && actualCurrentClocks >= totalClockLimit) {
+        showDynamicIslandNotification('system', 'premium_required', 'limit_reached_generic', 'notifications', {
+            type: getTranslation('world_clock', 'tooltips'), // "World Clock"
+            limit: totalClockLimit
+        });
+        return; // Prevent creating clock if limit reached
     }
 
     const ct = window.ct;
@@ -282,6 +313,11 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
     if (save) {
         userClocks.push({ id: cardId, title, country, timezone, countryCode });
         saveClocksToStorage();
+        // Show dynamic island notification on creation
+        showDynamicIslandNotification('worldClock', 'created', 'notifications_message_placeholder', 'notifications', { // Placeholder
+            title: title,
+            time: utcOffsetText
+        });
     }
 }
 
@@ -323,15 +359,14 @@ function updateClockCard(id, newData) {
             window.attachTooltipsToNewElements(card);
         }
     }, 0);
+
+    // Show dynamic island notification on update
+    showDynamicIslandNotification('worldClock', 'updated', 'notifications_message_placeholder', 'notifications', { // Placeholder
+        title: newData.title,
+        time: utcOffsetText
+    });
 }
 
-function getTranslation(key, category) {
-    if (typeof window.getTranslation === 'function') {
-        const text = window.getTranslation(key, category);
-        return text === key ? key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : text;
-    }
-    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-}
 
 function updateExistingCardsTranslations() {
     const cards = document.querySelectorAll('.tool-card.world-clock-card');
@@ -450,6 +485,11 @@ function deleteClock(clockId) {
         const localPinBtn = localClockCard.querySelector('.card-pin-btn');
         pinClock(localPinBtn);
     }
+    // Show dynamic island notification on successful deletion
+    const deletedClock = userClocks.find(clock => clock.id === clockId) || {title: "Unknown Clock"}; // Attempt to get original title if possible
+    showDynamicIslandNotification('worldClock', 'deleted', 'world_clock_deleted_success', 'notifications', {
+        title: deletedClock.title
+    });
 }
 
 function updateMainPinnedDisplay(card) {
@@ -506,7 +546,9 @@ window.worldClockManager = {
     updateExistingCardsTranslations,
     updateLocalClockTranslation,
     pinClock,
-    deleteClock
+    deleteClock,
+    getClockCount,
+    getClockLimit
 };
 
 export function initWorldClock() {

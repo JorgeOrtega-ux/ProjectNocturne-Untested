@@ -61,6 +61,7 @@ import { initializeTimerController } from '../tools/timer-controller.js';
 
 import { initializeAlarmClock } from '../tools/alarm-controller.js';
 import { initWorldClock } from '../tools/worldClock-controller.js';
+import { initDynamicIsland } from './dynamic-island-controller.js'; // NEW LINE
 
 // ========== CONFIGURATION CONSTANTS ==========
 
@@ -393,6 +394,7 @@ function initializeMainComponents() {
     initWorldClock();
     initializeStopwatch();
     initializeTimerController();
+    initDynamicIsland(); // NEW LINE: Initialize dynamic island
     setupEventListeners();
     batchMigrateTooltips();
     initializeMobileSidebarTooltips();

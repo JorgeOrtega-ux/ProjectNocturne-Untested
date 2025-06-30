@@ -61,7 +61,36 @@ function initializeTimerController() {
         wrapper.appendChild(userContainer);
         wrapper.appendChild(defaultContainer);
     }
+const section = document.querySelector('.section-timer');
+if (!section) return;
 
+const startBtn = section.querySelector('[data-action="start-pinned-timer"]');
+const pauseBtn = section.querySelector('[data-action="pause-pinned-timer"]');
+const resetBtn = section.querySelector('[data-action="reset-pinned-timer"]');
+
+if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        if (pinnedTimerId) {
+            startTimer(pinnedTimerId);
+        }
+    });
+}
+
+if (pauseBtn) {
+    pauseBtn.addEventListener('click', () => {
+        if (pinnedTimerId) {
+            pauseTimer(pinnedTimerId);
+        }
+    });
+}
+
+if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+        if (pinnedTimerId) {
+            resetTimer(pinnedTimerId);
+        }
+    });
+}
     loadAndRestoreTimers();
     renderAllTimerCards();
     updateMainDisplay();

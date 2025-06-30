@@ -365,9 +365,11 @@
     gap: 8px;
     margin-top: 8px;
 }
+
 .tool-grid.world-clocks-grid {
     margin-top: 0;
 }
+
 .tool-grid.active {
     display: grid;
 }
@@ -673,14 +675,16 @@
     opacity: 0.7;
 }
 
-.alarms-list-wrapper, .timers-list-wrapper {
+.alarms-list-wrapper,
+.timers-list-wrapper {
     display: flex;
     flex-direction: column;
     padding: 8px;
     gap: 8px;
 }
 
-.alarms-container, .timers-container {
+.alarms-container,
+.timers-container {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -731,7 +735,8 @@
     gap: 8px;
 }
 
-.alarm-count-badge, .timer-count-badge {
+.alarm-count-badge,
+.timer-count-badge {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -745,7 +750,8 @@
     border-radius: 12px;
 }
 
-.collapse-alarms-btn, .collapse-timers-btn {
+.collapse-alarms-btn,
+.collapse-timers-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -759,7 +765,8 @@
     transition: background-color 0.2s ease, transform 0.3s ease;
 }
 
-.collapse-alarms-btn:hover, .collapse-timers-btn:hover {
+.collapse-alarms-btn:hover,
+.collapse-timers-btn:hover {
     background-color: #f5f5fa;
 }
 
@@ -798,8 +805,7 @@
     background-color: #ff2f2f;
 }
 
-.card-dismiss-btn[data-type="timer"]
- {
+.card-dismiss-btn[data-type="timer"] {
     background-color: #000;
 }
 
@@ -888,7 +894,8 @@
     border-collapse: collapse;
 }
 
-.laps-table th, .laps-table td {
+.laps-table th,
+.laps-table td {
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid #00000020;
@@ -905,7 +912,9 @@
 
 .laps-table tbody tr {
     cursor: pointer;
-}/* ====================================== */
+}
+
+/* ====================================== */
 /* ======== DYNAMIC ISLAND PERFECTO ==== */
 /* ====================================== */
 
@@ -946,7 +955,7 @@ dynamicIslandElement.innerHTML = `
     width: 44px;
     height: 44px;
     border-radius: 22px;
-    box-shadow: 
+    box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.5),
         0 2px 8px rgba(0, 0, 0, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -954,7 +963,7 @@ dynamicIslandElement.innerHTML = `
     border: 0.5px solid rgba(255, 255, 255, 0.08);
 
     /* Transiciones suaves y naturales */
-    transition: 
+    transition:
         opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
         transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
         width 0.5s cubic-bezier(0.23, 1, 0.32, 1) 0.1s,
@@ -972,7 +981,7 @@ dynamicIslandElement.innerHTML = `
     border-radius: 27px;
 
     /* Expansión más fluida */
-    transition: 
+    transition:
         width 0.6s cubic-bezier(0.23, 1, 0.32, 1),
         height 0.6s cubic-bezier(0.23, 1, 0.32, 1),
         border-radius 0.6s cubic-bezier(0.23, 1, 0.32, 1),
@@ -1042,7 +1051,7 @@ dynamicIslandElement.innerHTML = `
 /* --- CONTENEDOR DE TEXTO --- */
 .notification-text-info {
     flex: 1;
-    min-width: 0;
+    min-width: max-content;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -1091,8 +1100,8 @@ dynamicIslandElement.innerHTML = `
     pointer-events: none;
     backdrop-filter: blur(10px);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-    
-    transition: 
+
+    transition:
         background 0.2s ease,
         opacity 0.3s ease,
         transform 0.2s ease,
@@ -1117,8 +1126,15 @@ dynamicIslandElement.innerHTML = `
 
 /* --- ANIMACIONES ADICIONALES --- */
 @keyframes island-pulse {
-    0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
-    50% { transform: translateX(-50%) translateY(0) scale(1.02); }
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(0) scale(1.02);
+    }
 }
 
 #dynamic-island.active-tool-ringing {
@@ -1131,7 +1147,7 @@ dynamicIslandElement.innerHTML = `
 
 /* Solo ajustamos las sombras en modo claro para mejor visibilidad */
 html.light-mode #dynamic-island {
-    box-shadow: 
+    box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.25),
         0 4px 16px rgba(0, 0, 0, 0.15),
         0 2px 8px rgba(0, 0, 0, 0.1),
@@ -1146,39 +1162,39 @@ html.light-mode #dynamic-island {
         height: 40px;
         border-radius: 20px;
     }
-    
+
     #dynamic-island.expanded {
         width: 280px;
         height: 50px;
         border-radius: 25px;
     }
-    
+
     #dynamic-island.active-tool-ringing {
         width: 320px;
     }
-    
+
     .island-notification-content {
         padding: 0 14px;
     }
-    
+
     .island-circle {
         width: 32px;
         height: 32px;
         border-radius: 16px;
     }
-    
+
     .notification-icon-symbol {
         font-size: 18px;
     }
-    
+
     .notification-title {
         font-size: 13px;
     }
-    
+
     .notification-message {
         font-size: 10px;
     }
-    
+
     .island-dismiss-button {
         padding: 5px 10px;
         font-size: 10px;

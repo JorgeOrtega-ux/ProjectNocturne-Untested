@@ -28,7 +28,6 @@ export function initDynamicIsland() {
     dynamicIslandElement.id = 'dynamic-island';
     dynamicIslandElement.classList.remove('expanded', 'active-tool-ringing');
 
-    // Estructura HTML mejorada
     dynamicIslandElement.innerHTML = `
         <div class="island-notification-content">
             <div class="island-left-group">
@@ -65,6 +64,7 @@ export function initDynamicIsland() {
  * @param {string} toolType - El tipo de herramienta ('alarm', 'timer', 'system').
  * @param {string} actionType - La acción ('created', 'updated', 'ringing', 'deleted', 'limit_reached').
  * @param {string} messageKey - La clave del mensaje principal.
+ * @param {string} category - La categoría de la traducción para el mensaje.
  * @param {object} [data={}] - Datos para los marcadores de posición del mensaje (ej. {title: 'Mi Alarma'}).
  * @param {function} [onDismiss=null] - Callback para el botón de descarte.
  */
@@ -93,14 +93,22 @@ export function showDynamicIslandNotification(toolType, actionType, messageKey, 
     }
     iconSymbol.textContent = ICONS[iconKey] || ICONS.default;
     
-    // 2. Construir el Título
-    const translatedTool = getTranslation(toolType, 'tooltips');
-    let titleKey = `${actionType}_title`;
-    if (toolType === 'system' && actionType === 'premium_required') {
-        titleKey = 'premium_required_title';
+    // 2. Construir el Título (CORREGIDO)
+    // Se usa una llave de traducción directa para el título, en lugar de construirlo.
+    const titleKey = `${toolType}_${actionType}_title` in (window.translations?.notifications || {}) 
+        ? `${toolType}_${actionType}_title` 
+        : `${actionType}_title`;
+        
+    let titleText = getTranslation(titleKey, 'notifications');
+
+    // Reemplazar {type} si existe en la cadena del título
+    const translatedToolType = getTranslation(toolType, 'tooltips'); // e.g., 'Alarma', 'Temporizador'
+    if (titleText.includes('{type}')) {
+        titleText = titleText.replace('{type}', translatedToolType);
     }
-    const translatedAction = getTranslation(titleKey, 'notifications');
-    titleP.textContent = translatedAction.replace('{type}', translatedTool);
+    
+    titleP.textContent = titleText;
+
 
     // 3. Construir el Mensaje
     messageP.textContent = formatMessage(messageKey, category, data);
@@ -163,9 +171,10 @@ export function hideDynamicIsland() {
 function getTranslation(key, category = 'general') {
     if (typeof window.getTranslation === 'function') {
         const translated = window.getTranslation(key, category);
-        return (translated && translated !== key) ? translated : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        // Fallback mejorado para no capitalizar llaves no encontradas.
+        return (translated && translated !== key) ? translated : key;
     }
-    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return key;
 }
 
 window.hideDynamicIsland = hideDynamicIsland;

@@ -15,6 +15,7 @@
     "error_title": "Error",
     "premium_title": "Función Premium",
     "limit_reached_title": "Límite Alcanzado",
+    "premium_required_title": "Función Premium Requerida",
     "alarm_created": "Alarma '{title}' ha sido creada.",
     "alarm_updated": "Alarma '{title}' ha sido actualizada.",
     "alarm_deleted": "Alarma '{title}' fue eliminada.",
@@ -27,8 +28,12 @@
     "worldclock_updated": "Reloj '{title}' fue actualizado.",
     "worldclock_deleted": "Reloj '{title}' fue eliminado.",
     "limit_reached": "Límite de {limit} {type}s alcanzado.",
+    "limit_reached_generic": "Límite de {limit} {type}s alcanzado. Actualiza para añadir más.",
     "loading_countries_error": "Error al cargar la lista de países.",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "notifications_message_placeholder": "La notificación para '{title}' se ha configurado.",
+    "timer_deleted_success": "El temporizador para '{title}' ha sido eliminado.",
+    "world_clock_deleted_success": "El reloj para '{title}' ha sido eliminado."
   },
   "color_system": {
     "color_unavailable": "No disponible",

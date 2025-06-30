@@ -15,6 +15,7 @@
     "error_title": "Error",
     "premium_title": "Premium Feature",
     "limit_reached_title": "Limit Reached",
+    "premium_required_title": "Premium Required",
     "alarm_created": "Alarm '{title}' has been set.",
     "alarm_updated": "Alarm '{title}' has been updated.",
     "alarm_deleted": "Alarm '{title}' was deleted.",
@@ -27,8 +28,12 @@
     "worldclock_updated": "Clock '{title}' was updated.",
     "worldclock_deleted": "Clock '{title}' was deleted.",
     "limit_reached": "Limit of {limit} {type}s reached.",
+    "limit_reached_generic": "Limit of {limit} {type}s reached. Upgrade to add more.",
     "loading_countries_error": "Error loading countries list.",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "notifications_message_placeholder": "Notification for '{title}' has been set.",
+    "timer_deleted_success": "The timer for '{title}' has been deleted.",
+    "world_clock_deleted_success": "The clock for '{title}' has been deleted."
   },
   "color_system": {
     "color_unavailable": "Not available",

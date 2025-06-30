@@ -68,7 +68,7 @@ export function initDynamicIsland() {
  * @param {object} [data={}] - Datos para los marcadores de posición del mensaje (ej. {title: 'Mi Alarma'}).
  * @param {function} [onDismiss=null] - Callback para el botón de descarte.
  */
-export function showDynamicIslandNotification(toolType, actionType, messageKey, data = {}, onDismiss = null) {
+export function showDynamicIslandNotification(toolType, actionType, messageKey, category, data = {}, onDismiss = null) {
     if (!dynamicIslandElement) initDynamicIsland();
     if (!dynamicIslandElement) return;
 
@@ -95,11 +95,15 @@ export function showDynamicIslandNotification(toolType, actionType, messageKey, 
     
     // 2. Construir el Título
     const translatedTool = getTranslation(toolType, 'tooltips');
-    const translatedAction = getTranslation(`${actionType}_title`, 'notifications');
+    let titleKey = `${actionType}_title`;
+    if (toolType === 'system' && actionType === 'premium_required') {
+        titleKey = 'premium_required_title';
+    }
+    const translatedAction = getTranslation(titleKey, 'notifications');
     titleP.textContent = translatedAction.replace('{type}', translatedTool);
 
     // 3. Construir el Mensaje
-    messageP.textContent = formatMessage(messageKey, 'notifications', data);
+    messageP.textContent = formatMessage(messageKey, category, data);
 
     // 4. Configurar el botón de Descarte
     dismissButton.textContent = getTranslation('dismiss', 'notifications');

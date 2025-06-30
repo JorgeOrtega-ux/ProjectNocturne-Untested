@@ -392,7 +392,7 @@ export function addTimerAndRender(timerData) {
     }
 
     // Show dynamic island notification on creation
-    showDynamicIslandNotification('timer', 'created', 'notifications_message_placeholder', 'notifications', { // Placeholder
+    showDynamicIslandNotification('timer', 'created', 'notifications_message_placeholder', 'notifications', { 
         title: newTimer.title,
         duration: formatTime(newTimer.remaining, newTimer.type)
     });
@@ -433,7 +433,7 @@ export function updateTimer(timerId, newData) {
     updateMainControlsState();
 
     // Show dynamic island notification on update
-    showDynamicIslandNotification('timer', 'updated', 'notifications_message_placeholder', 'notifications', { // Placeholder
+    showDynamicIslandNotification('timer', 'updated', 'notifications_message_placeholder', 'notifications', { 
         title: updatedTimer.title,
         duration: formatTime(updatedTimer.remaining, updatedTimer.type)
     });
@@ -703,9 +703,8 @@ function handleTimerEnd(timerId) {
 
         // Show dynamic island notification when timer ends
         const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
-        showDynamicIslandNotification('timer', 'ringing', 'notifications_message_placeholder', 'notifications', { // Placeholder
+        showDynamicIslandNotification('timer', 'ringing', 'timer_ringing', 'notifications', {
             title: translatedTitle,
-            duration: formatTime(timer.remaining, timer.type),
             toolId: timer.id
         }, (dismissedId) => {
             // This callback is executed when the dynamic island's dismiss button is clicked
@@ -779,6 +778,8 @@ function handleDeleteTimer(timerId) {
         clearInterval(activeTimers.get(timerId));
         activeTimers.delete(timerId);
     }
+    const timerToDelete = findTimerById(timerId);
+    const originalTitle = timerToDelete.id.startsWith('default-timer-') ? getTranslation(timerToDelete.title, 'timer') : timerToDelete.title;
 
     const userIndex = userTimers.findIndex(t => t.id === timerId);
     if(userIndex !== -1) {
@@ -815,9 +816,8 @@ function handleDeleteTimer(timerId) {
     }
 
     // Show dynamic island notification on successful deletion
-    const translatedTitle = findTimerById(timerId)?.id.startsWith('default-timer-') ? getTranslation(findTimerById(timerId).title, 'timer') : findTimerById(timerId)?.title;
     showDynamicIslandNotification('timer', 'deleted', 'timer_deleted_success', 'notifications', {
-        title: translatedTitle
+        title: originalTitle
     });
 }
 

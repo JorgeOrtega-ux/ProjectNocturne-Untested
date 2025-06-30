@@ -77,15 +77,15 @@
                         </div>
                         <div class="menu-content-general">
                             <div class="enter-sound-wrapper">
-                                <div class="enter-sound-content" data-action="toggleTimerSoundDropdown">
-                                    <div class="enter-sound-content-left"><span id="timer-selected-sound" data-translate="classic_beep" data-translate-category="sounds">Beep Clásico</span></div>
+                                <div class="enter-sound-content" data-action="toggleCountdownSoundDropdown">
+                                    <div class="enter-sound-content-left"><span id="countdown-selected-sound" data-translate="classic_beep" data-translate-category="sounds">Beep Clásico</span></div>
                                     <div class="enter-sound-content-right"><span class="material-symbols-rounded">expand_more</span></div>
                                 </div>
-                                <div class="dropdown-menu-container menu-timer-sound disabled body-title" data-menu="timerSoundMenu">
+                                <div class="dropdown-menu-container menu-countdown-sound disabled body-title" data-menu="countdownSoundMenu">
                                     <div class="menu-list">
                                         </div>
                                 </div>
-                                <div class="menu-action-button" data-action="previewTimerSound"><span class="material-symbols-rounded">play_arrow</span></div>
+                                <div class="menu-action-button" data-action="previewCountdownSound"><span class="material-symbols-rounded">play_arrow</span></div>
                             </div>
                         </div>
                     </div>
@@ -150,6 +150,24 @@
                                             </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="menu-content">
+                        <div class="menu-content-header">
+                            <div class="menu-content-header-primary"><span class="material-symbols-rounded">music_note</span><span data-translate="alarm_sound" data-translate-category="alarms">Sonido</span></div>
+                        </div>
+                        <div class="menu-content-general">
+                            <div class="enter-sound-wrapper">
+                                <div class="enter-sound-content" data-action="toggleCountToDateSoundDropdown">
+                                    <div class="enter-sound-content-left"><span id="count-to-date-selected-sound" data-translate="classic_beep" data-translate-category="sounds">Beep Clásico</span></div>
+                                    <div class="enter-sound-content-right"><span class="material-symbols-rounded">expand_more</span></div>
+                                </div>
+                                <div class="dropdown-menu-container menu-count-to-date-sound disabled body-title" data-menu="countToDateSoundMenu">
+                                    <div class="menu-list">
+                                        </div>
+                                </div>
+                                <div class="menu-action-button" data-action="previewCountToDateSound"><span class="material-symbols-rounded">play_arrow</span></div>
                             </div>
                         </div>
                     </div>

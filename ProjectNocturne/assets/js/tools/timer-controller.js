@@ -119,7 +119,6 @@ function loadAndRestoreTimers() {
     allTimers.forEach(timer => {
         if (timer.isRunning) {
             if (timer.type === 'countdown') {
-                // Si el temporizador estaba corriendo, calculamos el tiempo restante.
                 if (timer.targetTime) {
                     const newRemaining = timer.targetTime - now;
                     timer.remaining = Math.max(0, newRemaining);
@@ -129,7 +128,7 @@ function loadAndRestoreTimers() {
                     startCountdownTimer(timer);
                 } else {
                     timer.isRunning = false;
-                    delete timer.targetTime; // Limpiamos el tiempo objetivo
+                    delete timer.targetTime; 
                 }
             } else if (timer.type === 'count_to_date') {
                 timer.remaining = new Date(timer.targetDate).getTime() - now;
@@ -161,13 +160,11 @@ function saveAllTimersState() {
 }
 
 function saveTimersToStorage() {
-    // MODIFICACIÓN: Añadido console.log para depuración
     console.log(`[LocalStorage Save] Guardando datos en la clave: '${TIMERS_STORAGE_KEY}'`, userTimers);
     localStorage.setItem(TIMERS_STORAGE_KEY, JSON.stringify(userTimers));
 }
 
 function saveDefaultTimersOrder() {
-    // MODIFICACIÓN: Añadido console.log para depuración
     console.log(`[LocalStorage Save] Guardando datos en la clave: '${DEFAULT_TIMERS_STORAGE_KEY}'`, defaultTimersState);
     localStorage.setItem(DEFAULT_TIMERS_STORAGE_KEY, JSON.stringify(defaultTimersState));
 }
@@ -194,8 +191,6 @@ function startTimer(timerId) {
     updateTimerCardControls(timerId);
     updateMainControlsState();
 
-    // --- CORRECCIÓN ---
-    // Comprueba si el temporizador existe en el array de usuario para decidir qué guardar.
     const isUserTimer = userTimers.some(t => t.id === timerId);
     if (isUserTimer) {
         saveTimersToStorage();
@@ -206,7 +201,6 @@ function startTimer(timerId) {
 function startCountdownTimer(timer) {
     timer.isRunning = true;
     const interval = setInterval(() => {
-        // En lugar de decrementar, calculamos el restante desde el objetivo
         timer.remaining = timer.targetTime ? timer.targetTime - Date.now() : 0;
         
         updateCardDisplay(timer.id);
@@ -227,10 +221,7 @@ function startCountToDateTimer(timer) {
         if (timer.id === pinnedTimerId) updateMainDisplay();
         
         if (timer.remaining <= 0) {
-            clearInterval(interval);
-            activeTimers.delete(timer.id);
-            timer.isRunning = false;
-            if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
+            handleTimerEnd(timer.id);
         }
     }, 1000);
     activeTimers.set(timer.id, interval);
@@ -247,8 +238,6 @@ function pauseTimer(timerId) {
 
     delete timer.targetTime;
     
-    // --- CORRECCIÓN ---
-    // Comprueba si el temporizador existe en el array de usuario para decidir qué guardar.
     const isUserTimer = userTimers.some(t => t.id === timerId);
     if (isUserTimer) {
         saveTimersToStorage();
@@ -272,14 +261,15 @@ function resetTimer(timerId) {
         timer.remaining = timer.initialDuration;
     }
     timer.isRunning = false;
-    delete timer.targetTime; // Aseguramos que no quede un tiempo objetivo
+    delete timer.targetTime; 
     
     updateCardDisplay(timerId);
     if (timer.id === pinnedTimerId) {
         updateMainDisplay();
     }
     
-    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
+    const isUserTimer = userTimers.some(t => t.id === timerId);
+    if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
     updateTimerCardControls(timerId);
     updateMainControlsState();
 }
@@ -321,24 +311,22 @@ function initializeSortableGrids() {
 
 
 export function addTimerAndRender(timerData) {
-    const isCountToDate = timerData.type === 'count_to_date';
-
     const newTimer = {
         id: `timer-${Date.now()}`,
         title: timerData.title,
         type: timerData.type,
+        sound: timerData.sound,
         isRunning: false,
         isPinned: false,
     };
 
-    if (isCountToDate) {
+    if (timerData.type === 'count_to_date') {
         newTimer.targetDate = timerData.targetDate;
         newTimer.remaining = new Date(timerData.targetDate).getTime() - Date.now();
     } else {
         newTimer.initialDuration = timerData.duration;
         newTimer.remaining = timerData.duration;
         newTimer.endAction = timerData.endAction;
-        newTimer.sound = timerData.sound;
     }
 
     userTimers.push(newTimer);
@@ -354,7 +342,7 @@ export function addTimerAndRender(timerData) {
     updateMainControlsState();
     updateTimerCounts();
 
-    if (isCountToDate) {
+    if (newTimer.type === 'count_to_date') {
         startTimer(newTimer.id);
     }
 }
@@ -375,27 +363,17 @@ export function updateTimer(timerId, newData) {
     const index = isUserTimer ? timerIndex : defaultTimerIndex;
     const oldTimer = targetArray[index];
 
-    if (newData.type === 'count_to_date') {
-        targetArray[index] = {
-            ...oldTimer,
-            title: newData.title,
-            targetDate: newData.targetDate,
-            remaining: new Date(newData.targetDate).getTime() - Date.now(),
-            isRunning: false
-        };
-        delete targetArray[index].targetTime; // Nos aseguramos que no haya un targetTime
+    const updatedTimer = { ...oldTimer, ...newData, isRunning: false };
+
+    if (updatedTimer.type === 'count_to_date') {
+        updatedTimer.remaining = new Date(updatedTimer.targetDate).getTime() - Date.now();
+        delete updatedTimer.targetTime;
+        targetArray[index] = updatedTimer;
         startTimer(timerId);
     } else {
-        targetArray[index] = {
-            ...oldTimer,
-            title: newData.title,
-            initialDuration: newData.duration,
-            remaining: newData.duration,
-            endAction: newData.endAction,
-            sound: newData.sound,
-            isRunning: false
-        };
-        delete targetArray[index].targetTime;
+        updatedTimer.remaining = updatedTimer.initialDuration;
+        delete updatedTimer.targetTime;
+        targetArray[index] = updatedTimer;
     }
     
     if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
@@ -468,7 +446,7 @@ function createTimerCard(timer) {
         </div>
         <div class="card-footer">
             <div class="card-tags">
-                 <span class="card-tag">${isCountdown ? getTranslation(timer.sound.replace(/-/g, '_'), 'sounds') : ''}</span>
+                 <span class="card-tag">${getTranslation((timer.sound || '').replace(/-/g, '_'), 'sounds')}</span>
             </div>
         </div>
         <div class="card-options-container">
@@ -593,7 +571,8 @@ function updatePinnedStatesInUI() {
         const firstTimer = allTimers[0];
         pinnedTimerId = firstTimer.id;
         firstTimer.isPinned = true;
-        if (firstTimer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
+        const isUserTimer = userTimers.some(t => t.id === firstTimer.id);
+        if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
     }
 
     document.querySelectorAll('.tool-card.timer-card').forEach(card => {
@@ -610,7 +589,6 @@ function formatTime(ms, type = 'countdown') {
         return type === 'count_to_date' ? getTranslation('event_finished', 'timer') || "¡Evento finalizado!" : "00:00:00";
     }
 
-    // --- CORRECCIÓN: Cambiado Math.floor por Math.round ---
     const totalSeconds = Math.max(0, Math.round(ms / 1000));
     
     if (type === 'count_to_date') {
@@ -631,7 +609,7 @@ function formatTime(ms, type = 'countdown') {
 }
 function handleTimerEnd(timerId) {
     const timer = findTimerById(timerId);
-    if (!timer || timer.type === 'count_to_date') return;
+    if (!timer) return;
     
     timer.isRunning = false;
     if (activeTimers.has(timerId)) {
@@ -639,16 +617,23 @@ function handleTimerEnd(timerId) {
         activeTimers.delete(timerId);
     }
     timer.remaining = 0;
-    delete timer.targetTime; // Limpiamos el tiempo objetivo al finalizar
+    if (timer.type === 'countdown') {
+       delete timer.targetTime; 
+    }
 
     updateCardDisplay(timerId);
     if (timer.id === pinnedTimerId) updateMainDisplay();
     updateTimerCardControls(timerId);
     updateMainControlsState();
-    if (timer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
+    
+    const isUserTimer = userTimers.some(t => t.id === timerId);
+    if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
 
-    if (timer.endAction === 'restart') {
+    if (timer.sound) {
         playSound(timer.sound);
+    }
+    
+    if (timer.type === 'countdown' && timer.endAction === 'restart') {
         setTimeout(() => {
             stopSound();
             resetTimer(timerId);
@@ -656,7 +641,6 @@ function handleTimerEnd(timerId) {
         }, 3000);
 
     } else {
-        playSound(timer.sound);
         const card = document.getElementById(timerId);
         card?.querySelector('.card-options-container')?.classList.add('active');
     }
@@ -743,8 +727,11 @@ function handleDeleteTimer(timerId) {
         pinnedTimerId = allTimers.length > 0 ? allTimers[0].id : null;
         if (pinnedTimerId) {
              const newPinnedTimer = findTimerById(pinnedTimerId);
-             if(newPinnedTimer) newPinnedTimer.isPinned = true;
-             if (newPinnedTimer.type === 'user') saveTimersToStorage(); else saveDefaultTimersOrder();
+             if(newPinnedTimer) {
+                 newPinnedTimer.isPinned = true;
+                 const isUser = userTimers.some(t => t.id === newPinnedTimer.id);
+                 if (isUser) saveTimersToStorage(); else saveDefaultTimersOrder();
+             }
         }
     }
     
@@ -771,10 +758,9 @@ function updateTimerCardVisuals(timer) {
         timeElement.textContent = formatTime(timer.remaining, timer.type);
     }
 
-    const isCountdown = timer.type === 'countdown';
     const tagElement = card.querySelector('.card-tag');
     if (tagElement) {
-        tagElement.textContent = isCountdown ? getTranslation(timer.sound.replace(/-/g, '_'), 'sounds') : '';
+        tagElement.textContent = getTranslation((timer.sound || '').replace(/-/g, '_'), 'sounds');
     }
 
     const dismissButton = card.querySelector('.card-dismiss-btn span');
@@ -818,8 +804,11 @@ function dismissTimer(timerId) {
         }
     }
     const timer = findTimerById(timerId);
-    if (timer && timer.endAction === 'stop') {
+    if (timer && timer.type === 'countdown' && timer.endAction === 'stop') {
         resetTimer(timerId);
+    } else if (timer && timer.type === 'count_to_date') {
+        // Para los de fecha, simplemente ocultamos el botón de descarte.
+        // No hay acción de reseteo automático.
     }
 }
 document.addEventListener('translationsApplied', () => {

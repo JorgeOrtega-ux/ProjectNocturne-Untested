@@ -9,7 +9,7 @@ const initialState = {
     timer: {
         currentTab: 'countdown',
         duration: { hours: 0, minutes: 5, seconds: 0 },
-        countTo: { date: new Date(), selectedDate: null, selectedHour: null, selectedMinute: null, timeSelectionStep: 'hour' },
+        countTo: { date: new Date(), selectedDate: null, selectedHour: null, selectedMinute: null, timeSelectionStep: 'hour', sound: 'classic_beep' },
         endAction: 'stop',
         sound: 'classic_beep'
     },
@@ -22,7 +22,8 @@ state.timer.countTo.date = new Date();
 const dropdownMap = {
     'toggleAlarmSoundDropdown': '.menu-alarm-sound',
     'toggleTimerEndActionDropdown': '.menu-timer-end-action',
-    'toggleTimerSoundDropdown': '.menu-timer-sound',
+    'toggleCountdownSoundDropdown': '.menu-countdown-sound',
+    'toggleCountToDateSoundDropdown': '.menu-count-to-date-sound',
     'toggleCalendarDropdown': '.calendar-container',
     'toggleTimerHourDropdown': '.menu-timer-hour-selection',
     'toggleCountryDropdown': '.menu-worldclock-country',
@@ -152,11 +153,15 @@ const resetTimerMenu = (menuElement) => {
     updateDisplay('#selected-hour-display', '--', menuElement);
     updateDisplay('#selected-minute-display', '--', menuElement);
     resetDropdownDisplay(menuElement, '#timer-selected-end-action', 'stop_timer', 'timer');
-    resetDropdownDisplay(menuElement, '#timer-selected-sound', 'classic_beep', 'sounds');
+    resetDropdownDisplay(menuElement, '#countdown-selected-sound', 'classic_beep', 'sounds');
+    resetDropdownDisplay(menuElement, '#count-to-date-selected-sound', 'classic_beep', 'sounds');
 
-    // Regenerate sound list with default active sound
-    const soundListContainer = menuElement.querySelector('.menu-timer-sound .menu-list');
-    generateSoundList(soundListContainer, 'selectTimerSound', state.timer.sound);
+    const countdownSoundList = menuElement.querySelector('.menu-countdown-sound .menu-list');
+    generateSoundList(countdownSoundList, 'selectCountdownSound', state.timer.sound);
+
+    const countToDateSoundList = menuElement.querySelector('.menu-count-to-date-sound .menu-list');
+    generateSoundList(countToDateSoundList, 'selectCountToDateSound', state.timer.countTo.sound);
+
 
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
@@ -289,10 +294,10 @@ export function prepareTimerForEdit(timerData) {
 
     updateTimerDurationDisplay(menuElement);
     updateDisplay('#timer-selected-end-action', getTranslation(`${timerData.endAction}_timer`, 'timer'), menuElement);
-    updateDisplay('#timer-selected-sound', getTranslation(timerData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
+    updateDisplay('#countdown-selected-sound', getTranslation(timerData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
 
-    const soundListContainer = menuElement.querySelector('.menu-timer-sound .menu-list');
-    generateSoundList(soundListContainer, 'selectTimerSound', timerData.sound);
+    const soundListContainer = menuElement.querySelector('.menu-countdown-sound .menu-list');
+    generateSoundList(soundListContainer, 'selectCountdownSound', timerData.sound);
 
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
@@ -326,6 +331,8 @@ export function prepareCountToDateForEdit(timerData) {
             titleInput.parentElement.classList.remove('disabled-interactive');
         }
     }
+    
+    state.timer.countTo.sound = timerData.sound;
 
     const targetDate = new Date(timerData.targetDate);
     state.timer.countTo.date = targetDate;
@@ -336,6 +343,10 @@ export function prepareCountToDateForEdit(timerData) {
     updateDisplay('#selected-date-display', targetDate.toLocaleDateString(), menuElement);
     updateDisplay('#selected-hour-display', String(targetDate.getHours()).padStart(2, '0'), menuElement);
     updateDisplay('#selected-minute-display', String(targetDate.getMinutes()).padStart(2, '0'), menuElement);
+    updateDisplay('#count-to-date-selected-sound', getTranslation(timerData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
+    
+    const soundListContainer = menuElement.querySelector('.menu-count-to-date-sound .menu-list');
+    generateSoundList(soundListContainer, 'selectCountToDateSound', timerData.sound);
     renderCalendar(menuElement);
 
     const createButton = menuElement.querySelector('.create-tool');
@@ -402,8 +413,11 @@ const initializeAlarmMenu = (menuElement) => {
 
 const initializeTimerMenu = (menuElement) => {
     if (!menuElement.hasAttribute('data-editing-id')) {
-        const soundListContainer = menuElement.querySelector('.menu-timer-sound .menu-list');
-        generateSoundList(soundListContainer, 'selectTimerSound', state.timer.sound);
+        const countdownSoundList = menuElement.querySelector('.menu-countdown-sound .menu-list');
+        generateSoundList(countdownSoundList, 'selectCountdownSound', state.timer.sound);
+
+        const countToDateSoundList = menuElement.querySelector('.menu-count-to-date-sound .menu-list');
+        generateSoundList(countToDateSoundList, 'selectCountToDateSound', state.timer.countTo.sound);
     }
     updateTimerDurationDisplay(menuElement); 
     renderCalendar(menuElement); 
@@ -720,13 +734,23 @@ function setupGlobalEventListeners() {
             case 'increaseTimerSecond': state.timer.duration.seconds = (state.timer.duration.seconds + 1) % 60; updateTimerDurationDisplay(parentMenu); break;
             case 'decreaseTimerSecond': state.timer.duration.seconds = (state.timer.duration.seconds - 1 + 60) % 60; updateTimerDurationDisplay(parentMenu); break;
             case 'selectTimerEndAction': event.stopPropagation(); handleSelect(actionTarget, '#timer-selected-end-action'); state.timer.endAction = actionTarget.dataset.endAction; break;
-            case 'selectTimerSound':
+            case 'selectCountdownSound':
                 event.stopPropagation();
-                handleSelect(actionTarget, '#timer-selected-sound');
+                handleSelect(actionTarget, '#countdown-selected-sound');
                 state.timer.sound = actionTarget.dataset.sound;
-                const timerSoundList = actionTarget.closest('.menu-list');
-                if (timerSoundList) {
-                    timerSoundList.querySelectorAll('.menu-link').forEach(link => link.classList.remove('active'));
+                const countdownSoundList = actionTarget.closest('.menu-list');
+                if (countdownSoundList) {
+                    countdownSoundList.querySelectorAll('.menu-link').forEach(link => link.classList.remove('active'));
+                }
+                actionTarget.classList.add('active');
+                break;
+            case 'selectCountToDateSound':
+                event.stopPropagation();
+                handleSelect(actionTarget, '#count-to-date-selected-sound');
+                state.timer.countTo.sound = actionTarget.dataset.sound;
+                const countToDateSoundList = actionTarget.closest('.menu-list');
+                if (countToDateSoundList) {
+                    countToDateSoundList.querySelectorAll('.menu-link').forEach(link => link.classList.remove('active'));
                 }
                 actionTarget.classList.add('active');
                 break;
@@ -763,15 +787,19 @@ function setupGlobalEventListeners() {
                 await populateTimezoneDropdown(parentMenu, countryCode);
                 break;
             case 'previewAlarmSound':
-                stopSound(); // Detiene cualquier sonido que se esté reproduciendo
+                stopSound();
                 playSound(state.alarm.sound);
-                setTimeout(stopSound, 1000); // Detiene el sonido después de 1 segundo
+                setTimeout(stopSound, 1000);
                 break;
-
-            case 'previewTimerSound':
-                stopSound(); // Detiene cualquier sonido que se esté reproduciendo
+            case 'previewCountdownSound':
+                stopSound();
                 playSound(state.timer.sound);
-                setTimeout(stopSound, 1000); // Detiene el sonido después de 1 segundo
+                setTimeout(stopSound, 1000);
+                break;
+            case 'previewCountToDateSound':
+                stopSound();
+                playSound(state.timer.countTo.sound);
+                setTimeout(stopSound, 1000);
                 break;
             case 'selectTimezone':
                 event.stopPropagation();
@@ -856,7 +884,6 @@ function setupGlobalEventListeners() {
                 }, 500);
                 break;
             }
-            // =================== INICIO DE LA MODIFICACIÓN ===================
             case 'createTimer': {
                 const timerLimit = PREMIUM_FEATURES ? 10 : 3;
                 if (getTimersCount() >= timerLimit) {
@@ -892,7 +919,7 @@ function setupGlobalEventListeners() {
                         if (eventTitle && selectedDate != null && typeof selectedHour === 'number' && typeof selectedMinute === 'number') {
                             const targetDate = new Date(selectedDate);
                             targetDate.setHours(selectedHour, selectedMinute, 0, 0);
-                            addTimerAndRender({ type: 'count_to_date', title: eventTitle, targetDate: targetDate.toISOString() });
+                            addTimerAndRender({ type: 'count_to_date', title: eventTitle, targetDate: targetDate.toISOString(), sound: state.timer.countTo.sound });
                             success = true;
                         }
                     }
@@ -900,7 +927,7 @@ function setupGlobalEventListeners() {
                     if (success) {
                         deactivateModule('overlayContainer', { source: 'create-timer' });
                     } else {
-                        removeSpinnerFromCreateButton(createButton); // Remover spinner si la validación falla
+                        removeSpinnerFromCreateButton(createButton); 
                     }
 
                     resetTimerMenu(parentMenu);
@@ -908,8 +935,6 @@ function setupGlobalEventListeners() {
                 }, 500);
                 break;
             }
-            // =================== FIN DE LA MODIFICACIÓN ===================
-
             case 'saveTimerChanges': {
                 const editingId = parentMenu.getAttribute('data-editing-id');
                 if (!editingId) return;
@@ -930,7 +955,7 @@ function setupGlobalEventListeners() {
                         updateTimer(editingId, { title: timerTitle, duration: durationInMs, endAction: state.timer.endAction, sound: state.timer.sound });
                         deactivateModule('overlayContainer', { source: 'save-timer' });
                     } else {
-                        removeSpinnerFromCreateButton(saveButton); // Remover spinner si la validación falla
+                        removeSpinnerFromCreateButton(saveButton); 
                     }
 
                     resetTimerMenu(parentMenu);
@@ -960,7 +985,8 @@ function setupGlobalEventListeners() {
                         updateTimer(editingId, {
                             type: 'count_to_date',
                             title: eventTitle,
-                            targetDate: targetDate.toISOString()
+                            targetDate: targetDate.toISOString(),
+                            sound: state.timer.countTo.sound
                         });
                         deactivateModule('overlayContainer', { source: 'save-timer' });
                     } else {

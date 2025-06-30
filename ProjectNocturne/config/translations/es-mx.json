@@ -261,7 +261,29 @@
     "edit_not_implemented": "La funcionalidad para editar el reloj aún no está implementada.",
     "fullscreen_not_implemented": "La funcionalidad de pantalla completa aún no está implementada.",
     "save_changes": "Guardar cambios"
-  },
+  },"weekdays": {
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
+},
+"months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+},
   "everything": {
     "main_panel": "Panel Principal",
     "local_time": "Hora Local",

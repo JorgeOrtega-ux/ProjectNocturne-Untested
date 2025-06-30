@@ -261,7 +261,29 @@
     "edit_not_implemented": "La fonctionnalité de modification d'horloge n'est pas encore implémentée.",
     "fullscreen_not_implemented": "La fonctionnalité de plein écran n'est pas encore implémentée.",
     "save_changes": "Enregistrer les modifications"
-  },
+  },"weekdays": {
+    "sunday": "dimanche",
+    "monday": "lundi",
+    "tuesday": "mardi",
+    "wednesday": "mercredi",
+    "thursday": "jeudi",
+    "friday": "vendredi",
+    "saturday": "samedi"
+},
+"months": {
+    "january": "janvier",
+    "february": "février",
+    "march": "mars",
+    "april": "avril",
+    "may": "mai",
+    "june": "juin",
+    "july": "juillet",
+    "august": "août",
+    "september": "septembre",
+    "october": "octobre",
+    "november": "novembre",
+    "december": "décembre"
+},
   "everything": {
     "main_panel": "Panneau Principal",
     "local_time": "Heure Locale",

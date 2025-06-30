@@ -43,19 +43,28 @@ function updateAllWidgets() {
  */
 function updateCurrentDate() {
     const now = new Date();
+
+    // Actualización de la fecha con sistema de traducción
     if (UIElements.currentDateSubtitle) {
-        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        // ESTA LÍNEA ES LA CLAVE:
-        // `toLocaleDateString` formatea la fecha usando el idioma del navegador (`navigator.language`).
-        // Si el navegador está en español, mostrará "lunes, 30 de junio de 2025".
-        // Si está en inglés, mostrará "Monday, June 30, 2025".
-        UIElements.currentDateSubtitle.textContent = now.toLocaleDateString(navigator.language, dateOptions);
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+
+        const dayOfWeek = getTranslation(dayNames[now.getDay()], 'weekdays');
+        const month = getTranslation(monthNames[now.getMonth()], 'months');
+        const dayOfMonth = now.getDate();
+        const year = now.getFullYear();
+
+        // Formato: "lunes, 30 de junio de 2025"
+        UIElements.currentDateSubtitle.textContent = `${dayOfWeek}, ${dayOfMonth} de ${month} de ${year}`;
     }
+
+    // Actualización de la hora (sin cambios)
     if (UIElements.mainClockTime) {
         const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: !use24HourFormat };
         UIElements.mainClockTime.textContent = now.toLocaleTimeString(navigator.language, timeOptions);
     }
 }
+
 /**
  * Actualiza los widgets de resumen (conteos).
  */

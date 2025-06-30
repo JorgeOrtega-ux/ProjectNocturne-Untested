@@ -261,7 +261,29 @@
     "edit_not_implemented": "Edit clock functionality is pending implementation.",
     "fullscreen_not_implemented": "Fullscreen functionality is pending implementation.",
     "save_changes": "Save Changes"
-  },
+  },"weekdays": {
+    "sunday": "domingo",
+    "monday": "lunes",
+    "tuesday": "martes",
+    "wednesday": "miércoles",
+    "thursday": "jueves",
+    "friday": "viernes",
+    "saturday": "sábado"
+},
+"months": {
+    "january": "enero",
+    "february": "febrero",
+    "march": "marzo",
+    "april": "abril",
+    "may": "mayo",
+    "june": "junio",
+    "july": "julio",
+    "august": "agosto",
+    "september": "septiembre",
+    "october": "octubre",
+    "november": "noviembre",
+    "december": "diciembre"
+},
   "everything": {
     "main_panel": "Main Panel",
     "local_time": "Local Time",

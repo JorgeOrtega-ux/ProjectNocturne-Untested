@@ -211,17 +211,16 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
     const totalClockLimit = PREMIUM_FEATURES ? 100 : 5;
     const totalCurrentClocks = grid.querySelectorAll('.tool-card').length;
 
-    // Check if the local clock card exists and count it if it's not the one being created
     const hasLocalClock = document.querySelector('.local-clock-card');
     const actualCurrentClocks = hasLocalClock && existingId !== 'local' ? totalCurrentClocks - 1 : totalCurrentClocks;
 
 
     if (save && actualCurrentClocks >= totalClockLimit) {
-        showDynamicIslandNotification('system', 'premium_required', 'limit_reached_generic', 'notifications', {
-            type: getTranslation('world_clock', 'tooltips'), // "World Clock"
+        showDynamicIslandNotification('system', 'limit_reached', 'limit_reached_generic', 'notifications', {
+            type: getTranslation('world_clock', 'tooltips'),
             limit: totalClockLimit
         });
-        return; // Prevent creating clock if limit reached
+        return; 
     }
 
     const ct = window.ct;
@@ -313,11 +312,8 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
     if (save) {
         userClocks.push({ id: cardId, title, country, timezone, countryCode });
         saveClocksToStorage();
-        // Show dynamic island notification on creation
-        showDynamicIslandNotification('worldClock', 'created', 'notifications_message_placeholder', 'notifications', { // Placeholder
-            title: title,
-            time: utcOffsetText
-        });
+        // ***** LÍNEA CORREGIDA *****
+        showDynamicIslandNotification('worldclock', 'created', 'worldclock_created', 'notifications', { title: title });
     }
 }
 
@@ -360,11 +356,8 @@ function updateClockCard(id, newData) {
         }
     }, 0);
 
-    // Show dynamic island notification on update
-    showDynamicIslandNotification('worldClock', 'updated', 'notifications_message_placeholder', 'notifications', { // Placeholder
-        title: newData.title,
-        time: utcOffsetText
-    });
+    // ***** LÍNEA CORREGIDA *****
+    showDynamicIslandNotification('worldclock', 'updated', 'worldclock_updated', 'notifications', { title: newData.title });
 }
 
 
@@ -407,7 +400,6 @@ function initializeLocalClock() {
 
     localClockCard.addEventListener('mouseleave', () => {
         const dropdown = menuContainer?.querySelector('.card-dropdown-menu');
-        // If there is no dropdown (like in the local card), or if it's closed, hide the container.
         if (!dropdown || dropdown.classList.contains('disabled')) {
             menuContainer?.classList.add('disabled');
         }
@@ -470,7 +462,9 @@ function deleteClock(clockId) {
     const card = document.getElementById(clockId);
     if (!card) return;
 
+    const deletedClockTitle = card.dataset.title;
     const isPinned = card.querySelector('.card-pin-btn.active');
+    
     if (clockIntervals.has(card)) {
         clearInterval(clockIntervals.get(card));
         clockIntervals.delete(card);
@@ -485,10 +479,9 @@ function deleteClock(clockId) {
         const localPinBtn = localClockCard.querySelector('.card-pin-btn');
         pinClock(localPinBtn);
     }
-    // Show dynamic island notification on successful deletion
-    const deletedClock = userClocks.find(clock => clock.id === clockId) || {title: "Unknown Clock"}; // Attempt to get original title if possible
-    showDynamicIslandNotification('worldClock', 'deleted', 'world_clock_deleted_success', 'notifications', {
-        title: deletedClock.title
+    // ***** LÍNEA CORREGIDA *****
+    showDynamicIslandNotification('worldclock', 'deleted', 'worldclock_deleted', 'notifications', {
+        title: deletedClockTitle
     });
 }
 

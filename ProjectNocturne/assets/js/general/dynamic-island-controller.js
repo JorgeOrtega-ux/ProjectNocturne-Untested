@@ -1,11 +1,13 @@
 // /assets/js/general/dynamic-island-controller.js
 
+import { translateElementTree } from './translations-controller.js';
+
 let dynamicIslandElement = null;
 let notificationTimeout = null;
 let dismissCallback = null;
 let currentRingingToolId = null;
 
-const NOTIFICATION_DISPLAY_DURATION = 3000;
+const NOTIFICATION_DISPLAY_DURATION = 5000;
 
 const ICONS = {
     'alarm': 'alarm',
@@ -28,6 +30,7 @@ export function initDynamicIsland() {
     dynamicIslandElement.id = 'dynamic-island';
     dynamicIslandElement.classList.remove('expanded', 'active-tool-ringing');
 
+    // Estructura HTML con atributos data-translate
     dynamicIslandElement.innerHTML = `
         <div class="island-notification-content">
             <div class="island-left-group">
@@ -35,12 +38,12 @@ export function initDynamicIsland() {
                     <span class="material-symbols-rounded notification-icon-symbol"></span>
                 </div>
                 <div class="notification-text-info">
-                    <p class="notification-title"></p>
-                    <p class="notification-message"></p>
+                    <p class="notification-title" data-translate="" data-translate-category="notifications"></p>
+                    <p class="notification-message" data-translate="" data-translate-category="notifications"></p>
                 </div>
             </div>
-            <button class="island-dismiss-button" data-action="dismiss-active-tool">
-                </button>
+            <button class="island-dismiss-button" data-action="dismiss-active-tool" data-translate="dismiss" data-translate-category="notifications">
+            </button>
         </div>
     `;
 
@@ -60,12 +63,12 @@ export function initDynamicIsland() {
 }
 
 /**
- * Muestra una notificación en la isla dinámica.
+ * Muestra una notificación en la isla dinámica utilizando el sistema data-translate.
  * @param {string} toolType - El tipo de herramienta ('alarm', 'timer', 'system').
- * @param {string} actionType - La acción ('created', 'updated', 'ringing', 'deleted', 'limit_reached').
- * @param {string} messageKey - La clave del mensaje principal.
- * @param {string} category - La categoría de la traducción para el mensaje.
- * @param {object} [data={}] - Datos para los marcadores de posición del mensaje (ej. {title: 'Mi Alarma'}).
+ * @param {string} actionType - La acción ('created', 'updated', 'ringing', 'deleted').
+ * @param {string} messageKey - La clave de traducción para el cuerpo del mensaje.
+ * @param {string} category - La categoría de la traducción para el mensaje (usualmente 'notifications').
+ * @param {object} [data={}] - Datos para los marcadores de posición (ej. {title: 'Mi Alarma'}).
  * @param {function} [onDismiss=null] - Callback para el botón de descarte.
  */
 export function showDynamicIslandNotification(toolType, actionType, messageKey, category, data = {}, onDismiss = null) {
@@ -73,7 +76,6 @@ export function showDynamicIslandNotification(toolType, actionType, messageKey, 
     if (!dynamicIslandElement) return;
 
     if (notificationTimeout) clearTimeout(notificationTimeout);
-
     dynamicIslandElement.classList.remove('active-tool-ringing');
 
     const iconSymbol = dynamicIslandElement.querySelector('.notification-icon-symbol');
@@ -81,42 +83,38 @@ export function showDynamicIslandNotification(toolType, actionType, messageKey, 
     const messageP = dynamicIslandElement.querySelector('.notification-message');
     const dismissButton = dynamicIslandElement.querySelector('.island-dismiss-button');
 
-    if (!iconSymbol || !titleP || !messageP || !dismissButton) return;
+    if (!iconSymbol || !titleP || !messageP) return;
 
-    // 1. Determinar el Icono
+    // 1. Configurar Icono
     let iconKey = toolType;
     if (toolType === 'system') {
         if (actionType.includes('error')) iconKey = 'system_error';
-        else if (actionType.includes('premium')) iconKey = 'system_premium';
+        else if (actionType.includes('premium') || actionType.includes('limit')) iconKey = 'system_premium';
         else if (actionType.includes('success') || actionType.includes('deleted')) iconKey = 'system_success';
         else iconKey = 'system_info';
     }
     iconSymbol.textContent = ICONS[iconKey] || ICONS.default;
-    
-    // 2. Construir el Título (CORREGIDO)
-    // Se usa una llave de traducción directa para el título, en lugar de construirlo.
-    const titleKey = `${toolType}_${actionType}_title` in (window.translations?.notifications || {}) 
-        ? `${toolType}_${actionType}_title` 
-        : `${actionType}_title`;
-        
-    let titleText = getTranslation(titleKey, 'notifications');
 
-    // Reemplazar {type} si existe en la cadena del título
-    const translatedToolType = getTranslation(toolType, 'tooltips'); // e.g., 'Alarma', 'Temporizador'
-    if (titleText.includes('{type}')) {
-        titleText = titleText.replace('{type}', translatedToolType);
+    // 2. Establecer las claves de traducción y los placeholders
+    const titleKey = `${toolType}_${actionType}_title`;
+    titleP.setAttribute('data-translate', titleKey);
+
+    messageP.setAttribute('data-translate', messageKey);
+    // Convertir el objeto de datos en un string JSON para el atributo
+    if (data && Object.keys(data).length > 0) {
+        messageP.setAttribute('data-placeholders', JSON.stringify(data));
+    } else {
+        messageP.removeAttribute('data-placeholders');
     }
     
-    titleP.textContent = titleText;
-
-
-    // 3. Construir el Mensaje
-    messageP.textContent = formatMessage(messageKey, category, data);
-
-    // 4. Configurar el botón de Descarte
-    dismissButton.textContent = getTranslation('dismiss', 'notifications');
-
-    // 5. Manejar el estado de 'sonando'
+    // 3. Llamar al traductor para que actualice el contenido del DOM de la isla
+    if (typeof translateElementTree === 'function') {
+        translateElementTree(dynamicIslandElement);
+    } else {
+        console.error("translateElementTree function is not available.");
+    }
+    
+    // 4. Manejar el estado de 'sonando'
     if (actionType === 'ringing') {
         dynamicIslandElement.classList.add('active-tool-ringing');
         dismissCallback = onDismiss;
@@ -128,32 +126,14 @@ export function showDynamicIslandNotification(toolType, actionType, messageKey, 
     }
 
     dynamicIslandElement.classList.add('expanded');
-    console.log(`Dynamic Island: ${toolType} ${actionType} - ${messageKey} - Data:`, data);
+    console.log(`Dynamic Island Display: ${toolType} ${actionType} - TitleKey: ${titleKey}, MsgKey: ${messageKey}`);
 }
-
-
-/**
- * Formats a message string with placeholders.
- * @param {string} key - The translation key.
- * @param {string} category - The translation category.
- * @param {object} [placeholders={}] - An object with placeholder key-value pairs (e.g., {limit: 5}).
- * @returns {string} The formatted message.
- */
-function formatMessage(key, category, placeholders = {}) {
-    let message = getTranslation(key, category);
-    for (const placeholder in placeholders) {
-        if (placeholders.hasOwnProperty(placeholder)) {
-            message = message.replace(`{${placeholder}}`, placeholders[placeholder]);
-        }
-    }
-    return message;
-}
-
 
 /**
  * Hides the dynamic island.
  */
 export function hideDynamicIsland() {
+    if (!dynamicIslandElement) return;
     if (notificationTimeout) clearTimeout(notificationTimeout);
     notificationTimeout = null;
     
@@ -171,7 +151,6 @@ export function hideDynamicIsland() {
 function getTranslation(key, category = 'general') {
     if (typeof window.getTranslation === 'function') {
         const translated = window.getTranslation(key, category);
-        // Fallback mejorado para no capitalizar llaves no encontradas.
         return (translated && translated !== key) ? translated : key;
     }
     return key;

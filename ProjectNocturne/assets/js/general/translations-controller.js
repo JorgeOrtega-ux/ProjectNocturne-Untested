@@ -106,47 +106,69 @@ function applyTranslations() {
 
 // ========== NEW UNIFIED SYSTEM WITH data-translate ==========
 
-function translateElementsWithDataTranslate() {
-    const elementsToTranslate = document.querySelectorAll('[data-translate]');
+function translateElementsWithDataTranslate(parentElement = document.body) {
+    const elementsToTranslate = parentElement.querySelectorAll('[data-translate]');
 
     elementsToTranslate.forEach(element => {
         const translateKey = element.getAttribute('data-translate');
         const translateCategory = element.getAttribute('data-translate-category') || 'menu';
         const translateTarget = element.getAttribute('data-translate-target') || 'text';
+        const placeholdersAttr = element.getAttribute('data-placeholders');
 
         if (!translateKey) return;
+        if (isDynamicMenuElement(element)) return;
 
-        if (isDynamicMenuElement(element)) {
-            return;
+        let translatedText = getTranslation(translateKey, translateCategory);
+
+        if (placeholdersAttr) {
+            try {
+                const placeholders = JSON.parse(placeholdersAttr);
+                for (const placeholder in placeholders) {
+                    if (Object.prototype.hasOwnProperty.call(placeholders, placeholder)) {
+                        translatedText = translatedText.replace(`{${placeholder}}`, placeholders[placeholder]);
+                    }
+                }
+            } catch (e) {
+                console.error("Error parsing data-placeholders JSON", e);
+            }
         }
-
-        const translatedText = getTranslation(translateKey, translateCategory);
 
         switch (translateTarget) {
             case 'text':
                 element.textContent = translatedText;
                 break;
-
             case 'tooltip':
                 break;
-
             case 'title':
                 element.setAttribute('title', translatedText);
                 break;
-
             case 'placeholder':
                 element.setAttribute('placeholder', translatedText);
                 break;
-
             case 'aria-label':
                 element.setAttribute('aria-label', translatedText);
                 break;
-
             default:
                 element.textContent = translatedText;
         }
     });
 }
+
+/**
+ * Traduce un elemento específico y sus hijos. Ideal para contenido dinámico.
+ * @param {HTMLElement} element El elemento contenedor a traducir.
+ */
+function translateElementTree(element) {
+    if (element) {
+        // Traducir el propio elemento si tiene el atributo
+        if (element.hasAttribute('data-translate')) {
+            translateElementsWithDataTranslate(new DocumentFragment().appendChild(element.cloneNode(false)));
+        }
+        // Traducir todos los hijos
+        translateElementsWithDataTranslate(element);
+    }
+}
+
 
 // ========== FUNCTION TO DETECT DYNAMIC CONTROL CENTER ELEMENTS ==========
 
@@ -441,6 +463,7 @@ export {
     updateDynamicMenuLabels,
     applyTranslations,
     translateElementsWithDataTranslate,
+    translateElementTree, // <-- Exportar nueva función
     updateSearchPlaceholders,
     updateColorSystemHeaders,
     debugTranslationsController

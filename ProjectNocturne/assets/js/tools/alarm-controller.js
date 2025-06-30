@@ -76,7 +76,7 @@ export function getAlarmLimit() {
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = getAlarmLimit();
     if (userAlarms.length >= alarmLimit) {
-        showDynamicIslandNotification('alarm', 'limit_reached', 'limit_reached', {
+        showDynamicIslandNotification('system', 'limit_reached', 'limit_reached_generic', 'notifications', {
             type: getTranslation('alarms', 'tooltips'),
             limit: alarmLimit
         });
@@ -98,7 +98,7 @@ function createAlarm(title, hour, minute, sound) {
     scheduleAlarm(alarm);
     updateAlarmCounts();
 
-    showDynamicIslandNotification('alarm', 'created', 'alarm_created', { title: alarm.title });
+    showDynamicIslandNotification('alarm', 'created', 'alarm_created', 'notifications', { title: alarm.title });
 
     return true;
 }
@@ -209,13 +209,15 @@ function triggerAlarm(alarm) {
             optionsContainer.classList.add('active');
         }
     }
+    const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
     if ('Notification' in window && Notification.permission === 'granted') {
-        const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-        new Notification(`Alarma: ${translatedTitle}`, { body: `${formatTime(alarm.hour, alarm.minute)}`, icon: '/favicon.ico' });
+        new Notification(getTranslation('alarm_ringing_title', 'notifications'), { 
+            body: getTranslation('alarm_ringing', 'notifications').replace('{title}', translatedTitle), 
+            icon: '/favicon.ico' 
+        });
     }
 
-    const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-    showDynamicIslandNotification('alarm', 'ringing', 'alarm_ringing', { 
+    showDynamicIslandNotification('alarm', 'ringing', 'alarm_ringing', 'notifications', { 
         title: translatedTitle,
         toolId: alarm.id 
     }, (dismissedId) => {
@@ -297,7 +299,7 @@ function deleteAlarm(alarmId) {
         window.hideDynamicIsland();
     }
     
-    showDynamicIslandNotification('alarm', 'deleted', 'alarm_deleted', { title: originalTitle });
+    showDynamicIslandNotification('alarm', 'deleted', 'alarm_deleted', 'notifications', { title: originalTitle });
 }
 
 function updateAlarm(alarmId, newData) {
@@ -324,10 +326,9 @@ function updateAlarm(alarmId, newData) {
     updateAlarmCardVisuals(alarm);
     
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-    showDynamicIslandNotification('alarm', 'updated', 'alarm_updated', { title: translatedTitle });
+    showDynamicIslandNotification('alarm', 'updated', 'alarm_updated', 'notifications', { title: translatedTitle });
 }
 
-// ... (El resto de las funciones como updateAlarmCardVisuals, saveAlarmsToStorage, formatTime, etc., permanecen igual)
 function updateAlarmCardVisuals(alarm) {
     const card = document.getElementById(alarm.id);
     if (!card) return;

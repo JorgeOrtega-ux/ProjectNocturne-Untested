@@ -7,7 +7,7 @@
 
     <div class="everything-main-container">
 
-        <div class="widget widget-summary">
+        <div class="widget widget-summary" id="summary-widget">
             <div class="summary-content">
                 <div class="summary-item">
                     <div class="summary-value" id="main-clock-time-short">16:14</div>
@@ -30,9 +30,9 @@
 
         <div class="widget-row">
 
-            <div class="widget widget-upcoming">
+            <div class="widget widget-upcoming" id="upcoming-widget">
                 <div class="widget-header">
-                    <div class="widget-icon bg-orange"><span class="material-symbols-rounded">notifications_active</span></div>
+                    <div class="widget-icon"><span class="material-symbols-rounded">notifications_active</span></div>
                     <h2 class="widget-title" data-translate="upcoming_events" data-translate-category="everything">Próximos Eventos</h2>
                 </div>
                 <div class="upcoming-list">
@@ -66,9 +66,9 @@
                 </div>
             </div>
 
-            <div class="widget widget-festivities">
+            <div class="widget widget-festivities" id="festivities-widget">
                 <div class="widget-header">
-                    <div class="widget-icon bg-green"><span class="material-symbols-rounded">celebration</span></div>
+                    <div class="widget-icon"><span class="material-symbols-rounded">celebration</span></div>
                     <h2 class="widget-title">Próximas Festividades</h2>
                 </div>
                 <div class="festivities-list">
@@ -88,27 +88,27 @@
                     </div>
                 </div>
             </div>
-            <div class="widget widget-actions">
+            <div class="widget widget-actions" id="actions-widget">
                 <div class="widget-header">
-                    <div class="widget-icon bg-blue"><span class="material-symbols-rounded">bolt</span></div>
+                    <div class="widget-icon"><span class="material-symbols-rounded">bolt</span></div>
                     <h2 class="widget-title" data-translate="quick_actions" data-translate-category="everything">Acciones Rápidas</h2>
                 </div>
                 <div class="actions-container">
                     <div class="action-card" data-module="toggleMenuAlarm">
-                        <span class="material-symbols-rounded action-card-icon color-blue">add_alarm</span>
+                        <span class="material-symbols-rounded action-card-icon">add_alarm</span>
                         <span class="action-card-label" data-translate="new_alarm" data-translate-category="everything">Nueva Alarma</span>
                     </div>
                     <div class="action-card" data-module="toggleMenuTimer">
-                        <span class="material-symbols-rounded action-card-icon color-orange">add_circle</span>
+                        <span class="material-symbols-rounded action-card-icon">add_circle</span>
                         <span class="action-card-label" data-translate="new_timer" data-translate-category="everything">Nuevo Timer</span>
                     </div>
                     <div class="action-card" data-module="toggleMenuWorldClock">
-                        <span class="material-symbols-rounded action-card-icon color-green">public</span>
+                        <span class="material-symbols-rounded action-card-icon">public</span>
                         <span class="action-card-label" data-translate="add_clock" data-translate-category="everything">Añadir Reloj</span>
                     </div>
                 </div>
             </div>
-            </div>
+        </div>
 
     </div>
 </div>
@@ -159,7 +159,7 @@
     }
 
     .widget {
-        border-radius: 20px;
+        border-radius: 12px;
         padding: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         border: 1px solid #00000020;
@@ -167,7 +167,7 @@
     }
 
     .widget-row>.widget {
-        flex: 1 1 300px;
+        flex: 1;
     }
 
     .dark-mode .widget {
@@ -185,10 +185,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        border: 1px solid #00000020;
         width: 40px;
         height: 40px;
         border-radius: 12px;
-        color: #ffffff;
+        color: #000;
         flex-shrink: 0;
     }
 
@@ -323,7 +324,8 @@
         border: 1px solid #00000020;
         cursor: pointer;
         transition: transform 0.2s ease, background-color 0.2s ease;
-        min-height: 50px; /* Changed from 120px to 50px */
+        min-height: 50px;
+        /* Changed from 120px to 50px */
     }
 
     .dark-mode .action-card {
@@ -392,13 +394,15 @@
         height: 50px;
         gap: 12px;
         border-radius: 8px;
-        cursor: default; /* Not interactive */
+        cursor: default;
+        /* Not interactive */
     }
 
     .festivity-item-icon {
         font-size: 24px;
         color: #6e6e73;
-        width: 40px; /* Align with other icons */
+        width: 40px;
+        /* Align with other icons */
         height: 40px;
         display: flex;
         align-items: center;

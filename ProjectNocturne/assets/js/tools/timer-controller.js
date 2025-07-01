@@ -843,44 +843,61 @@ function updateMainControlsState() {
     }
 }
 
-
 function updateCardDisplay(timerId) {
-    const card = document.getElementById(timerId);
-    if (!card) return;
     const timer = findTimerById(timerId);
     if (!timer) return;
 
-    const timeElement = card.querySelector('.card-value');
-    if (timeElement) {
-        timeElement.textContent = formatTime(timer.remaining, timer.type);
+    // Find both the main card and the search result item
+    const mainCard = document.getElementById(timerId);
+    const searchItem = document.getElementById(`search-timer-${timerId}`); //
+
+    // Update main card display
+    if (mainCard) {
+        const timeElement = mainCard.querySelector('.card-value');
+        if (timeElement) {
+            timeElement.textContent = formatTime(timer.remaining, timer.type);
+        }
+        mainCard.classList.toggle('timer-finished', !timer.isRunning && timer.remaining <= 0);
     }
-    card.classList.toggle('timer-finished', !timer.isRunning && timer.remaining <= 0);
+
+    // Update search result item display
+    if (searchItem) {
+        const timeElement = searchItem.querySelector('.result-time'); //
+        if (timeElement) {
+            timeElement.textContent = formatTime(timer.remaining, timer.type); //
+        }
+    }
 }
 
 function updateTimerCardControls(timerId) {
-    const card = document.getElementById(timerId);
-    if (!card) return;
-
     const timer = findTimerById(timerId);
     if (!timer || timer.type !== 'countdown') return;
 
-    const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
-    if (!playPauseLink) return;
+    const elementsToUpdate = [];
+    const mainCard = document.getElementById(timerId);
+    if (mainCard) elementsToUpdate.push(mainCard);
+    const searchItem = document.getElementById(`search-timer-${timerId}`); //
+    if (searchItem) elementsToUpdate.push(searchItem);
 
-    const icon = playPauseLink.querySelector('.menu-link-icon span');
-    const text = playPauseLink.querySelector('.menu-link-text span');
+    elementsToUpdate.forEach(element => {
+        const playPauseLink = element.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
+        if (playPauseLink) {
+            const icon = playPauseLink.querySelector('.menu-link-icon span');
+            const text = playPauseLink.querySelector('.menu-link-text span');
 
-    if (timer.isRunning) {
-        playPauseLink.dataset.action = 'pause-card-timer';
-        icon.textContent = 'pause';
-        text.dataset.translate = 'pause';
-        text.textContent = getTranslation('pause', 'tooltips');
-    } else {
-        playPauseLink.dataset.action = 'start-card-timer';
-        icon.textContent = 'play_arrow';
-        text.dataset.translate = 'play';
-        text.textContent = getTranslation('play', 'tooltips');
-    }
+            if (timer.isRunning) {
+                playPauseLink.dataset.action = 'pause-card-timer';
+                icon.textContent = 'pause';
+                text.dataset.translate = 'pause';
+                text.textContent = getTranslation('pause', 'tooltips');
+            } else {
+                playPauseLink.dataset.action = 'start-card-timer';
+                icon.textContent = 'play_arrow';
+                text.dataset.translate = 'play';
+                text.textContent = getTranslation('play', 'tooltips');
+            }
+        }
+    });
 }
 
 function updatePinnedStatesInUI() {
@@ -902,10 +919,10 @@ function updatePinnedStatesInUI() {
     });
 
     // Select all timer search result items and update their pin button state
-    document.querySelectorAll('.search-result-item[data-type="timer"]').forEach(searchItem => {
-        const pinBtn = searchItem.querySelector('.card-pin-btn');
+    document.querySelectorAll('.search-result-item[data-type="timer"]').forEach(searchItem => { //
+        const pinBtn = searchItem.querySelector('.card-pin-btn'); //
         if (pinBtn) {
-            pinBtn.classList.toggle('active', searchItem.dataset.id === pinnedTimerId);
+            pinBtn.classList.toggle('active', searchItem.dataset.id === pinnedTimerId); //
         }
     });
 }
@@ -1007,8 +1024,24 @@ function updateTimerCounts() {
     const userContainer = document.querySelector('.timers-container[data-container="user"]');
     const defaultContainer = document.querySelector('.timers-container[data-container="default"]');
 
-    if (userContainer) userContainer.style.display = userTimersCount > 0 ? 'flex' : 'none';
-    if (defaultContainer) defaultContainer.style.display = defaultTimersCount > 0 ? 'flex' : 'none';
+    if (userContainer) {
+        if (userTimersCount > 0) {
+            userContainer.classList.remove('disabled');
+            userContainer.classList.add('active');
+        } else {
+            userContainer.classList.remove('active');
+            userContainer.classList.add('disabled');
+        }
+    }
+    if (defaultContainer) {
+        if (defaultTimersCount > 0) {
+            defaultContainer.classList.remove('disabled');
+            defaultContainer.classList.add('active');
+        } else {
+            defaultContainer.classList.remove('active');
+            defaultContainer.classList.add('disabled');
+        }
+    }
 }
 
 

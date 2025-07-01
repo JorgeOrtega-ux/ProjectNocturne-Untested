@@ -174,8 +174,8 @@ function refreshSearchResults() {
 // --- LÓGICA PRINCIPAL (EXISTENTE Y SIN CAMBIOS) ---
 // (El resto del archivo permanece igual)
 function getActiveAlarmsCount() {
-    const allAlarms = [...userAlarms, ...defaultAlarmsState];
-    return allAlarms.filter(alarm => alarm.enabled).length;
+    const allAlarms = [...userAlarms, ...defaultAlarmsState].filter(alarm => alarm.enabled);
+    return allAlarms.length;
 }
 
 function getNextAlarmDetails() {
@@ -244,8 +244,24 @@ function updateAlarmCounts() {
     const userContainer = document.querySelector('.alarms-container[data-container="user"]');
     const defaultContainer = document.querySelector('.alarms-container[data-container="default"]');
 
-    if (userContainer) userContainer.style.display = userAlarmsCount > 0 ? 'flex' : 'none';
-    if (defaultContainer) defaultContainer.style.display = defaultAlarmsCount > 0 ? 'flex' : 'none';
+    if (userContainer) {
+        if (userAlarmsCount > 0) {
+            userContainer.classList.remove('disabled');
+            userContainer.classList.add('active');
+        } else {
+            userContainer.classList.remove('active');
+            userContainer.classList.add('disabled');
+        }
+    }
+    if (defaultContainer) {
+        if (defaultAlarmsCount > 0) {
+            defaultContainer.classList.remove('disabled');
+            defaultContainer.classList.add('active');
+        } else {
+            defaultContainer.classList.remove('active');
+            defaultContainer.classList.add('disabled');
+        }
+    }
     updateEverythingWidgets();
 }
 
@@ -623,7 +639,7 @@ function formatTime(hour, minute) {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     let h12 = hour % 12;
     h12 = h12 ? h12 : 12;
-    return `${h12}:${String(minute).padStart(2, '0')} ${amppm}`;
+    return `${h12}:${String(minute).padStart(2, '0')} ${ampm}`;
 }
 
 function toggleAlarmsSection(type) {

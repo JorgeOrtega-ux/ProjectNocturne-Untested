@@ -55,7 +55,7 @@ function loadState() {
     if (stopwatchState.laps.length > 0) {
         lapsTableBody.innerHTML = '';
         stopwatchState.laps.forEach(renderLap);
-        sectionBottom.style.display = 'block';
+        sectionBottom.classList.remove('disabled'); // Corrected line
     }
 
     updateButtonStates();
@@ -115,7 +115,7 @@ function resetStopwatch() {
 
     updateDisplay();
     lapsTableBody.innerHTML = '';
-    sectionBottom.style.display = 'none';
+    sectionBottom.classList.add('disabled'); // Corrected line
     updateButtonStates();
     saveState();
     updateEverythingWidgets();
@@ -153,7 +153,7 @@ function recordLap() {
     stopwatchState.laps.push(lapData);
 
     renderLap(lapData);
-    sectionBottom.style.display = 'block';
+    sectionBottom.classList.remove('disabled'); // Corrected line
     saveState();
     updateButtonStates();
 }

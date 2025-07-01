@@ -30,6 +30,15 @@ export function initializeEverything() {
     // Inicia un intervalo inteligente
     smartUpdateInterval = setInterval(smartUpdate, 1000);
     console.log('✅ Controlador "Everything" inicializado con intervalo inteligente.');
+
+    // ===================== INICIO DE LA CORRECCIÓN =====================
+    // Escucha el evento 'translationsApplied', que se dispara cuando el
+    // cambio de idioma se ha completado y las nuevas traducciones están listas.
+    document.addEventListener('translationsApplied', () => {
+        console.log('✅ Traducciones aplicadas, actualizando widgets de "Everything"...');
+        updateEverythingWidgets();
+    });
+    // ====================== FIN DE LA CORRECCIÓN =======================
 }
 
 /**

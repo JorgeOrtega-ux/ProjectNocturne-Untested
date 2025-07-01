@@ -1,7 +1,7 @@
 <div class="section-everything active">
 
     <div class="everything-header">
-        <h1 class="everything-title" data-translate="main_panel" data-translate-category="everything">Panel Principal</h1>
+        <h1 class="everything-title" data-translate="main_panel" data-translate-category="everything"></h1>
         <p class="everything-subtitle" id="current-date-subtitle"></p>
     </div>
 
@@ -11,19 +11,19 @@
             <div class="summary-content">
                 <div class="summary-item">
                     <div class="summary-value" id="main-clock-time-short">16:14</div>
-                    <div class="summary-label" data-translate="local_time" data-translate-category="everything">Hora Local</div>
+                    <div class="summary-label" data-translate="local_time" data-translate-category="everything"></div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-value" id="active-alarms-count">0</div>
-                    <div class="summary-label" data-translate="active_alarms" data-translate-category="everything">Alarmas Activas</div>
+                    <div class="summary-label" data-translate="active_alarms" data-translate-category="everything"></div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-value" id="active-timers-count">0</div>
-                    <div class="summary-label" data-translate="running_timers" data-translate-category="everything">Timers Corriendo</div>
+                    <div class="summary-label" data-translate="running_timers" data-translate-category="everything"></div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-value" id="world-clocks-count">0</div>
-                    <div class="summary-label" data-translate="world_clocks" data-translate-category="everything">Relojes Mundiales</div>
+                    <div class="summary-label" data-translate="world_clocks" data-translate-category="everything"></div>
                 </div>
             </div>
         </div>

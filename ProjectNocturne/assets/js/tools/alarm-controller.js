@@ -23,15 +23,13 @@ let activeAlarmTimers = new Map();
 
 function renderSearchResults(searchTerm) {
     const resultsWrapper = document.querySelector('.alarm-search-results-wrapper');
-    const createWrapper = document.querySelector('.menu-alarm .menu-section-center');
-    const createButton = document.querySelector('.menu-alarm .menu-section-bottom');
+    const creationWrapper = document.querySelector('.alarm-creation-wrapper');
     
-    if (!resultsWrapper || !createWrapper || !createButton) return;
+    if (!resultsWrapper || !creationWrapper) return;
 
     if (!searchTerm) {
         resultsWrapper.classList.add('disabled');
-        createWrapper.classList.remove('disabled');
-        createButton.classList.remove('disabled');
+        creationWrapper.classList.remove('disabled');
         resultsWrapper.innerHTML = '';
         return;
     }
@@ -42,8 +40,7 @@ function renderSearchResults(searchTerm) {
         return translatedTitle.toLowerCase().includes(searchTerm);
     });
 
-    createWrapper.classList.add('disabled');
-    createButton.classList.add('disabled');
+    creationWrapper.classList.add('disabled');
     resultsWrapper.classList.remove('disabled');
     resultsWrapper.innerHTML = '';
 
@@ -102,8 +99,15 @@ function createSearchResultItem(alarm) {
     return item;
 }
 
-// --- LÓGICA PRINCIPAL (EXISTENTE) ---
+function refreshSearchResults() {
+    const searchInput = document.getElementById('alarm-search-input');
+    if (searchInput && searchInput.value) {
+        renderSearchResults(searchInput.value.toLowerCase());
+    }
+}
 
+// --- LÓGICA PRINCIPAL (EXISTENTE Y SIN CAMBIOS) ---
+// (El resto del archivo permanece igual)
 function getActiveAlarmsCount() {
     const allAlarms = [...userAlarms, ...defaultAlarmsState];
     return allAlarms.filter(alarm => alarm.enabled).length;
@@ -384,7 +388,7 @@ function toggleAlarm(alarmId) {
         }
     }
     updateAlarmCardVisuals(alarm);
-    renderSearchResults(document.getElementById('alarm-search-input').value);
+    refreshSearchResults();
     updateEverythingWidgets();
 }
 
@@ -417,7 +421,7 @@ function deleteAlarm(alarmId) {
     }
 
     showDynamicIslandNotification('alarm', 'deleted', 'alarm_deleted', 'notifications', { title: originalTitle });
-    renderSearchResults(document.getElementById('alarm-search-input').value);
+    refreshSearchResults();
     updateEverythingWidgets();
 }
 
@@ -443,7 +447,7 @@ function updateAlarm(alarmId, newData) {
     }
 
     updateAlarmCardVisuals(alarm);
-    renderSearchResults(document.getElementById('alarm-search-input').value);
+    refreshSearchResults();
 
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
     showDynamicIslandNotification('alarm', 'updated', 'alarm_updated', 'notifications', { title: translatedTitle });
@@ -600,7 +604,21 @@ function initializeSortableGrids() {
     });
 }
 
-// ========== INICIO DE LA CORRECCIÓN ==========
+function handleEditAlarm(alarmId) {
+    const alarmData = findAlarmById(alarmId);
+    if (alarmData) {
+        prepareAlarmForEdit(alarmData);
+        const searchInput = document.getElementById('alarm-search-input');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        renderSearchResults('');
+        if (getCurrentActiveOverlay() !== 'menuAlarm') {
+            activateModule('toggleMenuAlarm');
+        }
+    }
+}
+
 function handleAlarmCardAction(action, alarmId, target) {
     const alarm = window.alarmManager.findAlarmById(alarmId);
     if (!alarm) return;
@@ -614,10 +632,7 @@ function handleAlarmCardAction(action, alarmId, target) {
             setTimeout(() => stopAlarmSound(), 1000);
             break;
         case 'edit-alarm':
-            prepareAlarmForEdit({ ...alarm });
-            if (getCurrentActiveOverlay() !== 'menuAlarm') {
-                activateModule('toggleMenuAlarm');
-            }
+            handleEditAlarm(alarmId);
             break;
         case 'delete-alarm':
             if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
@@ -626,7 +641,6 @@ function handleAlarmCardAction(action, alarmId, target) {
             break;
     }
 }
-// ========== FIN DE LA CORRECCIÓN ==========
 
 export function initializeAlarmClock() {
     startClock();
@@ -661,6 +675,8 @@ export function initializeAlarmClock() {
                  return;
             }
 
+            e.stopPropagation();
+            
             const card = e.target.closest('.search-result-item');
             const alarmId = card ? card.dataset.id : null;
             if(!alarmId) return;
@@ -668,7 +684,6 @@ export function initializeAlarmClock() {
             const action = actionTarget.dataset.action;
 
             if (action === 'toggle-item-menu') {
-                e.stopPropagation();
                 const dropdown = card.querySelector('.card-dropdown-menu');
                 const isOpening = dropdown.classList.contains('disabled');
                 

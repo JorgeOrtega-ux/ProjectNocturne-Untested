@@ -49,7 +49,9 @@ function renderTimerSearchResults(searchTerm) {
         const list = document.createElement('div');
         list.className = 'menu-list';
         filteredTimers.forEach(timer => {
-            list.appendChild(createTimerSearchResultItem(timer));
+            const item = createTimerSearchResultItem(timer); // Create the item
+            list.appendChild(item); // Append it to the list
+            addSearchItemEventListeners(item); // Add listeners after creation
         });
         resultsWrapper.appendChild(list);
     } else {
@@ -99,21 +101,83 @@ function createTimerSearchResultItem(timer) {
             <span class="result-title">${translatedTitle}</span>
             <span class="result-time">${time}</span>
         </div>
-        <div class="result-actions">
-            <button class="card-menu-btn" data-action="toggle-item-menu">
-                <span class="material-symbols-rounded">more_horiz</span>
-            </button>
-            <div class="card-dropdown-menu disabled body-title">
-                ${dynamicActionsHTML}
-                <div class="menu-link" data-action="edit-timer">
-                    <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
-                    <div class="menu-link-text"><span>${getTranslation('edit_timer', 'timer')}</span></div>
-                </div>
-                ${deleteLinkHtml}
-            </div>
+        <div class="card-menu-container disabled"> <button class="card-pin-btn ${timer.isPinned ? 'active' : ''}" data-action="pin-timer" data-translate="pin_timer" data-translate-category="tooltips" data-translate-target="tooltip">
+                 <span class="material-symbols-rounded">push_pin</span>
+             </button>
+             <div class="card-menu-btn-wrapper">
+                 <button class="card-menu-btn" data-action="toggle-item-menu"
+                     data-translate="timer_options"
+                     data-translate-category="timer"
+                     data-translate-target="tooltip">
+                     <span class="material-symbols-rounded">more_horiz</span>
+                 </button>
+                 <div class="card-dropdown-menu body-title disabled">
+                     ${dynamicActionsHTML}
+                     <div class="menu-link" data-action="edit-timer">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
+                         <div class="menu-link-text"><span>${getTranslation('edit_timer', 'timer')}</span></div>
+                     </div>
+                     ${deleteLinkHtml}
+                 </div>
+             </div>
         </div>
     `;
     return item;
+}
+
+// New function to add event listeners to search result items
+function addSearchItemEventListeners(item) {
+    const menuContainer = item.querySelector('.card-menu-container');
+    if (!menuContainer) return;
+
+    // Show menuContainer on mouseenter
+    item.addEventListener('mouseenter', () => {
+        menuContainer.classList.remove('disabled');
+    });
+
+    // Hide menuContainer on mouseleave, but only if dropdown is closed
+    item.addEventListener('mouseleave', () => {
+        const dropdown = menuContainer.querySelector('.card-dropdown-menu');
+        if (dropdown?.classList.contains('disabled')) {
+            menuContainer.classList.add('disabled');
+        }
+    });
+
+    // Handle clicks within the search result item
+    item.addEventListener('click', e => {
+        const actionTarget = e.target.closest('[data-action]');
+        if (!actionTarget) return;
+
+        e.stopPropagation(); // Prevent closing other menus if a dropdown item is clicked
+
+        const action = actionTarget.dataset.action;
+        const timerId = item.dataset.id;
+
+        if (action === 'toggle-item-menu') {
+            const dropdown = item.querySelector('.card-dropdown-menu');
+            const isOpening = dropdown.classList.contains('disabled');
+
+            // Close all other dropdowns in the search results wrapper
+            document.querySelectorAll('.timer-search-results-wrapper .card-dropdown-menu').forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.add('disabled');
+                }
+            });
+
+            // Toggle the current dropdown
+            if (isOpening) {
+                dropdown.classList.remove('disabled');
+            } else {
+                dropdown.classList.add('disabled');
+            }
+            // Keep menuContainer visible if dropdown is open
+            if(!dropdown.classList.contains('disabled')) {
+                menuContainer.classList.remove('disabled');
+            }
+        } else {
+            handleTimerCardAction(action, timerId, actionTarget);
+        }
+    });
 }
 
 function refreshSearchResults() {
@@ -258,44 +322,6 @@ function initializeTimerController() {
     const searchInput = document.getElementById('timer-search-input');
     if(searchInput) {
         searchInput.addEventListener('input', e => renderTimerSearchResults(e.target.value.toLowerCase()));
-    }
-
-    const resultsWrapper = document.querySelector('.timer-search-results-wrapper');
-    if(resultsWrapper) {
-        resultsWrapper.addEventListener('click', e => {
-             const actionTarget = e.target.closest('[data-action]');
-            if (!actionTarget) {
-                 resultsWrapper.querySelectorAll('.card-dropdown-menu').forEach(d => d.classList.add('disabled'));
-                 return;
-            }
-
-            e.stopPropagation();
-
-            const card = e.target.closest('.search-result-item');
-            const timerId = card ? card.dataset.id : null;
-            if(!timerId) return;
-            
-            const action = actionTarget.dataset.action;
-
-            if(action === 'toggle-item-menu'){
-                const dropdown = card.querySelector('.card-dropdown-menu');
-                const isOpening = dropdown.classList.contains('disabled');
-                
-                resultsWrapper.querySelectorAll('.card-dropdown-menu').forEach(d => {
-                    if (d !== dropdown) {
-                        d.classList.add('disabled');
-                    }
-                });
-
-                if (isOpening) {
-                    dropdown.classList.remove('disabled');
-                } else {
-                    dropdown.classList.add('disabled');
-                }
-            } else {
-                handleTimerCardAction(action, timerId, e.target);
-            }
-        });
     }
 
     console.log('✅ Inicialización de timer completada.');
@@ -839,8 +865,8 @@ function updatePinnedStatesInUI() {
         const firstTimer = allTimers[0];
         pinnedTimerId = firstTimer.id;
         firstTimer.isPinned = true;
-        const isUserTimer = userTimers.some(t => t.id === firstTimer.id);
-        if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
+        const isUser = userTimers.some(t => t.id === firstTimer.id);
+        if (isUser) saveTimersToStorage(); else saveDefaultTimersOrder();
     }
 
     document.querySelectorAll('.tool-card.timer-card').forEach(card => {

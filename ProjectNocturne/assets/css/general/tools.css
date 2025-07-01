@@ -515,12 +515,16 @@
 .pinned-clocks-container {
     margin-bottom: 16px;
 }
+
 /* NEW: Apply reddish hover background to delete links within search result items (light mode) */
 .search-result-item .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
     background-color: rgba(229, 57, 53, 0.08);
-}.dark-mode .search-result-item .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
+}
+
+.dark-mode .search-result-item .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
     background-color: rgba(239, 154, 154, 0.1);
 }
+
 .world-clocks-grid {
     display: grid;
     padding: 8px;
@@ -550,14 +554,17 @@
 .card-menu-container.active {
     display: flex;
 }
+
 .timer-creation-wrapper {
     flex-direction: column;
     flex: 1 1 auto;
 }
+
 .alarm-creation-wrapper {
     flex-direction: column;
     flex: 1 1 auto;
 }
+
 .card-menu-btn-wrapper {
     position: relative;
 }
@@ -711,6 +718,29 @@
     border-color: #ffffff20;
 }
 
+.search-result-item .card-pin-btn,
+.search-result-item .card-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: #000000;
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+.search-result-item .card-pin-btn.active {
+    background-color: #f5f5fa;
+}
+
+.search-result-item .card-pin-btn:hover, .search-result-item .card-menu-btn:hover {
+    background-color: #f5f5fa;
+}
 
 .search-result-item .result-info {
     display: flex;
@@ -736,10 +766,6 @@
     flex-shrink: 0;
 }
 
-.search-result-item .card-menu-btn {
-    width: 32px;
-    height: 32px;
-}
 
 .search-result-item .card-dropdown-menu {
     right: 0;

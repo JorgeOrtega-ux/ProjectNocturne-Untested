@@ -48,7 +48,9 @@ function renderSearchResults(searchTerm) {
         const list = document.createElement('div');
         list.className = 'menu-list';
         filteredAlarms.forEach(alarm => {
-            list.appendChild(createSearchResultItem(alarm));
+            const item = createSearchResultItem(alarm); // Create the item
+            list.appendChild(item); // Append it to the list
+            addSearchItemEventListeners(item); // Add listeners after creation
         });
         resultsWrapper.appendChild(list);
     } else {
@@ -79,29 +81,87 @@ function createSearchResultItem(alarm) {
             <span class="result-title">${translatedTitle}</span>
             <span class="result-time">${time}</span>
         </div>
-        <div class="result-actions">
-            <button class="card-menu-btn" data-action="toggle-item-menu">
-                <span class="material-symbols-rounded">more_horiz</span>
-            </button>
-            <div class="card-dropdown-menu disabled body-title">
-                 <div class="menu-link" data-action="toggle-alarm">
-                     <div class="menu-link-icon"><span class="material-symbols-rounded">${alarm.enabled ? 'toggle_on' : 'toggle_off'}</span></div>
-                     <div class="menu-link-text"><span data-translate="${alarm.enabled ? 'deactivate_alarm' : 'activate_alarm'}" data-translate-category="alarms">${getTranslation(alarm.enabled ? 'deactivate_alarm' : 'activate_alarm', 'alarms')}</span></div>
-                 </div>
-                 <div class="menu-link" data-action="test-alarm">
-                     <div class="menu-link-icon"><span class="material-symbols-rounded">volume_up</span></div>
-                     <div class="menu-link-text"><span data-translate="test_alarm" data-translate-category="alarms">${getTranslation('test_alarm', 'alarms')}</span></div>
-                 </div>
-                 <div class="menu-link" data-action="edit-alarm">
-                     <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
-                     <div class="menu-link-text"><span data-translate="edit_alarm" data-translate-category="alarms">${getTranslation('edit_alarm', 'alarms')}</span></div>
-                 </div>
-                 ${deleteLinkHtml}
+        <div class="card-menu-container disabled"> <div class="card-menu-btn-wrapper">
+                <button class="card-menu-btn" data-action="toggle-item-menu"
+                        data-translate="options"
+                        data-translate-category="world_clock_options"
+                        data-translate-target="tooltip">
+                    <span class="material-symbols-rounded">more_horiz</span>
+                </button>
+                <div class="card-dropdown-menu disabled body-title">
+                     <div class="menu-link" data-action="toggle-alarm">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">${alarm.enabled ? 'toggle_on' : 'toggle_off'}</span></div>
+                         <div class="menu-link-text"><span data-translate="${alarm.enabled ? 'deactivate_alarm' : 'activate_alarm'}" data-translate-category="alarms">${getTranslation(alarm.enabled ? 'deactivate_alarm' : 'activate_alarm', 'alarms')}</span></div>
+                     </div>
+                     <div class="menu-link" data-action="test-alarm">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">volume_up</span></div>
+                         <div class="menu-link-text"><span data-translate="test_alarm" data-translate-category="alarms">${getTranslation('test_alarm', 'alarms')}</span></div>
+                     </div>
+                     <div class="menu-link" data-action="edit-alarm">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
+                         <div class="menu-link-text"><span data-translate="edit_alarm" data-translate-category="alarms">${getTranslation('edit_alarm', 'alarms')}</span></div>
+                     </div>
+                     ${deleteLinkHtml}
+                </div>
             </div>
         </div>
     `;
-
     return item;
+}
+
+// New function to add event listeners to search result items
+function addSearchItemEventListeners(item) {
+    const menuContainer = item.querySelector('.card-menu-container');
+    if (!menuContainer) return;
+
+    // Show menuContainer on mouseenter
+    item.addEventListener('mouseenter', () => {
+        menuContainer.classList.remove('disabled');
+    });
+
+    // Hide menuContainer on mouseleave, but only if dropdown is closed
+    item.addEventListener('mouseleave', () => {
+        const dropdown = menuContainer.querySelector('.card-dropdown-menu');
+        if (dropdown?.classList.contains('disabled')) {
+            menuContainer.classList.add('disabled');
+        }
+    });
+
+    // Handle clicks within the search result item
+    item.addEventListener('click', e => {
+        const actionTarget = e.target.closest('[data-action]');
+        if (!actionTarget) return;
+
+        e.stopPropagation(); // Prevent closing other menus if a dropdown item is clicked
+
+        const action = actionTarget.dataset.action;
+        const alarmId = item.dataset.id;
+
+        if (action === 'toggle-item-menu') {
+            const dropdown = item.querySelector('.card-dropdown-menu');
+            const isOpening = dropdown.classList.contains('disabled');
+
+            // Close all other dropdowns in the search results wrapper
+            document.querySelectorAll('.alarm-search-results-wrapper .card-dropdown-menu').forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.add('disabled');
+                }
+            });
+
+            // Toggle the current dropdown
+            if (isOpening) {
+                dropdown.classList.remove('disabled');
+            } else {
+                dropdown.classList.add('disabled');
+            }
+            // Keep menuContainer visible if dropdown is open
+            if(!dropdown.classList.contains('disabled')) {
+                menuContainer.classList.remove('disabled');
+            }
+        } else {
+            handleAlarmCardAction(action, alarmId, actionTarget);
+        }
+    });
 }
 
 function refreshSearchResults() {
@@ -563,7 +623,7 @@ function formatTime(hour, minute) {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     let h12 = hour % 12;
     h12 = h12 ? h12 : 12;
-    return `${h12}:${String(minute).padStart(2, '0')} ${ampm}`;
+    return `${h12}:${String(minute).padStart(2, '0')} ${amppm}`;
 }
 
 function toggleAlarmsSection(type) {
@@ -686,44 +746,6 @@ export function initializeAlarmClock() {
     const searchInput = document.getElementById('alarm-search-input');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => renderSearchResults(e.target.value.toLowerCase()));
-    }
-
-    const resultsWrapper = document.querySelector('.alarm-search-results-wrapper');
-    if(resultsWrapper) {
-        resultsWrapper.addEventListener('click', e => {
-            const actionTarget = e.target.closest('[data-action]');
-            if (!actionTarget) {
-                 resultsWrapper.querySelectorAll('.card-dropdown-menu').forEach(d => d.classList.add('disabled'));
-                 return;
-            }
-
-            e.stopPropagation();
-            
-            const card = e.target.closest('.search-result-item');
-            const alarmId = card ? card.dataset.id : null;
-            if(!alarmId) return;
-
-            const action = actionTarget.dataset.action;
-
-            if (action === 'toggle-item-menu') {
-                const dropdown = card.querySelector('.card-dropdown-menu');
-                const isOpening = dropdown.classList.contains('disabled');
-                
-                resultsWrapper.querySelectorAll('.card-dropdown-menu').forEach(d => {
-                    if (d !== dropdown) {
-                        d.classList.add('disabled');
-                    }
-                });
-
-                if (isOpening) {
-                    dropdown.classList.remove('disabled');
-                } else {
-                    dropdown.classList.add('disabled');
-                }
-            } else {
-                 handleAlarmCardAction(action, alarmId, actionTarget);
-            }
-        });
     }
 
     window.alarmManager = {

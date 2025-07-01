@@ -86,6 +86,14 @@ function createTimerSearchResultItem(timer) {
         `;
     }
 
+    // Conditionally include delete link for non-default timers
+    const deleteLinkHtml = timer.id.startsWith('default-timer-') ? '' : `
+        <div class="menu-link" data-action="delete-timer">
+            <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+            <div class="menu-link-text"><span>${getTranslation('delete_timer', 'timer')}</span></div>
+        </div>
+    `;
+
     item.innerHTML = `
         <div class="result-info">
             <span class="result-title">${translatedTitle}</span>
@@ -101,10 +109,7 @@ function createTimerSearchResultItem(timer) {
                     <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                     <div class="menu-link-text"><span>${getTranslation('edit_timer', 'timer')}</span></div>
                 </div>
-                <div class="menu-link" data-action="delete-timer">
-                    <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
-                    <div class="menu-link-text"><span>${getTranslation('delete_timer', 'timer')}</span></div>
-                </div>
+                ${deleteLinkHtml}
             </div>
         </div>
     `;
@@ -695,6 +700,14 @@ function createTimerCard(timer) {
         `;
     }
 
+    // Conditionally include delete link for non-default timers
+    const deleteLinkHtml = isDefault ? '' : `
+        <div class="menu-link" data-action="delete-timer">
+            <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+            <div class="menu-link-text"><span data-translate="delete_timer" data-translate-category="timer">${getTranslation('delete_timer', 'timer')}</span></div>
+        </div>
+    `;
+
     card.innerHTML = `
         <div class="card-header">
             <div class="card-details">
@@ -729,10 +742,7 @@ function createTimerCard(timer) {
                          <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                          <div class="menu-link-text"><span data-translate="edit_timer" data-translate-category="timer">${getTranslation('edit_timer', 'timer')}</span></div>
                      </div>
-                     <div class="menu-link" data-action="delete-timer">
-                         <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
-                         <div class="menu-link-text"><span data-translate="delete_timer" data-translate-category="timer">${getTranslation('delete_timer', 'timer')}</span></div>
-                     </div>
+                     ${deleteLinkHtml}
                  </div>
              </div>
         </div>
@@ -979,6 +989,12 @@ function handleEditTimer(timerId) {
 
 
 function handleDeleteTimer(timerId) {
+    // Prevent deletion of default timers
+    if (timerId.startsWith('default-timer-')) {
+        console.warn(`Deletion of default timer ${timerId} is not allowed.`);
+        return;
+    }
+
     if (!confirm(getTranslation('delete_timer_confirm', 'timer') || '¿Estás seguro de que quieres eliminar este temporizador?')) return;
 
     if (activeTimers.has(timerId)) {
@@ -996,6 +1012,7 @@ function handleDeleteTimer(timerId) {
 
     const defaultIndex = defaultTimersState.findIndex(t => t.id === timerId);
     if (defaultIndex !== -1) {
+        // This block should ideally not be reached due to the initial check, but as a fallback
         defaultTimersState.splice(defaultIndex, 1);
         saveDefaultTimersOrder();
     }
@@ -1077,6 +1094,7 @@ function updateTimerCardVisuals(timer) {
 
     const deleteLink = card.querySelector('[data-action="delete-timer"] .menu-link-text span');
     if (deleteLink) {
+        // Only update text if the element exists (i.e., it's not a default timer)
         deleteLink.textContent = getTranslation('delete_timer', 'timer');
     }
 }

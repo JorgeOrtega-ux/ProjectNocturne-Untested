@@ -3,15 +3,7 @@
         <div class="drag-handle"></div>
     </div>
     <div class="menu-section">
-        <div class="menu-tabs">
-            <div class="menu-tab active" data-tab="countdown">
-                <span data-translate="countdown" data-translate-category="timer">Cuenta atrás</span>
-            </div>
-            <div class="menu-tab" data-tab="count_to_date">
-                <span data-translate="count_to_date" data-translate-category="timer">Contar hasta fecha</span>
-            </div>
-        </div>
-        
+       
         <div class="menu-section-top">
             <div class="search-content">
                 <div class="search-content-icon">
@@ -22,11 +14,20 @@
                 </div>
             </div>
         </div>
+         <div class="menu-tabs">
+            <div class="menu-tab active" data-tab="countdown">
+                <span data-translate="countdown" data-translate-category="timer">Cuenta atrás</span>
+            </div>
+            <div class="menu-tab" data-tab="count_to_date">
+                <span data-translate="count_to_date" data-translate-category="timer">Contar hasta fecha</span>
+            </div>
+        </div>
+        
         <div class="menu-content-scrolleable overflow-y">
             <div class="timer-search-results-wrapper disabled">
                 </div>
 
-            <div class="timer-creation-wrapper">
+            <div class="timer-creation-wrapper active">
                 <div class="menu-section-center overflow-y">
                     <div class="menu-content-wrapper active" data-tab-content="countdown">
                         <div class="menu-content">

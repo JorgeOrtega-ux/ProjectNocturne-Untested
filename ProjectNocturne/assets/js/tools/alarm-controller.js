@@ -66,6 +66,14 @@ function createSearchResultItem(alarm) {
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
     const time = formatTime(alarm.hour, alarm.minute);
     
+    // Conditionally include delete link for non-default alarms
+    const deleteLinkHtml = alarm.type === 'default' ? '' : `
+        <div class="menu-link" data-action="delete-alarm">
+            <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+            <div class="menu-link-text"><span data-translate="delete_alarm" data-translate-category="alarms">${getTranslation('delete_alarm', 'alarms')}</span></div>
+        </div>
+    `;
+
     item.innerHTML = `
         <div class="result-info">
             <span class="result-title">${translatedTitle}</span>
@@ -88,10 +96,7 @@ function createSearchResultItem(alarm) {
                      <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                      <div class="menu-link-text"><span data-translate="edit_alarm" data-translate-category="alarms">${getTranslation('edit_alarm', 'alarms')}</span></div>
                  </div>
-                  <div class="menu-link" data-action="delete-alarm">
-                        <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
-                        <div class="menu-link-text"><span data-translate="delete_alarm" data-translate-category="alarms">${getTranslation('delete_alarm', 'alarms')}</span></div>
-                    </div>
+                 ${deleteLinkHtml}
             </div>
         </div>
     `;
@@ -228,6 +233,14 @@ function createAlarmCard(alarm) {
 
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
 
+    // Conditionally include delete link for non-default alarms
+    const deleteLinkHtml = alarm.type === 'default' ? '' : `
+        <div class="menu-link" data-action="delete-alarm">
+            <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+            <div class="menu-link-text"><span data-translate="delete_alarm" data-translate-category="alarms">${getTranslation('delete_alarm', 'alarms')}</span></div>
+        </div>
+    `;
+
     const cardHTML = `
         <div class="tool-card alarm-card ${!alarm.enabled ? 'alarm-disabled' : ''}" id="${alarm.id}" data-id="${alarm.id}" data-type="${alarm.type}">
             <div class="card-header">
@@ -267,10 +280,7 @@ function createAlarmCard(alarm) {
                             <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                             <div class="menu-link-text"><span data-translate="edit_alarm" data-translate-category="alarms">${getTranslation('edit_alarm', 'alarms')}</span></div>
                         </div>
-                        <div class="menu-link" data-action="delete-alarm">
-                            <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
-                            <div class="menu-link-text"><span data-translate="delete_alarm" data-translate-category="alarms">${getTranslation('delete_alarm', 'alarms')}</span></div>
-                        </div>
+                        ${deleteLinkHtml}
                     </div>
                 </div>
             </div>
@@ -396,6 +406,12 @@ function deleteAlarm(alarmId) {
     const alarm = findAlarmById(alarmId);
     if (!alarm) return;
 
+    // Prevent deletion of default alarms
+    if (alarm.type === 'default') {
+        console.warn(`Attempted to delete default alarm: ${alarmId}. Deletion is not allowed for default alarms.`);
+        return; 
+    }
+
     if (activeAlarmTimers.has(alarmId)) {
         clearTimeout(activeAlarmTimers.get(alarmId));
         activeAlarmTimers.delete(alarmId);
@@ -407,6 +423,7 @@ function deleteAlarm(alarmId) {
         userAlarms = userAlarms.filter(a => a.id !== alarmId);
         saveAlarmsToStorage();
     } else {
+        // This block should ideally not be reached if the above check works, but as a fallback
         defaultAlarmsState = defaultAlarmsState.filter(a => a.id !== alarmId);
         saveDefaultAlarmsOrder();
     }
@@ -635,6 +652,11 @@ function handleAlarmCardAction(action, alarmId, target) {
             handleEditAlarm(alarmId);
             break;
         case 'delete-alarm':
+            // Added check to prevent deleting default alarms
+            if (alarm.type === 'default') {
+                console.warn(`Deletion of default alarm ${alarmId} is not allowed.`);
+                return;
+            }
             if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
                 window.alarmManager.deleteAlarm(alarmId);
             }

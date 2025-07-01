@@ -17,7 +17,7 @@
             <div class="alarm-search-results-wrapper disabled">
                 </div>
 
-            <div class="alarm-creation-wrapper">
+            <div class="alarm-creation-wrapper active">
                 <div class="menu-section-center overflow-y">
                     <div class="menu-content-wrapper active">
                         <div class="menu-content">

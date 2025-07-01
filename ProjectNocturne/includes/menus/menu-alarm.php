@@ -9,11 +9,14 @@
                     <span class="material-symbols-rounded">search</span>
                 </div>
                 <div class="search-content-text">
-                    <input type="text" class="body-title" autocomplete="off" data-translate="search_alarms_placeholder" data-translate-category="search" data-translate-target="placeholder">
+                    <input type="text" id="alarm-search-input" class="body-title" autocomplete="off" data-translate="search_alarms_placeholder" data-translate-category="search" data-translate-target="placeholder">
                 </div>
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
+            <div class="alarm-search-results-wrapper disabled">
+                </div>
+
             <div class="menu-section-center overflow-y">
                 <div class="menu-content-wrapper active">
                     <div class="menu-content">
@@ -78,7 +81,7 @@
                                 </div>
                                 <div class="dropdown-menu-container menu-alarm-sound disabled body-title" data-menu="alarmSoundMenu">
                                     <div class="menu-list">
-                                        </div>
+                                    </div>
                                 </div>
                                 <div class="menu-action-button" data-action="previewAlarmSound">
                                     <span class="material-symbols-rounded">play_arrow</span>

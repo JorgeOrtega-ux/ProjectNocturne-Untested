@@ -1,11 +1,10 @@
 // /assets/js/tools/timer-controller.js
-
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
 import { playSound, stopSound, generateSoundList, initializeSortable } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
-import { updateEverythingWidgets } from './everything-controller.js'; // <-- IMPORTACIÓN
+import { updateEverythingWidgets } from './everything-controller.js';
 
 // --- ESTADO Y CONSTANTES ---
 const TIMERS_STORAGE_KEY = 'user-timers';
@@ -20,6 +19,80 @@ const DEFAULT_TIMERS = [
     { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful_tone', isRunning: false, isPinned: false },
     { id: 'default-timer-3', title: 'exercise_1', type: 'countdown', initialDuration: 60000, remaining: 60000, endAction: 'restart', sound: 'digital_alarm', isRunning: false, isPinned: false }
 ];
+
+// --- LÓGICA DE BÚSQUEDA Y RENDERIZADO ---
+
+function renderTimerSearchResults(searchTerm) {
+    const resultsWrapper = document.querySelector('.timer-search-results-wrapper');
+    const creationWrapper = document.querySelector('.timer-creation-wrapper');
+
+    if (!resultsWrapper || !creationWrapper) return;
+
+    if (!searchTerm) {
+        resultsWrapper.classList.add('disabled');
+        creationWrapper.classList.remove('disabled');
+        resultsWrapper.innerHTML = '';
+        return;
+    }
+
+    const allTimers = [...userTimers, ...defaultTimersState];
+    const filteredTimers = allTimers.filter(timer => {
+        const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
+        return translatedTitle.toLowerCase().includes(searchTerm);
+    });
+
+    creationWrapper.classList.add('disabled');
+    resultsWrapper.classList.remove('disabled');
+    resultsWrapper.innerHTML = '';
+
+    if (filteredTimers.length > 0) {
+        const list = document.createElement('div');
+        list.className = 'menu-list';
+        filteredTimers.forEach(timer => {
+            list.appendChild(createTimerSearchResultItem(timer));
+        });
+        resultsWrapper.appendChild(list);
+    } else {
+        resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+    }
+}
+
+function createTimerSearchResultItem(timer) {
+    const item = document.createElement('div');
+    // Usamos la clase genérica
+    item.className = 'search-result-item'; 
+    item.id = `search-timer-${timer.id}`;
+    item.dataset.id = timer.id;
+    item.dataset.type = 'timer'; // Añadimos un tipo para la delegación de eventos
+
+    const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
+    const time = formatTime(timer.remaining, timer.type);
+
+    item.innerHTML = `
+        <div class="result-info">
+            <span class="result-title">${translatedTitle}</span>
+            <span class="result-time">${time}</span>
+        </div>
+        <div class="result-actions">
+            <button class="card-menu-btn" data-action="toggle-item-menu">
+                <span class="material-symbols-rounded">more_horiz</span>
+            </button>
+            <div class="card-dropdown-menu disabled body-title">
+                <div class="menu-link" data-action="edit-timer">
+                    <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
+                    <div class="menu-link-text"><span>${getTranslation('edit_timer', 'timer')}</span></div>
+                </div>
+                <div class="menu-link" data-action="delete-timer">
+                    <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+                    <div class="menu-link-text"><span>${getTranslation('delete_timer', 'timer')}</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+    return item;
+}
+
+// --- LÓGICA PRINCIPAL (EXISTENTE) ---
 
 export function getTimersCount() {
     return userTimers.length;
@@ -118,6 +191,32 @@ function initializeTimerController() {
     initializeSortableGrids();
     updateMainControlsState();
     updateTimerCounts();
+
+    const searchInput = document.getElementById('timer-search-input');
+    if(searchInput) {
+        searchInput.addEventListener('input', e => renderTimerSearchResults(e.target.value.toLowerCase()));
+    }
+
+    const resultsWrapper = document.querySelector('.timer-search-results-wrapper');
+    if(resultsWrapper) {
+        resultsWrapper.addEventListener('click', e => {
+             const actionTarget = e.target.closest('[data-action]');
+            if (!actionTarget) return;
+
+            const card = e.target.closest('.search-result-item');
+            const timerId = card ? card.dataset.id : null;
+            if(!timerId) return;
+            
+            const action = actionTarget.dataset.action;
+
+            if(action === 'toggle-item-menu'){
+                const dropdown = card.querySelector('.card-dropdown-menu');
+                dropdown.classList.toggle('disabled');
+            } else {
+                handleTimerCardAction(action, timerId);
+            }
+        });
+    }
 
     console.log('✅ Inicialización de timer completada.');
 
@@ -250,7 +349,7 @@ function startTimer(timerId) {
     } else {
         saveDefaultTimersOrder();
     }
-    updateEverythingWidgets(); // <-- LLAMADA
+    updateEverythingWidgets();
 }
 function startCountdownTimer(timer) {
     timer.isRunning = true;
@@ -300,7 +399,7 @@ function pauseTimer(timerId) {
 
     updateTimerCardControls(timerId);
     updateMainControlsState();
-    updateEverythingWidgets(); // <-- LLAMADA
+    updateEverythingWidgets();
 }
 
 function resetTimer(timerId) {
@@ -324,7 +423,7 @@ function resetTimer(timerId) {
     if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
     updateTimerCardControls(timerId);
     updateMainControlsState();
-    updateEverythingWidgets(); // <-- LLAMADA
+    updateEverythingWidgets();
 }
 
 
@@ -409,7 +508,7 @@ export function addTimerAndRender(timerData) {
     }
 
     showDynamicIslandNotification('timer', 'created', 'timer_created', 'notifications', { title: newTimer.title });
-    updateEverythingWidgets(); // <-- LLAMADA
+    updateEverythingWidgets();
 }
 
 export function updateTimer(timerId, newData) {
@@ -449,7 +548,7 @@ export function updateTimer(timerId, newData) {
 
     const titleForNotification = updatedTimer.id.startsWith('default-timer-') ? getTranslation(updatedTimer.title, 'timer') : updatedTimer.title;
     showDynamicIslandNotification('timer', 'updated', 'timer_updated', 'notifications', { title: titleForNotification });
-    updateEverythingWidgets(); // <-- LLAMADA
+    updateEverythingWidgets();
 }
 
 
@@ -828,7 +927,7 @@ function handleDeleteTimer(timerId) {
     showDynamicIslandNotification('timer', 'deleted', 'timer_deleted', 'notifications', {
         title: originalTitle
     });
-    updateEverythingWidgets(); // <-- LLAMADA
+    updateEverythingWidgets();
 }
 
 function updateTimerCardVisuals(timer) {

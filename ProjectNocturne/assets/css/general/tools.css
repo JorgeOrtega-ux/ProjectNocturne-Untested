@@ -386,7 +386,6 @@
     transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Nueva implementación: aplicar opacidad solo a elementos específicos */
 .tool-card.timer-finished .card-header,
 .tool-card.timer-finished .card-footer,
 .tool-card.alarm-disabled .card-header,
@@ -394,7 +393,6 @@
     opacity: 0.6;
 }
 
-/* Asegurar que el menú mantenga opacidad completa */
 .tool-card.timer-finished .card-menu-container,
 .tool-card.timer-finished .card-dropdown-menu,
 .tool-card.alarm-disabled .card-menu-container,
@@ -402,7 +400,6 @@
     opacity: 1 !important;
 }
 
-/* ===== VERSIÓN MODO OSCURO ===== */
 .dark-mode .tool-card.timer-finished .card-header,
 .dark-mode .tool-card.timer-finished .card-footer,
 .dark-mode .tool-card.alarm-disabled .card-header,
@@ -470,22 +467,7 @@
     font-weight: 500;
 }
 
-.tool-card .card-pin-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    color: #000000;
-    background-color: transparent;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    flex-shrink: 0;
-    padding: 0;
-}
-
+.tool-card .card-pin-btn,
 .tool-card .card-menu-btn {
     display: flex;
     align-items: center;
@@ -682,6 +664,89 @@
     padding: 8px;
     gap: 8px;
 }
+
+/* --- ESTILOS UNIFICADOS DE BÚSQUEDA --- */
+
+.alarm-search-results-wrapper,
+.timer-search-results-wrapper {
+    padding: 8px;
+}
+
+.alarm-search-results-wrapper.disabled,
+.timer-search-results-wrapper.disabled {
+    display: none;
+}
+
+.alarm-search-results-wrapper .menu-list,
+.timer-search-results-wrapper .menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: #f5f5fa;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.search-result-item:hover {
+    background-color: #ebebf0;
+}
+
+.search-result-item .result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.search-result-item .result-title {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-result-item .result-time {
+    font-size: 0.85rem;
+    color: #6e6e73;
+}
+
+.search-result-item .result-actions {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.search-result-item .card-menu-btn {
+    width: 32px;
+    height: 32px;
+}
+
+.search-result-item .card-dropdown-menu {
+    right: 0;
+    top: 100%;
+    margin-top: 5px;
+    width: 180px;
+}
+
+.no-results-message {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}
+
+.menu-alarm .menu-section-center.disabled,
+.menu-alarm .menu-section-bottom.disabled,
+.menu-timer .timer-creation-wrapper.disabled {
+    display: none;
+}
+
 
 .alarms-container,
 .timers-container {
@@ -918,27 +983,6 @@
 /* ======== DYNAMIC ISLAND PERFECTO ==== */
 /* ====================================== */
 
-/* Actualización del HTML sugerida para dynamic-island-controller.js:
-
-// En la función initDynamicIsland(), cambiar el innerHTML por:
-dynamicIslandElement.innerHTML = `
-    <div class="island-notification-content">
-        <div class="island-left-group">
-            <div class="island-circle">
-                <span class="material-symbols-rounded notification-icon-symbol"></span>
-            </div>
-            <div class="notification-text-info">
-                <p class="notification-title"></p>
-                <p class="notification-message"></p>
-            </div>
-        </div>
-        <button class="island-dismiss-button" data-action="dismiss-active-tool">
-            ${getTranslation('dismiss', 'general')}
-        </button>
-    </div>
-`;
-
-*/
 #dynamic-island {
     position: fixed;
     top: 20px;
@@ -962,7 +1006,6 @@ dynamicIslandElement.innerHTML = `
     backdrop-filter: blur(20px);
     border: 0.5px solid rgba(255, 255, 255, 0.08);
 
-    /* Transiciones suaves y naturales */
     transition:
         opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
         transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -971,7 +1014,6 @@ dynamicIslandElement.innerHTML = `
         border-radius 0.5s cubic-bezier(0.23, 1, 0.32, 1) 0.1s;
 }
 
-/* --- EXPANDED STATE --- */
 #dynamic-island.expanded {
     opacity: 1;
     pointer-events: auto;
@@ -980,7 +1022,6 @@ dynamicIslandElement.innerHTML = `
     height: 54px;
     border-radius: 27px;
 
-    /* Expansión más fluida */
     transition:
         width 0.6s cubic-bezier(0.23, 1, 0.32, 1),
         height 0.6s cubic-bezier(0.23, 1, 0.32, 1),
@@ -989,7 +1030,6 @@ dynamicIslandElement.innerHTML = `
         transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s;
 }
 
-/* --- RINGING STATE (para dismiss button) --- */
 #dynamic-island.active-tool-ringing {
     width: 340px;
 }
@@ -998,7 +1038,6 @@ dynamicIslandElement.innerHTML = `
     width: 340px;
 }
 
-/* --- CONTENIDO INTERNO --- */
 .island-notification-content {
     width: 100%;
     height: 100%;
@@ -1016,7 +1055,6 @@ dynamicIslandElement.innerHTML = `
     transition: opacity 0.4s ease-in 0.2s;
 }
 
-/* --- GRUPO IZQUIERDO (icono + texto) --- */
 .island-left-group {
     display: flex;
     align-items: center;
@@ -1025,7 +1063,6 @@ dynamicIslandElement.innerHTML = `
     min-width: 0;
 }
 
-/* --- CÍRCULO DEL ICONO --- */
 .island-circle {
     width: 36px;
     height: 36px;
@@ -1040,7 +1077,6 @@ dynamicIslandElement.innerHTML = `
     backdrop-filter: blur(10px);
 }
 
-/* --- ICONO --- */
 .notification-icon-symbol {
     font-size: 20px;
     color: #30d158;
@@ -1048,7 +1084,6 @@ dynamicIslandElement.innerHTML = `
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-/* --- CONTENEDOR DE TEXTO --- */
 .notification-text-info {
     flex: 1;
     min-width: max-content;
@@ -1057,7 +1092,6 @@ dynamicIslandElement.innerHTML = `
     gap: 2px;
 }
 
-/* --- TÍTULO --- */
 .notification-title {
     font-size: 14px;
     font-weight: 600;
@@ -1070,7 +1104,6 @@ dynamicIslandElement.innerHTML = `
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* --- MENSAJE --- */
 .notification-message {
     font-size: 11px;
     font-weight: 400;
@@ -1083,7 +1116,6 @@ dynamicIslandElement.innerHTML = `
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* --- BOTÓN DISMISS --- */
 .island-dismiss-button {
     background: rgba(255, 255, 255, 0.1);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
@@ -1124,7 +1156,6 @@ dynamicIslandElement.innerHTML = `
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
 }
 
-/* --- ANIMACIONES ADICIONALES --- */
 @keyframes island-pulse {
 
     0%,
@@ -1141,11 +1172,6 @@ dynamicIslandElement.innerHTML = `
     animation: island-pulse 2s ease-in-out infinite;
 }
 
-/* --- COLORES CONSISTENTES EN AMBOS TEMAS --- */
-/* El Dynamic Island mantiene siempre los colores oscuros #252627 y #18191b */
-/* sin importar si está en modo claro u oscuro, para mantener consistencia */
-
-/* Solo ajustamos las sombras en modo claro para mejor visibilidad */
 html.light-mode #dynamic-island {
     box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.25),
@@ -1154,7 +1180,6 @@ html.light-mode #dynamic-island {
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
     #dynamic-island {
         top: 15px;

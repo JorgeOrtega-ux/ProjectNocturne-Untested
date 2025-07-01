@@ -503,6 +503,11 @@
     color: #d32f2f;
 }
 
+.search-result-item .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-text span,
+.search-result-item .card-dropdown-menu .menu-link[data-action*="delete"] .menu-link-icon span {
+    color: #d32f2f;
+}
+
 .tool-card .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
     background-color: rgba(229, 57, 53, 0.08);
 }
@@ -510,7 +515,12 @@
 .pinned-clocks-container {
     margin-bottom: 16px;
 }
-
+/* NEW: Apply reddish hover background to delete links within search result items (light mode) */
+.search-result-item .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
+    background-color: rgba(229, 57, 53, 0.08);
+}.dark-mode .search-result-item .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
+    background-color: rgba(239, 154, 154, 0.1);
+}
 .world-clocks-grid {
     display: grid;
     padding: 8px;

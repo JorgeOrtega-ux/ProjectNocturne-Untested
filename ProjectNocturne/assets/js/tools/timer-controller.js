@@ -175,7 +175,31 @@ function addSearchItemEventListeners(item) {
                 menuContainer.classList.remove('disabled');
             }
         } else {
-            handleTimerCardAction(action, timerId, actionTarget);
+            // Directly call window.timerManager functions for timer actions
+            switch (action) {
+                case 'pin-timer':
+                    window.timerManager.handlePinTimer(timerId);
+                    break;
+                case 'start-card-timer':
+                    window.timerManager.startTimer(timerId);
+                    break;
+                case 'pause-card-timer':
+                    window.timerManager.pauseTimer(timerId);
+                    break;
+                case 'reset-card-timer':
+                    window.timerManager.resetTimer(timerId);
+                    break;
+                case 'edit-timer':
+                    window.timerManager.handleEditTimer(timerId);
+                    break;
+                case 'delete-timer':
+                    if (confirm(getTranslation('delete_timer_confirm', 'timer'))) {
+                        window.timerManager.handleDeleteTimer(timerId);
+                    }
+                    break;
+                default:
+                    console.warn(`Unhandled action from timer search item: ${action}`);
+            }
         }
     });
 }
@@ -869,10 +893,19 @@ function updatePinnedStatesInUI() {
         if (isUser) saveTimersToStorage(); else saveDefaultTimersOrder();
     }
 
+    // Select all regular timer cards and update their pin button state
     document.querySelectorAll('.tool-card.timer-card').forEach(card => {
         const pinBtn = card.querySelector('.card-pin-btn');
         if (pinBtn) {
             pinBtn.classList.toggle('active', card.id === pinnedTimerId);
+        }
+    });
+
+    // Select all timer search result items and update their pin button state
+    document.querySelectorAll('.search-result-item[data-type="timer"]').forEach(searchItem => {
+        const pinBtn = searchItem.querySelector('.card-pin-btn');
+        if (pinBtn) {
+            pinBtn.classList.toggle('active', searchItem.dataset.id === pinnedTimerId);
         }
     });
 }

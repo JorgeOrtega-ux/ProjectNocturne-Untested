@@ -431,7 +431,6 @@ body {
     width: 100%;
     height: auto;
     gap: 4px;
-    overflow: auto;
     user-select: none;
 }
 

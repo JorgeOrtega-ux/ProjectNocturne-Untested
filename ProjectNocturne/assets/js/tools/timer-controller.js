@@ -59,11 +59,10 @@ function renderTimerSearchResults(searchTerm) {
 
 function createTimerSearchResultItem(timer) {
     const item = document.createElement('div');
-    // Usamos la clase genérica
     item.className = 'search-result-item'; 
     item.id = `search-timer-${timer.id}`;
     item.dataset.id = timer.id;
-    item.dataset.type = 'timer'; // Añadimos un tipo para la delegación de eventos
+    item.dataset.type = 'timer';
 
     const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
     const time = formatTime(timer.remaining, timer.type);
@@ -147,6 +146,24 @@ function createExpandableTimerContainer(type, titleKey, icon) {
     return container;
 }
 
+// ========== INICIO DE LA CORRECCIÓN ==========
+function handleTimerCardAction(action, timerId, target) {
+    if (!window.timerManager) {
+        console.error("Timer manager no está disponible.");
+        return;
+    }
+
+    switch (action) {
+        case 'edit-timer':
+            window.timerManager.handleEditTimer(timerId);
+            break;
+        case 'delete-timer':
+            window.timerManager.handleDeleteTimer(timerId);
+            break;
+    }
+}
+// ========== FIN DE LA CORRECCIÓN ==========
+
 function initializeTimerController() {
     const wrapper = document.querySelector('.timers-list-wrapper');
     if (wrapper) {
@@ -201,7 +218,10 @@ function initializeTimerController() {
     if(resultsWrapper) {
         resultsWrapper.addEventListener('click', e => {
              const actionTarget = e.target.closest('[data-action]');
-            if (!actionTarget) return;
+            if (!actionTarget) {
+                 resultsWrapper.querySelectorAll('.card-dropdown-menu').forEach(d => d.classList.add('disabled'));
+                 return;
+            }
 
             const card = e.target.closest('.search-result-item');
             const timerId = card ? card.dataset.id : null;
@@ -210,8 +230,21 @@ function initializeTimerController() {
             const action = actionTarget.dataset.action;
 
             if(action === 'toggle-item-menu'){
+                e.stopPropagation();
                 const dropdown = card.querySelector('.card-dropdown-menu');
-                dropdown.classList.toggle('disabled');
+                const isOpening = dropdown.classList.contains('disabled');
+                
+                resultsWrapper.querySelectorAll('.card-dropdown-menu').forEach(d => {
+                    if (d !== dropdown) {
+                        d.classList.add('disabled');
+                    }
+                });
+
+                if (isOpening) {
+                    dropdown.classList.remove('disabled');
+                } else {
+                    dropdown.classList.add('disabled');
+                }
             } else {
                 handleTimerCardAction(action, timerId);
             }
@@ -235,7 +268,17 @@ function initializeTimerController() {
         getActiveTimerDetails
     };
 
-        updateEverythingWidgets();
+    updateEverythingWidgets();
+    
+    document.addEventListener('moduleDeactivated', (e) => {
+        if (e.detail && e.detail.module === 'toggleMenuTimer') {
+            const searchInput = document.getElementById('timer-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                renderTimerSearchResults('');
+            }
+        }
+    });
 }
 
 

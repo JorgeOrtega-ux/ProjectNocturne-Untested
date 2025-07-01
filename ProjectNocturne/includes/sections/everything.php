@@ -66,6 +66,28 @@
                 </div>
             </div>
 
+            <div class="widget widget-festivities">
+                <div class="widget-header">
+                    <div class="widget-icon bg-green"><span class="material-symbols-rounded">celebration</span></div>
+                    <h2 class="widget-title">Próximas Festividades</h2>
+                </div>
+                <div class="festivities-list">
+                    <div class="festivity-item">
+                        <span class="material-symbols-rounded festivity-item-icon">emoji_events</span>
+                        <div class="festivity-details">
+                            <div class="festivity-title">Día de la Independencia (México)</div>
+                            <div class="festivity-date">16 de Septiembre</div>
+                        </div>
+                    </div>
+                    <div class="festivity-item">
+                        <span class="material-symbols-rounded festivity-item-icon">cake</span>
+                        <div class="festivity-details">
+                            <div class="festivity-title">Navidad</div>
+                            <div class="festivity-date">25 de Diciembre</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="widget widget-actions">
                 <div class="widget-header">
                     <div class="widget-icon bg-blue"><span class="material-symbols-rounded">bolt</span></div>
@@ -86,8 +108,7 @@
                     </div>
                 </div>
             </div>
-
-        </div>
+            </div>
 
     </div>
 </div>
@@ -302,7 +323,7 @@
         border: 1px solid #00000020;
         cursor: pointer;
         transition: transform 0.2s ease, background-color 0.2s ease;
-        min-height: 120px;
+        min-height: 50px; /* Changed from 120px to 50px */
     }
 
     .dark-mode .action-card {
@@ -356,5 +377,58 @@
 
     .action-card-icon.color-orange {
         color: #FF9F0A;
+    }
+
+    /* Styles for new Festivities Widget */
+    .festivities-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .festivity-item {
+        display: flex;
+        align-items: center;
+        height: 50px;
+        gap: 12px;
+        border-radius: 8px;
+        cursor: default; /* Not interactive */
+    }
+
+    .festivity-item-icon {
+        font-size: 24px;
+        color: #6e6e73;
+        width: 40px; /* Align with other icons */
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .festivity-details {
+        flex-grow: 1;
+    }
+
+    .festivity-title {
+        font-weight: 500;
+        color: #1d1d1f;
+    }
+
+    .festivity-date {
+        font-size: 0.9rem;
+        color: #6e6e73;
+    }
+
+    .dark-mode .festivity-item-icon {
+        color: #8d8d92;
+    }
+
+    .dark-mode .festivity-title {
+        color: #f5f5f7;
+    }
+
+    .dark-mode .festivity-date {
+        color: #8d8d92;
     }
 </style>

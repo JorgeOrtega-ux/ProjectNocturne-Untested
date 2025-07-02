@@ -147,21 +147,29 @@ function dispatchModuleEvent(eventName, detail = {}) {
 
 function cancelAllActiveProcesses(reason = 'unknown') {
     let processesCancelled = false;
-    
+
     if (isThemeChanging()) {
         console.log(`🚫 Cancelling active theme change (${reason})`);
-        
         cleanThemeChangeStates();
         processesCancelled = true;
     }
-    
+
     if (isLanguageChanging()) {
         console.log(`🚫 Cancelling active language change (${reason})`);
-        
         cleanLanguageChangeStates();
         processesCancelled = true;
     }
-    
+
+    // AÑADIR ESTA PARTE
+    if (typeof window.isLocationChanging === 'function' && window.isLocationChanging()) {
+        console.log(`🚫 Cancelling active location change (${reason})`);
+        if (typeof window.cleanLocationChangeStates === 'function') {
+            window.cleanLocationChangeStates();
+        }
+        processesCancelled = true;
+    }
+    // FIN DE LA PARTE AÑADIDA
+
     return processesCancelled;
 }
 

@@ -587,6 +587,11 @@
 
 .card-dropdown-menu.disabled {
     display: none;
+}.dark-mode .action-card-icon {
+    color: #fff;
+}
+.dark-mode .widget-icon {
+    color: #fff;
 }
 
 .loading-overlay {

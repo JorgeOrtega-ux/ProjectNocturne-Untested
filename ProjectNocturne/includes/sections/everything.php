@@ -1,116 +1,11 @@
 <div class="section-everything active">
-
     <div class="everything-header">
         <h1 class="everything-title" data-translate="main_panel" data-translate-category="everything"></h1>
         <p class="everything-subtitle" id="current-date-subtitle"></p>
     </div>
 
     <div class="everything-main-container">
-
-        <div class="widget widget-summary" id="summary-widget">
-            <div class="summary-content">
-                <div class="summary-item">
-                    <div class="summary-value" id="main-clock-time-short">16:14</div>
-                    <div class="summary-label" data-translate="local_time" data-translate-category="everything"></div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value" id="active-alarms-count">0</div>
-                    <div class="summary-label" data-translate="active_alarms" data-translate-category="everything"></div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value" id="active-timers-count">0</div>
-                    <div class="summary-label" data-translate="running_timers" data-translate-category="everything"></div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value" id="world-clocks-count">0</div>
-                    <div class="summary-label" data-translate="world_clocks" data-translate-category="everything"></div>
-                </div>
-            </div>
         </div>
-
-        <div class="widget-row">
-
-            <div class="widget widget-upcoming" id="upcoming-widget">
-                <div class="widget-header">
-                    <div class="widget-icon"><span class="material-symbols-rounded">notifications_active</span></div>
-                    <h2 class="widget-title" data-translate="upcoming_events" data-translate-category="everything">Próximos Eventos</h2>
-                </div>
-                <div class="upcoming-list">
-                    <div class="upcoming-item">
-                        <div class="upcoming-item-icon-wrapper">
-                            <span class="material-symbols-rounded upcoming-item-icon">alarm</span>
-                        </div>
-                        <div class="upcoming-item-details">
-                            <div class="upcoming-item-title" data-translate="next_alarm" data-translate-category="everything">Próxima Alarma</div>
-                            <div class="upcoming-item-time" id="next-alarm-details">--</div>
-                        </div>
-                    </div>
-                    <div class="upcoming-item">
-                        <div class="upcoming-item-icon-wrapper">
-                            <span class="material-symbols-rounded upcoming-item-icon">hourglass_top</span>
-                        </div>
-                        <div class="upcoming-item-details">
-                            <div class="upcoming-item-title" data-translate="active_timer" data-translate-category="everything">Temporizador Activo</div>
-                            <div class="upcoming-item-time" id="active-timer-details">--</div>
-                        </div>
-                    </div>
-                    <div class="upcoming-item">
-                        <div class="upcoming-item-icon-wrapper">
-                            <span class="material-symbols-rounded upcoming-item-icon">timer</span>
-                        </div>
-                        <div class="upcoming-item-details">
-                            <div class="upcoming-item-title" data-translate="stopwatch" data-translate-category="everything">Cronómetro</div>
-                            <div class="upcoming-item-time" id="stopwatch-details">--</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="widget widget-festivities" id="festivities-widget">
-                <div class="widget-header">
-                    <div class="widget-icon"><span class="material-symbols-rounded">celebration</span></div>
-                    <h2 class="widget-title">Próximas Festividades</h2>
-                </div>
-                <div class="festivities-list">
-                    <div class="festivity-item">
-                        <span class="material-symbols-rounded festivity-item-icon">emoji_events</span>
-                        <div class="festivity-details">
-                            <div class="festivity-title">Día de la Independencia (México)</div>
-                            <div class="festivity-date">16 de Septiembre</div>
-                        </div>
-                    </div>
-                    <div class="festivity-item">
-                        <span class="material-symbols-rounded festivity-item-icon">cake</span>
-                        <div class="festivity-details">
-                            <div class="festivity-title">Navidad</div>
-                            <div class="festivity-date">25 de Diciembre</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="widget widget-actions" id="actions-widget">
-                <div class="widget-header">
-                    <div class="widget-icon"><span class="material-symbols-rounded">bolt</span></div>
-                    <h2 class="widget-title" data-translate="quick_actions" data-translate-category="everything">Acciones Rápidas</h2>
-                </div>
-                <div class="actions-container">
-                    <div class="action-card" data-module="toggleMenuAlarm">
-                        <span class="material-symbols-rounded action-card-icon">add_alarm</span>
-                        <span class="action-card-label" data-translate="new_alarm" data-translate-category="everything">Nueva Alarma</span>
-                    </div>
-                    <div class="action-card" data-module="toggleMenuTimer">
-                        <span class="material-symbols-rounded action-card-icon">add_circle</span>
-                        <span class="action-card-label" data-translate="new_timer" data-translate-category="everything">Nuevo Timer</span>
-                    </div>
-                    <div class="action-card" data-module="toggleMenuWorldClock">
-                        <span class="material-symbols-rounded action-card-icon">public</span>
-                        <span class="action-card-label" data-translate="add_clock" data-translate-category="everything">Añadir Reloj</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
 </div>
 <style>
     /* /assets/css/sections/everything.css - Versión con alineación de iconos corregida */
@@ -161,13 +56,14 @@
     .widget {
         border-radius: 12px;
         padding: 24px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: box-shadow 0.3s ease;
         border: 1px solid #00000020;
         width: 100%;
     }
 
     .widget-row>.widget {
-        flex: 1;
+        flex: 1 1 300px; /* Adjusted: allows a base size of 300px before wrapping, while still growing/shrinking */
+        max-width: 100%; /* Ensures it doesn't overflow its container if it's the only item */
     }
 
     .dark-mode .widget {
@@ -356,31 +252,6 @@
         color: #f5f5f7;
     }
 
-    /* --- Colores de iconos --- */
-    .widget-icon.bg-blue {
-        background-color: #0A84FF;
-    }
-
-    .widget-icon.bg-green {
-        background-color: #30D158;
-    }
-
-    .widget-icon.bg-orange {
-        background-color: #FF9F0A;
-    }
-
-    .action-card-icon.color-blue {
-        color: #0A84FF;
-    }
-
-    .action-card-icon.color-green {
-        color: #30D158;
-    }
-
-    .action-card-icon.color-orange {
-        color: #FF9F0A;
-    }
-
     /* Styles for new Festivities Widget */
     .festivities-list {
         display: flex;
@@ -434,5 +305,10 @@
 
     .dark-mode .festivity-date {
         color: #8d8d92;
+    }
+    @media (max-width: 768px) {
+        .widget-row>.widget {
+            flex: 1 1 100%; /* Ensures full width on smaller screens, forcing a single column layout */
+        }
     }
 </style>

@@ -3,6 +3,8 @@ import { prepareWorldClockForEdit } from './menu-interactions.js';
 import { updateZoneInfo } from './zoneinfo-controller.js';
 import { initializeSortable } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
+// Se importa la función para actualizar los widgets de la sección principal.
+import { updateEverythingWidgets } from './everything-controller.js';
 
 const clockIntervals = new Map();
 const CLOCKS_STORAGE_KEY = 'world-clocks';
@@ -15,7 +17,6 @@ const loadCountriesAndTimezones = () => new Promise((resolve, reject) => {
     script.src = 'https://cdn.jsdelivr.net/gh/manuelmhtr/countries-and-timezones@latest/dist/index.min.js';
     script.onload = () => window.ct ? resolve(window.ct) : reject(new Error('Library loaded but ct object not found'));
     script.onerror = (error) => {
-        // Show dynamic island notification on error
         showDynamicIslandNotification('system', 'error', 'loading_countries_error', 'notifications');
         reject(new Error('Failed to load countries-and-timezones script'));
     };
@@ -108,6 +109,10 @@ async function loadClocksFromStorage() {
                 }, index * 10);
             });
         }
+        // Llamada para asegurar que el contador se muestre correctamente al cargar la página.
+        if (typeof updateEverythingWidgets === 'function') {
+            updateEverythingWidgets();
+        }
     } catch (error) {
         console.error('Error cargando los relojes desde localStorage:', error);
         userClocks = [];
@@ -182,7 +187,7 @@ function createLocalClockCardAndAppend() {
             </div>
         </div>
     `;
-    grid.insertAdjacentHTML('afterbegin', cardHTML); // Use afterbegin to ensure it's the first card
+    grid.insertAdjacentHTML('afterbegin', cardHTML);
 }
 
 function getTranslation(key, category) {
@@ -193,12 +198,23 @@ function getTranslation(key, category) {
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-// Function to get the current number of user-created clocks
 function getClockCount() {
-    return userClocks.length;
+    if (userClocks.length > 0) {
+        return userClocks.length;
+    }
+    try {
+        const storedClocks = localStorage.getItem(CLOCKS_STORAGE_KEY);
+        if (storedClocks) {
+            const parsedClocks = JSON.parse(storedClocks);
+            return Array.isArray(parsedClocks) ? parsedClocks.length : 0;
+        }
+    } catch (e) {
+        console.error("Error reading clock count from localStorage", e);
+        return 0;
+    }
+    return 0;
 }
 
-// Function to get the clock limit based on PREMIUM_FEATURES
 function getClockLimit() {
     return PREMIUM_FEATURES ? 100 : 5;
 }
@@ -312,8 +328,12 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
     if (save) {
         userClocks.push({ id: cardId, title, country, timezone, countryCode });
         saveClocksToStorage();
-        // ***** LÍNEA CORREGIDA *****
         showDynamicIslandNotification('worldclock', 'created', 'worldclock_created', 'notifications', { title: title });
+
+        // Notifica a la sección "Everything" que se ha añadido un nuevo reloj.
+        if (typeof updateEverythingWidgets === 'function') {
+            updateEverythingWidgets();
+        }
     }
 }
 
@@ -356,8 +376,12 @@ function updateClockCard(id, newData) {
         }
     }, 0);
 
-    // ***** LÍNEA CORREGIDA *****
     showDynamicIslandNotification('worldclock', 'updated', 'worldclock_updated', 'notifications', { title: newData.title });
+
+    // Aunque no cambia el conteo, se actualiza por consistencia.
+    if (typeof updateEverythingWidgets === 'function') {
+        updateEverythingWidgets();
+    }
 }
 
 
@@ -479,10 +503,15 @@ function deleteClock(clockId) {
         const localPinBtn = localClockCard.querySelector('.card-pin-btn');
         pinClock(localPinBtn);
     }
-    // ***** LÍNEA CORREGIDA *****
+
     showDynamicIslandNotification('worldclock', 'deleted', 'worldclock_deleted', 'notifications', {
         title: deletedClockTitle
     });
+
+    // Notificamos a la sección "Everything" que se ha eliminado un reloj.
+    if (typeof updateEverythingWidgets === 'function') {
+        updateEverythingWidgets();
+    }
 }
 
 function updateMainPinnedDisplay(card) {

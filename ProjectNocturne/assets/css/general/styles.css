@@ -495,6 +495,12 @@ body {
     height: auto;
 }
 
+/* INICIO: Clase específica para el borde */
+.menu-content-selector {
+    border-bottom: 1px solid #00000020;
+}
+/* FIN: Clase específica para el borde */
+
 .menu-content-header {
     display: flex;
     flex-direction: row;
@@ -1238,4 +1244,8 @@ body {
 
 .dark-mode .no-results-message {
     color: #888;
+}
+
+.dark-mode .menu-content-selector {
+    border-color: #ffffff20;
 }

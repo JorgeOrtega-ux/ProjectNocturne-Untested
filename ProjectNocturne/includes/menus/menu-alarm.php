@@ -71,12 +71,12 @@
                                 </div>
                             </div>
                             <div class="menu-content-general">
-                                <div class="enter-sound-wrapper">
-                                    <div class="enter-sound-content" data-action="toggleAlarmSoundDropdown">
-                                        <div class="enter-sound-content-left">
+                                <div class="custom-select-wrapper">
+                                    <div class="custom-select-content" data-action="toggleAlarmSoundDropdown">
+                                        <div class="custom-select-content-left">
                                             <span id="alarm-selected-sound" data-translate="classic_beep" data-translate-category="sounds">Beep Clásico</span>
                                         </div>
-                                        <div class="enter-sound-content-right">
+                                        <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">expand_more</span>
                                         </div>
                                     </div>

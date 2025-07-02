@@ -73,7 +73,8 @@
     background-color: #f5f5fa;
 }
 
-.enter-sound-wrapper {
+/* INICIO: Clases genéricas para selectores desplegables */
+.custom-select-wrapper {
     position: relative;
     display: flex;
     flex-direction: row;
@@ -82,7 +83,7 @@
     gap: 8px;
 }
 
-.enter-sound-content {
+.custom-select-content {
     display: flex;
     flex-direction: row;
     width: 100%;
@@ -93,11 +94,11 @@
     transition: background-color 0.2s ease;
 }
 
-.enter-sound-content:hover {
+.custom-select-content:hover {
     background-color: #f5f5fa;
 }
 
-.enter-sound-content-left {
+.custom-select-content-left {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -108,12 +109,19 @@
     white-space: nowrap;
 }
 
-.enter-sound-content-left>span {
+.custom-select-content-left-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-select-content-left > span,
+.custom-select-content-left-inner > span {
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.enter-sound-content-right {
+.custom-select-content-right {
     display: flex;
     flex: 0 0 auto;
     align-items: center;
@@ -121,6 +129,7 @@
     width: 45px;
     height: 100%;
 }
+/* FIN: Clases genéricas */
 
 .menu-list-grid {
     display: grid;
@@ -189,33 +198,6 @@
 
 .menu-action-button:hover {
     background-color: #f5f5fa;
-}
-
-.menu-tabs {
-    display: flex;
-    width: 100%;
-    padding: 8px;
-    gap: 8px;
-    border-bottom: 1px solid #00000020;
-}
-
-.menu-tab {
-    flex: 1;
-    padding: 8px;
-    font-weight: 500;
-    text-align: center;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.menu-tab:hover {
-    background-color: #f5f5fa;
-}
-
-.menu-tab.active {
-    border-color: #00000020;
 }
 
 .enter-duration-grid {
@@ -541,7 +523,7 @@
     top: 5px;
     right: 5px;
     padding: 2px;
-    z-index: 5;
+    z-index: 999;
     border-radius: 8px;
     background: #ffffff;
     display: flex;
@@ -1267,4 +1249,10 @@ html.light-mode #dynamic-island {
         border-radius: 12px;
         margin-left: 8px;
     }
+}
+.dark-mode .custom-select-content {
+   border-color: #ffffff20;
+}
+.dark-mode .custom-select-content:hover {
+    background-color: #ffffff20;
 }

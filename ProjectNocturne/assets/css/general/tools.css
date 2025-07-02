@@ -365,7 +365,10 @@
     gap: 8px;
     margin-top: 8px;
 }
-
+.worldclock-creation-wrapper {
+    flex-direction: column;
+    flex: 1 1 auto;
+}
 .tool-grid.world-clocks-grid {
     margin-top: 0;
 }
@@ -373,7 +376,9 @@
 .tool-grid.active {
     display: grid;
 }
-
+.worldclock-search-results-wrapper {
+    padding: 8px;
+}
 .tool-card {
     position: relative;
     display: flex;

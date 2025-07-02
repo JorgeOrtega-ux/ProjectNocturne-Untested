@@ -11,6 +11,179 @@ const CLOCKS_STORAGE_KEY = 'world-clocks';
 let userClocks = [];
 let mainDisplayInterval = null;
 
+// --- LÓGICA DE BÚSQUEDA Y RENDERIZADO ---
+
+function renderWorldClockSearchResults(searchTerm) {
+    const resultsWrapper = document.querySelector('.worldclock-search-results-wrapper');
+    const creationWrapper = document.querySelector('.worldclock-creation-wrapper');
+
+    if (!resultsWrapper || !creationWrapper) return;
+
+    if (!searchTerm) {
+        resultsWrapper.classList.add('disabled');
+        creationWrapper.classList.remove('disabled');
+        resultsWrapper.innerHTML = '';
+        return;
+    }
+
+    const filteredClocks = userClocks.filter(clock => 
+        clock.title.toLowerCase().includes(searchTerm)
+    );
+
+    creationWrapper.classList.add('disabled');
+    resultsWrapper.classList.remove('disabled');
+    resultsWrapper.innerHTML = '';
+
+    if (filteredClocks.length > 0) {
+        const list = document.createElement('div');
+        list.className = 'menu-list';
+        filteredClocks.forEach(clock => {
+            const item = createWorldClockSearchResultItem(clock);
+            list.appendChild(item);
+            addSearchItemEventListeners(item);
+        });
+        resultsWrapper.appendChild(list);
+    } else {
+        resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+    }
+}
+
+/**
+ * Refresca los resultados de búsqueda basándose en el valor actual del input.
+ */
+function refreshWorldClockSearchResults() {
+    const searchInput = document.getElementById('worldclock-search-input');
+    // Solo refresca si el input de búsqueda existe y tiene un valor.
+    if (searchInput && searchInput.value) {
+        renderWorldClockSearchResults(searchInput.value.toLowerCase());
+    }
+}
+
+
+function createWorldClockSearchResultItem(clock) {
+    const item = document.createElement('div');
+    item.className = 'search-result-item';
+    item.id = `search-clock-${clock.id}`;
+    item.dataset.id = clock.id;
+    item.dataset.type = 'world-clock';
+
+    const time = '--:--:--'; 
+    
+    const editText = getTranslation('edit_clock', 'world_clock_options');
+    const deleteText = getTranslation('delete_clock', 'world_clock_options');
+
+    // --- HTML con la corrección aplicada ---
+    item.innerHTML = `
+        <div class="result-info">
+            <span class="result-title">${clock.title}</span>
+            <span class="result-time">${clock.country}</span>
+        </div>
+        <div class="card-menu-container disabled">
+             <button class="card-pin-btn" data-action="pin-clock" data-translate="pin_clock" data-translate-category="tooltips" data-translate-target="tooltip">
+                 <span class="material-symbols-rounded">push_pin</span>
+             </button>
+             <div class="card-menu-btn-wrapper">
+                 <button class="card-menu-btn" data-action="toggle-item-menu" data-translate="options" data-translate-category="world_clock_options" data-translate-target="tooltip">
+                     <span class="material-symbols-rounded">more_horiz</span>
+                 </button>
+                 <div class="card-dropdown-menu body-title disabled">
+                     <div class="menu-link" data-action="edit-clock">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
+                         <div class="menu-link-text">
+                             <span data-translate="edit_clock" data-translate-category="world_clock_options" data-translate-target="text">${editText}</span>
+                         </div>
+                     </div>
+                     <div class="menu-link" data-action="delete-clock">
+                         <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
+                         <div class="menu-link-text">
+                             <span data-translate="delete_clock" data-translate-category="world_clock_options" data-translate-target="text">${deleteText}</span>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+        </div>
+    `;
+    
+    if (typeof window.attachTooltipsToNewElements === 'function') {
+        window.attachTooltipsToNewElements(item);
+    }
+    
+    return item;
+}
+
+function addSearchItemEventListeners(item) {
+    const menuContainer = item.querySelector('.card-menu-container');
+    if (!menuContainer) return;
+
+    item.addEventListener('mouseenter', () => {
+        menuContainer.classList.remove('disabled');
+    });
+
+    item.addEventListener('mouseleave', () => {
+        const dropdown = menuContainer.querySelector('.card-dropdown-menu');
+        if (dropdown?.classList.contains('disabled')) {
+            menuContainer.classList.add('disabled');
+        }
+    });
+
+    item.addEventListener('click', e => {
+        const actionTarget = e.target.closest('[data-action]');
+        if (!actionTarget) return;
+
+        e.stopPropagation();
+
+        const action = actionTarget.dataset.action;
+        const clockId = item.dataset.id;
+
+        if (action === 'toggle-item-menu') {
+            const dropdown = item.querySelector('.card-dropdown-menu');
+            const isOpening = dropdown.classList.contains('disabled');
+            
+            document.querySelectorAll('.worldclock-search-results-wrapper .card-dropdown-menu').forEach(d => {
+                if (d !== dropdown) d.classList.add('disabled');
+            });
+            
+            dropdown.classList.toggle('disabled');
+        } else {
+            handleWorldClockCardAction(action, clockId, actionTarget);
+        }
+    });
+}
+
+function handleWorldClockCardAction(action, clockId, target) {
+    if (!window.worldClockManager) {
+        console.error("WorldClock manager no está disponible.");
+        return;
+    }
+
+    switch(action) {
+        case 'pin-clock':
+            window.worldClockManager.pinClock(target);
+            break;
+        case 'edit-clock':
+             const card = userClocks.find(c => c.id === clockId);
+             if (card) {
+                prepareWorldClockForEdit(card);
+                 if (getCurrentActiveOverlay() !== 'menuWorldClock') {
+                    activateModule('toggleMenuWorldClock');
+                }
+                const resultsWrapper = document.querySelector('.worldclock-search-results-wrapper');
+                const creationWrapper = document.querySelector('.worldclock-creation-wrapper');
+                const searchInput = document.getElementById('worldclock-search-input');
+                if (resultsWrapper) resultsWrapper.classList.add('disabled');
+                if (creationWrapper) creationWrapper.classList.remove('disabled');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+             }
+            break;
+        case 'delete-clock':
+            window.worldClockManager.deleteClock(clockId);
+            break;
+    }
+}
+
+
 const loadCountriesAndTimezones = () => new Promise((resolve, reject) => {
     if (window.ct) return resolve(window.ct);
     const script = document.createElement('script');
@@ -109,7 +282,6 @@ async function loadClocksFromStorage() {
                 }, index * 10);
             });
         }
-        // Llamada para asegurar que el contador se muestre correctamente al cargar la página.
         if (typeof updateEverythingWidgets === 'function') {
             updateEverythingWidgets();
         }
@@ -330,7 +502,6 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
         saveClocksToStorage();
         showDynamicIslandNotification('worldclock', 'created', 'worldclock_created', 'notifications', { title: title });
 
-        // Notifica a la sección "Everything" que se ha añadido un nuevo reloj.
         if (typeof updateEverythingWidgets === 'function') {
             updateEverythingWidgets();
         }
@@ -378,7 +549,6 @@ function updateClockCard(id, newData) {
 
     showDynamicIslandNotification('worldclock', 'updated', 'worldclock_updated', 'notifications', { title: newData.title });
 
-    // Aunque no cambia el conteo, se actualiza por consistencia.
     if (typeof updateEverythingWidgets === 'function') {
         updateEverythingWidgets();
     }
@@ -469,17 +639,24 @@ function initializeSortableGrid() {
 }
 
 function pinClock(button) {
-    const card = button.closest('.tool-card');
+    const card = button.closest('.tool-card, .search-result-item');
     if (!card) return;
 
     const allPinButtons = document.querySelectorAll('.card-pin-btn');
 
     allPinButtons.forEach(btn => btn.classList.remove('active'));
+    
+    const clockId = card.dataset.id;
+    const mainCardPinBtn = document.querySelector(`.tool-card[data-id="${clockId}"] .card-pin-btn`);
+    if(mainCardPinBtn) mainCardPinBtn.classList.add('active');
     button.classList.add('active');
 
-    const timezone = card.dataset.timezone;
-    updateZoneInfo(timezone);
-    updateMainPinnedDisplay(card);
+
+    const timezone = card.dataset.timezone || userClocks.find(c => c.id === clockId)?.timezone;
+    if(timezone) {
+        updateZoneInfo(timezone);
+        updateMainPinnedDisplay(card);
+    }
 }
 
 function deleteClock(clockId) {
@@ -497,6 +674,10 @@ function deleteClock(clockId) {
     userClocks = userClocks.filter(clock => clock.id !== clockId);
     saveClocksToStorage();
     card.remove();
+    
+    const searchItem = document.getElementById(`search-clock-${clockId}`);
+    if (searchItem) searchItem.remove();
+
 
     if (isPinned) {
         const localClockCard = document.querySelector('.local-clock-card');
@@ -508,11 +689,13 @@ function deleteClock(clockId) {
         title: deletedClockTitle
     });
 
-    // Notificamos a la sección "Everything" que se ha eliminado un reloj.
     if (typeof updateEverythingWidgets === 'function') {
         updateEverythingWidgets();
     }
+
+    refreshWorldClockSearchResults();
 }
+
 
 function updateMainPinnedDisplay(card) {
     if (mainDisplayInterval) {
@@ -578,4 +761,18 @@ export function initWorldClock() {
     initializeLocalClock();
     loadClocksFromStorage();
     initializeSortableGrid();
+    
+    const searchInput = document.getElementById('worldclock-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => renderWorldClockSearchResults(e.target.value.toLowerCase()));
+    }
+
+    document.addEventListener('moduleDeactivated', (e) => {
+        if (e.detail && e.detail.module === 'toggleMenuWorldClock') {
+            if (searchInput) {
+                searchInput.value = '';
+                renderWorldClockSearchResults('');
+            }
+        }
+    });
 }

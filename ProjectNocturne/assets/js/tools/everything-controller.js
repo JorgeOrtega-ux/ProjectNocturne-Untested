@@ -140,7 +140,11 @@ function initializeWidgetSortable() {
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
-            filter: '.widget-clock',
+            filter: '.widget-clock', // Mantiene el reloj no arrastrable
+            onMove: function (evt) {
+                // Evita que cualquier widget sea movido a la posición del reloj
+                return evt.related.className.indexOf('widget-clock') === -1;
+            },
             onEnd: (evt) => {
                 const newOrder = Array.from(evt.to.children)
                                     .map(widget => widget.id)

@@ -1,28 +1,28 @@
-<div class="section-everything active">
+<div class="section-everything body-title active">
     <div class="everything-grid-container">
-        </div>
+    </div>
 </div>
 <style>
     /* /assets/css/sections/everything.css - Versión Final */
     .section-everything {
-        padding: 24px;
-        display: flex;
+        padding: 18px;
+
         flex-direction: column;
-        gap: 24px;
+        gap: 18px;
     }
 
     .everything-grid-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 24px;
+        gap: 18px;
     }
 
     .widget {
         border-radius: 12px;
-        padding: 24px;
+        padding: 18px;
         border: 1px solid #00000020;
         background-color: #ffffff;
-        cursor: grab; /* Indica que los widgets son movibles */
+        /* Indica que los widgets son movibles */
     }
 
     .widget.sortable-chosen {
@@ -61,6 +61,7 @@
         color: #000;
         flex-shrink: 0;
     }
+
     .dark-mode .widget-icon {
         border-color: #ffffff20;
         color: #fff;
@@ -71,15 +72,33 @@
         font-weight: 600;
         color: #1d1d1f;
     }
+
     .dark-mode .widget-title {
         color: #f5f5f7;
     }
 
-    .clock-content { text-align: center; }
-    .clock-time { font-size: 4rem; font-weight: 700; color: #1d1d1f; }
-    .clock-date { font-size: 1.2rem; color: #6e6e73; margin-top: 8px; }
-    .dark-mode .clock-time { color: #f5f5f7; }
-    .dark-mode .clock-date { color: #8d8d92; }
+    .clock-content {
+        text-align: center;
+    }
+
+    .clock-time {
+        font-size: 4rem;
+        font-weight: 700;
+        color: #1d1d1f;
+    }
+
+    .clock-date {
+        font-size: 1.2rem;
+        color: #000000e6;
+    }
+
+    .dark-mode .clock-time {
+        color: #f5f5f7;
+    }
+
+    .dark-mode .clock-date {
+        color: #8d8d92;
+    }
 
     .widget-list {
         display: flex;
@@ -94,12 +113,13 @@
         gap: 12px;
         border-radius: 8px;
         transition: background-color 0.2s ease;
+        cursor: pointer;
     }
-    
+
     .widget-list-item:hover {
         background-color: #f5f5fa;
     }
-    
+
     .dark-mode .widget-list-item:hover {
         background-color: #3a3a3c;
     }
@@ -114,39 +134,41 @@
         font-size: 24px;
         color: #6e6e73;
     }
-    
+
     .dark-mode .widget-list-item-icon {
         color: #8d8d92;
     }
 
     .widget-list-item-details {
         flex-grow: 1;
+        flex-direction: column;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        justify-content: center;
+        align-items: flex-start;
     }
 
     .widget-list-item-title {
         font-weight: 500;
         color: #1d1d1f;
     }
-    
+
     .dark-mode .widget-list-item-title {
         color: #f5f5f7;
     }
 
     .widget-list-item-value {
-        font-size: 1rem;
+        font-size: 12px;
         font-weight: 500;
-        color: #6e6e73;
+        color: #000000e6;
     }
+
     .dark-mode .widget-list-item-value {
         color: #8d8d92;
     }
 
     .actions-container {
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
         gap: 12px;
     }
 
@@ -164,19 +186,47 @@
         height: 50px;
     }
 
-    .dark-mode .action-card { border-color: #ffffff20; }
-    .action-card:hover { background-color: #f5f5fa; }
-    .dark-mode .action-card:hover { background-color: #3a3a3c; }
-    .action-card-icon { font-size: 24px; margin-right: 12px; margin-bottom: 0; }
-    .action-card-label { font-weight: 500; font-size: 0.9rem; color: #1d1d1f; }
-    .dark-mode .action-card-label { color: #f5f5f7; }
+    .dark-mode .action-card {
+        border-color: #ffffff20;
+    }
+
+    .action-card:hover {
+        background-color: #f5f5fa;
+    }
+
+    .dark-mode .action-card:hover {
+        background-color: #3a3a3c;
+    }
+
+    .action-card-icon {
+        font-size: 24px;
+        margin-right: 12px;
+        margin-bottom: 0;
+    }
+
+    .action-card-label {
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #1d1d1f;
+    }
+
+    .dark-mode .action-card-label {
+        color: #f5f5f7;
+    }
 
     @media (max-width: 1024px) {
-        .widget-clock { grid-column: span 1; }
+        .widget-clock {
+            grid-column: span 1;
+        }
     }
-    
+
     @media (max-width: 768px) {
-        .everything-grid-container { grid-template-columns: 1fr; }
-        .widget-clock { grid-column: span 1; }
+        .everything-grid-container {
+            grid-template-columns: 1fr;
+        }
+
+        .widget-clock {
+            grid-column: span 1;
+        }
     }
 </style>

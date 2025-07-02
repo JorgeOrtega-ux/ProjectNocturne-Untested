@@ -41,13 +41,10 @@ const WIDGET_DEFINITIONS = {
             </div>`
     },
     'summary-widget': {
-        className: 'widget--full-width summary-widget',
-        generateContent: () => `
-            <div class="widget-content">
-                <div class="summary-item"><div class="summary-value" id="active-alarms-count">0</div><div class="summary-label" data-translate="active_alarms" data-translate-category="everything"></div></div>
-                <div class="summary-item"><div class="summary-value" id="active-timers-count">0</div><div class="summary-label" data-translate="running_timers" data-translate-category="everything"></div></div>
-                <div class="summary-item"><div class="summary-value" id="world-clocks-count">0</div><div class="summary-label" data-translate="world_clocks" data-translate-category="everything"></div></div>
-            </div>`
+        className: 'widget--small summary-widget', // Cambiado a widget--small
+        headerIcon: 'summarize', // Ícono para el nuevo widget
+        headerTitleKey: 'summary', // Clave de traducción para el título
+        generateContent: () => `<div class="widget-content"><div class="summary-list"></div></div>` // Nuevo contenido
     }
 };
 
@@ -131,7 +128,7 @@ export function initializeEverything() {
 
 export function updateEverythingWidgets() {
     updateCurrentDate();
-    updateSummaryWidgets();
+    updateSummaryWidgetAsList(); // Nueva función para el widget de resumen
     updateAgendaWidget();
 }
 
@@ -179,15 +176,66 @@ function updateCurrentDate() {
     }
 }
 
-function updateSummaryWidgets() {
-    const alarmsCount = document.getElementById('active-alarms-count');
-    const timersCount = document.getElementById('active-timers-count');
-    const clocksCount = document.getElementById('world-clocks-count');
+function updateSummaryWidgetAsList() {
+    const summaryList = document.querySelector('.summary-list');
+    if (!summaryList) return;
 
-    if (window.alarmManager && alarmsCount) alarmsCount.textContent = window.alarmManager.getActiveAlarmsCount();
-    if (window.timerManager && timersCount) timersCount.textContent = window.timerManager.getRunningTimersCount();
-    if (window.worldClockManager && clocksCount) clocksCount.textContent = window.worldClockManager.getClockCount();
+    summaryList.innerHTML = ''; // Limpiar la lista
+
+    const items = [];
+
+    // Obtener datos
+    const alarmsCount = window.alarmManager ? window.alarmManager.getActiveAlarmsCount() : 0;
+    const timersCount = window.timerManager ? window.timerManager.getRunningTimersCount() : 0;
+    const clocksCount = window.worldClockManager ? window.worldClockManager.getClockCount() : 0;
+
+    // Crear elementos de la lista
+    if (alarmsCount > 0) {
+        items.push({
+            icon: 'alarm',
+            title: getTranslation('active_alarms', 'everything'),
+            subtitle: `${alarmsCount} ${getTranslation('alarms_subtitle', 'everything')}`
+        });
+    }
+
+    if (timersCount > 0) {
+        items.push({
+            icon: 'hourglass_top',
+            title: getTranslation('running_timers', 'everything'),
+            subtitle: `${timersCount} ${getTranslation('timers_subtitle', 'everything')}`
+        });
+    }
+    
+    if (clocksCount > 0) {
+        items.push({
+            icon: 'public',
+            title: getTranslation('world_clocks', 'everything'),
+            subtitle: `${clocksCount} ${getTranslation('clocks_subtitle', 'everything')}`
+        });
+    }
+
+    if (items.length === 0) {
+        summaryList.innerHTML = `<p>${getTranslation('no_active_items', 'everything') || 'No active items.'}</p>`;
+        return;
+    }
+
+    // Renderizar elementos
+    items.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'summary-list-item'; // Usar una clase específica
+        itemEl.innerHTML = `
+            <div class="summary-item-icon">
+                <span class="material-symbols-rounded">${item.icon}</span>
+            </div>
+            <div class="summary-item-details">
+                <div class="summary-item-title">${item.title}</div>
+                <div class="summary-item-subtitle">${item.subtitle}</div>
+            </div>
+        `;
+        summaryList.appendChild(itemEl);
+    });
 }
+
 
 function getAgendaItems() {
     const items = [];

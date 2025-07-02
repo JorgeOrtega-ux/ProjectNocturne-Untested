@@ -177,29 +177,55 @@
         font-weight: 500;
         color: #1d1d1f;
     }
-
+    
     /* --- Widget de Resumen (Ancho Completo) --- */
     .summary-widget .widget-content {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    .summary-list {
         display: flex;
-        justify-content: space-around;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .summary-list-item {
+        display: flex;
         align-items: center;
-        width: 100%;
+        gap: 16px;
     }
 
-    .summary-item {
-        text-align: center;
+    .summary-item-icon {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #f5f5fa;
+    }
+    
+    .summary-item-icon .material-symbols-rounded {
+        font-size: 24px;
+        color: #1d1d1f;
     }
 
-    .summary-value {
-        font-size: 2rem;
-        font-weight: 600;
+    .summary-item-details {
+        flex-grow: 1;
     }
 
-    .summary-label {
+    .summary-item-title {
+        font-weight: 500;
+        color: #1d1d1f;
+    }
+
+    .summary-item-subtitle {
         font-size: 0.9rem;
         color: #6e6e73;
-        margin-top: 4px;
     }
+
 
     /* --- Dark Mode --- */
     .dark-mode .widget {
@@ -209,24 +235,24 @@
     .dark-mode .everything-title,
     .dark-mode .widget-header,
     .dark-mode #main-clock-time,
-    .dark-mode .summary-value {
+    .dark-mode .summary-item-title,
+    .dark-mode .agenda-item-title {
         color: #f5f5f7;
     }
     .dark-mode #current-date-subtitle,
-    .dark-mode .summary-label {
+    .dark-mode .summary-item-subtitle,
+    .dark-mode .agenda-item-subtitle {
         color: #8d8d92;
     }
-    .dark-mode .agenda-item-icon {
+    .dark-mode .agenda-item-icon,
+    .dark-mode .summary-item-icon {
         background-color: #3a3a3c;
     }
     .dark-mode .agenda-item-icon .material-symbols-rounded,
-    .dark-mode .agenda-item-title,
+    .dark-mode .summary-item-icon .material-symbols-rounded,
     .dark-mode .action-button-icon,
     .dark-mode .action-button-label {
         color: #f5f5f7;
-    }
-    .dark-mode .agenda-item-subtitle {
-        color: #8d8d92;
     }
     .dark-mode .action-button {
         background-color: #3a3a3c;

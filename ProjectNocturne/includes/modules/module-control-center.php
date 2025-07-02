@@ -128,42 +128,79 @@
     </div>
 
     <div class="menu-control-center disabled" data-menu="location">
-        <div class="pill-container">
-            <div class="drag-handle"></div>
+    <div class="pill-container">
+        <div class="drag-handle"></div>
+    </div>
+    <div class="search-content" style="margin-bottom: 8px;">
+        <div class="search-content-icon">
+            <span class="material-symbols-rounded">search</span>
         </div>
-        <div class="search-content" style="margin-bottom: 8px;">
-            <div class="search-content-icon">
-                <span class="material-symbols-rounded">search</span>
-            </div>
-            <div class="search-content-text">
-                <input type="text" id="location-search-input" class="body-title" placeholder="Buscar país...">
-            </div>
+        <div class="search-content-text">
+            <input type="text" id="location-search-input" class="body-title" 
+                   data-translate="search_country" data-translate-category="menu" data-translate-target="placeholder">
         </div>
-        <div class="menu-list-container overflow-y" style="max-height: 250px;">
-            <div class="menu-list" id="location-menu-list">
-                <div class="menu-link" data-location="auto">
-                    <div class="menu-link-icon"><span class="material-symbols-rounded">my_location</span></div>
-                    <div class="menu-link-text"><span>Automático</span></div>
+    </div>
+    <div class="menu-list-container overflow-y" style="max-height: 250px;">
+        <div class="menu-list" id="location-menu-list">
+            <div class="menu-link" data-location="auto">
+                <div class="menu-link-icon"><span class="material-symbols-rounded">my_location</span></div>
+                <div class="menu-link-text"><span data-translate="automatic" data-translate-category="menu"></span></div>
+            </div>
+
+            <div class="menu-content" data-section="america-countries" data-collapsible-section="true">
+                <div class="menu-content-header">
+                    <div class="menu-content-header-primary">
+                        <span class="material-symbols-rounded">public</span>
+                        <span data-translate="america" data-translate-category="menu"></span>
+                    </div>
                 </div>
-                <div class="menu-link" data-location="US"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Estados Unidos</span></div></div>
-                <div class="menu-link" data-location="MX"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>México</span></div></div>
-                <div class="menu-link" data-location="ES"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>España</span></div></div>
-                <div class="menu-link" data-location="AR"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Argentina</span></div></div>
-                <div class="menu-link" data-location="CO"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Colombia</span></div></div>
-                <div class="menu-link" data-location="PE"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Perú</span></div></div>
-                <div class="menu-link" data-location="CL"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Chile</span></div></div>
-                <div class="menu-link" data-location="DE"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Alemania</span></div></div>
-                <div class="menu-link" data-location="GB"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Reino Unido</span></div></div>
-                <div class="menu-link" data-location="FR"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Francia</span></div></div>
-                <div class="menu-link" data-location="IT"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Italia</span></div></div>
-                <div class="menu-link" data-location="BR"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Brasil</span></div></div>
-                <div class="menu-link" data-location="CA"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Canadá</span></div></div>
-                <div class="menu-link" data-location="AU"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Australia</span></div></div>
-                <div class="menu-link" data-location="JP"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Japón</span></div></div>
-                <div class="menu-link" data-location="CN"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>China</span></div></div>
-                <div class="menu-link" data-location="IN"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>India</span></div></div>
-                <div class="menu-link" data-location="RU"><div class="menu-link-icon"><span class="material-symbols-rounded">flag</span></div><div class="menu-link-text"><span>Rusia</span></div></div>
+                <div class="menu-content-general" data-section-collapsed="false">
+                    <div class="menu-list">
+                        <div class="menu-link" data-location="US"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="united_states" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="MX"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="mexico" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="CA"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="canada" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="BR"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="brazil" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="AR"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="argentina" data-translate-category="menu"></span></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-content" data-section="europe-countries" data-collapsible-section="true">
+                <div class="menu-content-header">
+                    <div class="menu-content-header-primary">
+                        <span class="material-symbols-rounded">public</span>
+                        <span data-translate="europe" data-translate-category="menu"></span>
+                    </div>
+                </div>
+                <div class="menu-content-general" data-section-collapsed="false">
+                    <div class="menu-list">
+                        <div class="menu-link" data-location="DE"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="germany" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="GB"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="united_kingdom" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="FR"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="france" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="IT"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="italy" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="ES"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="spain" data-translate-category="menu"></span></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-content" data-section="asia-countries" data-collapsible-section="true">
+                <div class="menu-content-header">
+                    <div class="menu-content-header-primary">
+                        <span class="material-symbols-rounded">public</span>
+                        <span data-translate="asia" data-translate-category="menu"></span>
+                    </div>
+                </div>
+                <div class="menu-content-general" data-section-collapsed="false">
+                    <div class="menu-list">
+                        <div class="menu-link" data-location="CN"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="china" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="IN"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="india" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="JP"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="japan" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="RU"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="russia" data-translate-category="menu"></span></div></div>
+                        <div class="menu-link" data-location="ID"><div class="menu-link-icon"></div><div class="menu-link-text"><span data-translate="indonesia" data-translate-category="menu"></span></div></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 </div>

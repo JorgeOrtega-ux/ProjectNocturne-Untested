@@ -1,36 +1,59 @@
 <?php
 header('Content-Type: application/json');
+// Permitimos que el script sea llamado desde el frontend
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Headers: Content-Type');
 
-/**
- * Obtiene la dirección IP real del visitante.
- * @return string La dirección IP.
- */
-function get_user_ip() {
-    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    }
-    // En caso de que vengan múltiples IPs, tomamos la primera.
-    return explode(',', $ip)[0];
-}
-
-$user_ip = get_user_ip();
-
-// Verificar si cURL está habilitado.
-if (!function_exists('curl_init')) {
+// El script solo debe responder a peticiones POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Method Not Allowed
     echo json_encode([
-        'success' => false, 
-        'message' => 'Error del servidor: la extensión cURL de PHP no está habilitada.',
-        'ip_detected' => $user_ip
+        'success' => false,
+        'message' => 'Error: Se esperaba una petición POST.'
     ]);
     exit;
 }
 
-// Llamada a la API de ipwho.is usando la IP detectada directamente.
-$url = "http://ipwho.is/{$user_ip}";
+// Leemos el cuerpo de la petición JSON que envía el JavaScript
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+
+// Verificamos que se haya enviado una IP
+if (!$data || !isset($data['ip'])) {
+    http_response_code(400); // Bad Request
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error: No se proporcionó una dirección IP.'
+    ]);
+    exit;
+}
+
+$ip_to_check = $data['ip'];
+
+// Validamos que la IP recibida sea una IP válida
+if (!filter_var($ip_to_check, FILTER_VALIDATE_IP)) {
+    http_response_code(400); // Bad Request
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error: La dirección IP proporcionada no es válida.',
+        'ip_received' => $ip_to_check
+    ]);
+    exit;
+}
+
+// Verificar si cURL está habilitado.
+if (!function_exists('curl_init')) {
+    http_response_code(500); // Internal Server Error
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error del servidor: la extensión cURL de PHP no está habilitada.'
+    ]);
+    exit;
+}
+
+// Usamos la IP recibida para la llamada a la API.
+$url = "http://ipwho.is/{$ip_to_check}";
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
@@ -41,15 +64,14 @@ $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curl_error = curl_error($ch);
 curl_close($ch);
 
-// Análisis final de la respuesta
 $final_response = json_decode($response_body, true);
 
-// Añadimos información de depuración a la respuesta final
 if (!is_array($final_response)) {
     $final_response = [];
 }
+// Añadimos información de depuración para confirmar qué IP se usó
 $final_response['debug_info'] = [
-    'ip_used_for_api' => $user_ip,
+    'ip_received_from_client' => $ip_to_check,
 ];
 
 if ($curl_error) {

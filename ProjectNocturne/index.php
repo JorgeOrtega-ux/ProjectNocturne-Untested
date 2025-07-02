@@ -39,13 +39,13 @@
             </div>
         </div>
     </div>
-
     <script type="module" src="assets/js/general/translations-controller.js"></script>
     <script type="module" src="assets/js/general/main.js"></script>
     <script type="module" src="assets/js/general/module-manager.js"></script>
     <script type="module" src="assets/js/general/theme-manager.js"></script>
     <script type="module" src="assets/js/general/language-manager.js"></script>
     <script type="module" src="assets/js/general/tooltip-controller.js"></script>
+        <script type="module" src="assets/js/general/location-manager.js"></script>
     <script type="module" src="assets/js/general/drag-controller.js"></script>
     <script type="module" src="assets/js/general/dynamic-island-controller.js"></script>
     <script type="module" src="assets/js/general/init-app.js"></script>

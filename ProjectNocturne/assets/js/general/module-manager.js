@@ -69,7 +69,8 @@ const CONTROL_CENTER_MENUS = {
     'control_center': 'control_center',
     'appearance': 'appearance',
     'language': 'language',
-    'settings': 'settings'
+    'settings': 'settings',
+    'location': 'location'
 };
 
 const INDEPENDENT_OVERLAYS = {

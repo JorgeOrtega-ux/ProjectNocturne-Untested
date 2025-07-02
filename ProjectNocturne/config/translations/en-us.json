@@ -299,6 +299,7 @@
     "new_timer": "New Timer",
     "add_clock": "Add Clock",
     "no_active_alarms": "No active alarms",
-    "no_running_timers": "No running timers"
+    "no_running_timers": "No running timers",
+    "upcoming_festivities": "Upcoming Festivities"
   }
 }

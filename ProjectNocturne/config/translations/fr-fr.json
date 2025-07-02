@@ -299,6 +299,7 @@
     "new_timer": "Nouveau Minuteur",
     "add_clock": "Ajouter une Horloge",
     "no_active_alarms": "Aucune alarme active",
-    "no_running_timers": "Aucun minuteur en cours"
+    "no_running_timers": "Aucun minuteur en cours",
+    "upcoming_festivities": "Festivités à venir"
   }
 }

@@ -100,7 +100,6 @@ function applyTranslations() {
     translateLegacyElements();
     updateDynamicMenuLabels();
     updateTooltipTranslations();
-    updateSearchPlaceholders();
     updateColorSystemHeaders();
 }
 
@@ -184,22 +183,6 @@ function isDynamicMenuElement(element) {
 }
 
 // ========== NEW FUNCTIONS FOR SPECIFIC CATEGORIES ==========
-
-function updateSearchPlaceholders() {
-    const colorSearchInput = document.querySelector('.menu-paletteColors .search-content-text input');
-    if (colorSearchInput) {
-        const placeholderText = getTranslation('search_placeholder', 'search');
-        if (placeholderText && placeholderText !== 'search_placeholder') {
-            colorSearchInput.placeholder = placeholderText;
-        }
-    }
-
-    const otherSearchInputs = document.querySelectorAll('.search-content-text input:not(.menu-paletteColors .search-content-text input)');
-    otherSearchInputs.forEach(input => {
-        const placeholderText = getTranslation('search', 'tooltips') || 'Search...';
-        input.placeholder = placeholderText;
-    });
-}
 
 function updateColorSystemHeaders() {
     const colorSections = [
@@ -463,8 +446,7 @@ export {
     updateDynamicMenuLabels,
     applyTranslations,
     translateElementsWithDataTranslate,
-    translateElementTree, // <-- Exportar nueva función
-    updateSearchPlaceholders,
+    translateElementTree,
     updateColorSystemHeaders,
     debugTranslationsController
 };

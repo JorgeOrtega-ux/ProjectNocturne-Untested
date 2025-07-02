@@ -35,7 +35,7 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="enter-text-tool">
-                                    <input type="text" id="worldclock-title" data-translate="new_clock_placeholder" data-translate-category="world_clock" data-translate-target="placeholder">
+                                    <input type="text" id="worldclock-title" data-translate="my_new_clock_placeholder" data-translate-category="world_clock" data-translate-target="placeholder">
                                 </div>
                             </div>
                         </div>

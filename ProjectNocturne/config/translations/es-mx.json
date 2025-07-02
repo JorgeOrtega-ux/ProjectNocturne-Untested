@@ -131,6 +131,8 @@
     "search_error": "No se pudo procesar la búsqueda",
     "search_placeholder": "Prueba con \"rojo\" o \"#f44336\"",
     "search_alarms_placeholder": "Buscar alarmas...",
+    "search_timers_placeholder": "Buscar temporizadores...",
+    "search_clocks_placeholder": "Buscar relojes...",
     "search_cities_placeholder": "Buscar ciudades o países..."
   },
   "search_sections": {
@@ -205,7 +207,7 @@
   },
   "world_clock": {
     "clock_title": "Título del reloj",
-    "new_clock_placeholder": "Nuevo reloj",
+    "my_new_clock_placeholder": "Mi nuevo reloj",
     "select_country": "Selecciona un país",
     "select_a_country": "Seleccionar un país",
     "select_timezone": "Selecciona una zona horaria",

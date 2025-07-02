@@ -131,6 +131,8 @@
     "search_error": "Could not process search",
     "search_placeholder": "Try \"red\" or \"#f44336\"",
     "search_alarms_placeholder": "Search alarms...",
+    "search_timers_placeholder": "Search timers...",
+    "search_clocks_placeholder": "Search clocks...",
     "search_cities_placeholder": "Search cities or countries..."
   },
   "search_sections": {
@@ -205,7 +207,7 @@
   },
   "world_clock": {
     "clock_title": "Clock Title",
-    "new_clock_placeholder": "New clock",
+    "my_new_clock_placeholder": "My new clock",
     "select_country": "Select a country",
     "select_a_country": "Select a country",
     "select_timezone": "Select a timezone",

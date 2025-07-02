@@ -9,14 +9,12 @@ const DEFAULT_WIDGET_ORDER = ['upcoming-widget', 'festivities-widget', 'actions-
 
 // --- Definiciones de los Widgets ---
 const WIDGET_DEFINITIONS = {
-    'summary-widget': {
-        className: 'widget-summary',
+    'clock-widget': {
+        className: 'widget-clock',
         generateContent: () => `
-            <div class="summary-content">
-                <div class="summary-item"><div class="summary-value" id="main-clock-time-short">--:--</div><div class="summary-label" data-translate="local_time" data-translate-category="everything"></div></div>
-                <div class="summary-item"><div class="summary-value" id="active-alarms-count">0</div><div class="summary-label" data-translate="active_alarms" data-translate-category="everything"></div></div>
-                <div class="summary-item"><div class="summary-value" id="active-timers-count">0</div><div class="summary-label" data-translate="running_timers" data-translate-category="everything"></div></div>
-                <div class="summary-item"><div class="summary-value" id="world-clocks-count">0</div><div class="summary-label" data-translate="world_clocks" data-translate-category="everything"></div></div>
+            <div class="clock-content">
+                <div class="clock-time" id="main-clock-time-long">--:--:--</div>
+                <div class="clock-date" id="main-clock-date"></div>
             </div>`
     },
     'upcoming-widget': {
@@ -24,20 +22,20 @@ const WIDGET_DEFINITIONS = {
         headerIcon: 'notifications_active',
         headerTitleKey: 'upcoming_events',
         generateContent: () => `
-            <div class="upcoming-list">
-                <div class="upcoming-item"><div class="upcoming-item-icon-wrapper"><span class="material-symbols-rounded upcoming-item-icon">alarm</span></div><div class="upcoming-item-details"><div class="upcoming-item-title" data-translate="next_alarm" data-translate-category="everything"></div><div class="upcoming-item-time" id="next-alarm-details">--</div></div></div>
-                <div class="upcoming-item"><div class="upcoming-item-icon-wrapper"><span class="material-symbols-rounded upcoming-item-icon">hourglass_top</span></div><div class="upcoming-item-details"><div class="upcoming-item-title" data-translate="active_timer" data-translate-category="everything"></div><div class="upcoming-item-time" id="active-timer-details">--</div></div></div>
-                <div class="upcoming-item"><div class="upcoming-item-icon-wrapper"><span class="material-symbols-rounded upcoming-item-icon">timer</span></div><div class="upcoming-item-details"><div class="upcoming-item-title" data-translate="stopwatch" data-translate-category="everything"></div><div class="upcoming-item-time" id="stopwatch-details">--</div></div></div>
+            <div class="widget-list">
+                <div class="widget-list-item interactive"><div class="widget-list-item-icon"><span class="material-symbols-rounded">alarm</span></div><div class="widget-list-item-details"><span class="widget-list-item-title" data-translate="next_alarm" data-translate-category="everything"></span><span class="widget-list-item-value" id="next-alarm-details">--</span></div></div>
+                <div class="widget-list-item interactive"><div class="widget-list-item-icon"><span class="material-symbols-rounded">hourglass_top</span></div><div class="widget-list-item-details"><span class="widget-list-item-title" data-translate="active_timer" data-translate-category="everything"></span><span class="widget-list-item-value" id="active-timer-details">--</span></div></div>
+                <div class="widget-list-item interactive"><div class="widget-list-item-icon"><span class="material-symbols-rounded">timer</span></div><div class="widget-list-item-details"><span class="widget-list-item-title" data-translate="stopwatch" data-translate-category="everything"></span><span class="widget-list-item-value" id="stopwatch-details">--</span></div></div>
             </div>`
     },
     'festivities-widget': {
         className: 'widget-festivities',
         headerIcon: 'celebration',
-        headerTitleKey: 'Próximas Festividades',
+        headerTitleKey: 'upcoming_festivities',
         generateContent: () => `
-            <div class="festivities-list">
-                <div class="festivity-item"><span class="material-symbols-rounded festivity-item-icon">emoji_events</span><div class="festivity-details"><div class="festivity-title">Día de la Independencia (México)</div><div class="festivity-date">16 de Septiembre</div></div></div>
-                <div class="festivity-item"><span class="material-symbols-rounded festivity-item-icon">cake</span><div class="festivity-details"><div class="festivity-title">Navidad</div><div class="festivity-date">25 de Diciembre</div></div></div>
+            <div class="widget-list">
+                <div class="widget-list-item"><div class="widget-list-item-icon"><span class="material-symbols-rounded">emoji_events</span></div><div class="widget-list-item-details"><span class="widget-list-item-title">Día de la Independencia (México)</span><span class="widget-list-item-value">16 de Sep</span></div></div>
+                <div class="widget-list-item"><div class="widget-list-item-icon"><span class="material-symbols-rounded">cake</span></div><div class="widget-list-item-details"><span class="widget-list-item-title">Navidad</span><span class="widget-list-item-value">25 de Dic</span></div></div>
             </div>`
     },
     'actions-widget': {
@@ -55,7 +53,7 @@ const WIDGET_DEFINITIONS = {
 
 let smartUpdateInterval = null;
 const WIDGET_CONFIG = {
-    summary: true,
+    clock: true,
     upcoming: true,
     festivities: true,
     quickActions: true
@@ -95,7 +93,6 @@ function rebindEventListeners() {
     actionCards.forEach(card => {
         const moduleName = card.dataset.module;
         if (moduleName) {
-            // Clonar y reemplazar el nodo elimina listeners antiguos y evita duplicados.
             const newCard = card.cloneNode(true);
             card.parentNode.replaceChild(newCard, card);
             
@@ -108,36 +105,27 @@ function rebindEventListeners() {
  * Renderiza todos los widgets en el DOM en el orden correcto.
  */
 function renderAllWidgets() {
-    const mainContainer = document.querySelector('.everything-main-container');
+    const mainContainer = document.querySelector('.everything-grid-container');
     if (!mainContainer) return;
-    mainContainer.innerHTML = ''; // Limpiar completamente
+    mainContainer.innerHTML = '';
 
-    // Crear y añadir el widget de resumen
-    const summaryWidget = createWidgetElement('summary-widget');
-    if (summaryWidget) {
-        mainContainer.appendChild(summaryWidget);
+    const clockWidget = createWidgetElement('clock-widget');
+    if (clockWidget) {
+        mainContainer.appendChild(clockWidget);
     }
 
-    // Crear y añadir el contenedor para los widgets reordenables
-    const widgetRow = document.createElement('div');
-    widgetRow.className = 'widget-row';
-    mainContainer.appendChild(widgetRow);
-
-    // Renderizar widgets reordenables
     const savedOrder = JSON.parse(localStorage.getItem(WIDGET_ORDER_KEY)) || DEFAULT_WIDGET_ORDER;
     savedOrder.forEach(widgetId => {
         const widgetElement = createWidgetElement(widgetId);
         if (widgetElement) {
-            widgetRow.appendChild(widgetElement);
+            mainContainer.appendChild(widgetElement);
         }
     });
 
-    // Aplicar traducciones a todos los widgets generados
     if (typeof translateElementTree === 'function') {
         translateElementTree(mainContainer);
     }
     
-    // **PASO CRUCIAL**: Volver a vincular los eventos a los botones de acción rápida
     rebindEventListeners();
 }
 
@@ -145,15 +133,18 @@ function renderAllWidgets() {
  * Inicializa SortableJS para permitir arrastrar y soltar los widgets.
  */
 function initializeWidgetSortable() {
-    const widgetRow = document.querySelector('.widget-row');
-    if (widgetRow && typeof Sortable !== 'undefined') {
-        new Sortable(widgetRow, {
+    const gridContainer = document.querySelector('.everything-grid-container');
+    if (gridContainer && typeof Sortable !== 'undefined') {
+        new Sortable(gridContainer, {
             animation: 150,
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
+            filter: '.widget-clock',
             onEnd: (evt) => {
-                const newOrder = Array.from(evt.to.children).map(widget => widget.id);
+                const newOrder = Array.from(evt.to.children)
+                                    .map(widget => widget.id)
+                                    .filter(id => id !== 'clock-widget');
                 localStorage.setItem(WIDGET_ORDER_KEY, JSON.stringify(newOrder));
             }
         });
@@ -169,7 +160,7 @@ export function initializeEverything() {
     renderAllWidgets();
     initializeWidgetSortable();
     
-    updateEverythingWidgets(); // Llama para poblar los datos iniciales
+    updateEverythingWidgets();
     applyWidgetVisibility();
 
     smartUpdateInterval = setInterval(smartUpdate, 1000);
@@ -185,7 +176,7 @@ export function initializeEverything() {
  */
 function applyWidgetVisibility() {
     const widgets = {
-        summary: document.getElementById('summary-widget'),
+        clock: document.getElementById('clock-widget'),
         upcoming: document.getElementById('upcoming-widget'),
         festivities: document.getElementById('festivities-widget'),
         quickActions: document.getElementById('actions-widget')
@@ -203,12 +194,11 @@ function applyWidgetVisibility() {
 }
 
 /**
- * Actualiza los widgets de resumen y eventos.
+ * Actualiza los widgets y la información de la fecha.
  */
 export function updateEverythingWidgets() {
     console.log('🔄 Actualizando widgets de "Everything" por un evento...');
     updateCurrentDate();
-    updateSummaryWidgets();
     updateUpcomingEvents();
 }
 
@@ -235,38 +225,26 @@ function smartUpdate() {
 function updateCurrentDate() {
     const now = new Date();
     const subtitle = document.getElementById('current-date-subtitle');
-    const clockTime = document.getElementById('main-clock-time-short');
+    const clockTime = document.getElementById('main-clock-time-long');
+    const clockDate = document.getElementById('main-clock-date');
+
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    const dayOfWeek = getTranslation(dayNames[now.getDay()], 'weekdays');
+    const month = getTranslation(monthNames[now.getMonth()], 'months');
+    const fullDateString = `${dayOfWeek}, ${now.getDate()} de ${month} de ${now.getFullYear()}`;
 
     if (subtitle) {
-        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-        const dayOfWeek = getTranslation(dayNames[now.getDay()], 'weekdays');
-        const month = getTranslation(monthNames[now.getMonth()], 'months');
-        subtitle.textContent = `${dayOfWeek}, ${now.getDate()} de ${month} de ${now.getFullYear()}`;
+        subtitle.textContent = fullDateString;
     }
 
     if (clockTime) {
-        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: !use24HourFormat };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !use24HourFormat };
         clockTime.textContent = now.toLocaleTimeString(navigator.language, timeOptions);
     }
-}
-
-/**
- * Actualiza los widgets de resumen (conteos).
- */
-function updateSummaryWidgets() {
-    const alarmsCount = document.getElementById('active-alarms-count');
-    const timersCount = document.getElementById('active-timers-count');
-    const clocksCount = document.getElementById('world-clocks-count');
-
-    if (window.alarmManager && alarmsCount) {
-        alarmsCount.textContent = window.alarmManager.getActiveAlarmsCount();
-    }
-    if (window.timerManager && timersCount) {
-        timersCount.textContent = window.timerManager.getRunningTimersCount();
-    }
-    if (window.worldClockManager && clocksCount) {
-        clocksCount.textContent = window.worldClockManager.getClockCount();
+    
+    if (clockDate) {
+        clockDate.textContent = fullDateString;
     }
 }
 

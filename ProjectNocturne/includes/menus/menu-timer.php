@@ -20,7 +20,7 @@
                     <div class="custom-select-content-left">
                         <div class="custom-select-content-left-inner">
                             <span class="material-symbols-rounded" id="timer-type-icon">timer</span>
-                            <span id="timer-type-display" data-translate="countdown" data-translate-category="timer">Cuenta regresiva</span>
+                            <span id="timer-type-display" data-translate="countdown" data-translate-category="timer"></span>
                         </div>
                     </div>
                     <div class="custom-select-content-right">
@@ -31,11 +31,11 @@
                     <div class="menu-list">
                         <div class="menu-link active" data-tab="countdown">
                             <div class="menu-link-icon"><span class="material-symbols-rounded">timer</span></div>
-                            <div class="menu-link-text"><span data-translate="countdown" data-translate-category="timer">Cuenta regresiva</span></div>
+                            <div class="menu-link-text"><span data-translate="countdown" data-translate-category="timer"></span></div>
                         </div>
                         <div class="menu-link" data-tab="count_to_date">
                              <div class="menu-link-icon"><span class="material-symbols-rounded">event</span></div>
-                            <div class="menu-link-text"><span data-translate="count_to_date" data-translate-category="timer">Contar hasta fecha</span></div>
+                            <div class="menu-link-text"><span data-translate="count_to_date" data-translate-category="timer"></span></div>
                         </div>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                                         <div class="custom-select-content-left"><span id="countdown-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span></div>
                                         <div class="custom-select-content-right"><span class="material-symbols-rounded">expand_more</span></div>
                                     </div>
-                                    <div class="dropdown-menu-container menu-countdown-sound disabled body-title" data-menu="countdownSoundMenu">
+                                    <div class="dropdown-menu-container menu-countdown-sound overflow-y disabled body-title" data-menu="countdownSoundMenu">
                                         <div class="menu-list"></div>
                                     </div>
                                     <div class="menu-action-button" data-action="previewCountdownSound"><span class="material-symbols-rounded">play_arrow</span></div>
@@ -161,7 +161,7 @@
                                         <div class="custom-select-content-left"><span id="count-to-date-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span></div>
                                         <div class="custom-select-content-right"><span class="material-symbols-rounded">expand_more</span></div>
                                     </div>
-                                    <div class="dropdown-menu-container menu-count-to-date-sound disabled body-title" data-menu="countToDateSoundMenu">
+                                    <div class="dropdown-menu-container menu-count-to-date-sound overflow-y disabled body-title" data-menu="countToDateSoundMenu">
                                         <div class="menu-list"></div>
                                     </div>
                                     <div class="menu-action-button" data-action="previewCountToDateSound"><span class="material-symbols-rounded">play_arrow</span></div>

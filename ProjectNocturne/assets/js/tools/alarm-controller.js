@@ -4,6 +4,7 @@ import { prepareAlarmForEdit } from './menu-interactions.js';
 import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable, getAvailableSounds, handleAlarmCardAction  } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
+import { getTranslation } from '../general/translations-controller.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
@@ -640,6 +641,32 @@ function handleEditAlarm(alarmId) {
     }
 }
 
+/**
+ * Muestra una confirmación y luego elimina la alarma.
+ * @param {string} alarmId - El ID de la alarma a eliminar.
+ */
+function handleDeleteAlarm(alarmId) {
+    const alarm = findAlarmById(alarmId);
+    if (!alarm) return;
+
+    const alarmName = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+    showConfirmation('alarm', alarmName, () => {
+        deleteAlarm(alarmId);
+    });
+}
+
+/**
+ * Reproduce el sonido de una alarma durante 1 segundo.
+ * @param {string} alarmId - El ID de la alarma a probar.
+ */
+function testAlarm(alarmId) {
+    const alarm = findAlarmById(alarmId);
+    if (alarm && alarm.sound) {
+        playAlarmSound(alarm.sound);
+        setTimeout(() => stopAlarmSound(), 1000);
+    }
+}
+
 function getSoundNameById(soundId) {
     const sound = getAvailableSounds().find(s => s.id === soundId);
     if (!sound) return getTranslation('classic_beep', 'sounds');
@@ -675,10 +702,11 @@ export function initializeAlarmClock() {
         deleteAlarm,
         updateAlarm,
         toggleAlarmsSection,
-        playAlarmSound,
         dismissAlarm,
         findAlarmById,
-        handleEditAlarm, // <-- Exponer la función de edición
+        handleEditAlarm,
+        testAlarm, // <-- Nueva función expuesta
+        handleDeleteAlarm, // <-- Nueva función expuesta
         getAlarmCount,
         getAlarmLimit,
         getActiveAlarmsCount,

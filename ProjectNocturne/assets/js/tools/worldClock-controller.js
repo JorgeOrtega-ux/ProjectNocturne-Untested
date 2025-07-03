@@ -5,6 +5,7 @@ import { updateZoneInfo } from './zoneinfo-controller.js';
 import { initializeSortable, handleWorldClockCardAction  } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
+import { getTranslation } from '../general/translations-controller.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
 
 const clockIntervals = new Map();
@@ -278,13 +279,6 @@ function createLocalClockCardAndAppend() {
         </div>
     `;
     grid.insertAdjacentHTML('afterbegin', cardHTML);
-}
-function getTranslation(key, category) {
-    if (typeof window.getTranslation === 'function') {
-        const text = window.getTranslation(key, category);
-        return text === key ? key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : text;
-    }
-    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 function getClockCount() {
     if (userClocks.length > 0) {
@@ -585,6 +579,26 @@ function updateMainPinnedDisplay(card) {
     update();
     mainDisplayInterval = setInterval(update, 1000);
 }
+/**
+ * Maneja la acción de editar un reloj.
+ * @param {string} clockId - El ID del reloj a editar.
+ */
+function handleEditClock(clockId) {
+    const card = document.getElementById(clockId);
+    if (card) {
+        const clockData = {
+            id: card.dataset.id,
+            title: card.dataset.title,
+            country: card.dataset.country,
+            timezone: card.dataset.timezone,
+            countryCode: card.dataset.countryCode
+        };
+        prepareWorldClockForEdit(clockData);
+        if (getCurrentActiveOverlay() !== 'menuWorldClock') {
+            activateModule('toggleMenuWorldClock');
+        }
+    }
+}
 
 document.addEventListener('languageChanged', (e) => {
     console.log('🌐 Language changed detected in WorldClock controller:', e.detail);
@@ -611,6 +625,7 @@ window.worldClockManager = {
     updateLocalClockTranslation,
     pinClock,
     deleteClock,
+    handleEditClock, // <-- Nueva función expuesta
     getClockCount,
     getClockLimit
 };

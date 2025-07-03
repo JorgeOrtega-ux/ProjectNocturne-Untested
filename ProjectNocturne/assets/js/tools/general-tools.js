@@ -1043,25 +1043,19 @@ function handleAlarmCardAction(action, alarmId, target) {
         console.error("Alarm manager no está disponible.");
         return;
     }
-    const alarm = window.alarmManager.findAlarmById(alarmId);
-    if (!alarm) return;
 
     switch (action) {
         case 'toggle-alarm':
             window.alarmManager.toggleAlarm(alarmId);
             break;
         case 'test-alarm':
-            playSound(alarm.sound);
-            setTimeout(() => stopSound(), 1000);
+            window.alarmManager.testAlarm(alarmId);
             break;
         case 'edit-alarm':
             window.alarmManager.handleEditAlarm(alarmId);
             break;
         case 'delete-alarm':
-             const alarmName = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-            showConfirmation('alarm', alarmName, () => {
-                window.alarmManager.deleteAlarm(alarmId);
-            });
+            window.alarmManager.handleDeleteAlarm(alarmId);
             break;
         case 'dismiss-alarm':
              window.alarmManager.dismissAlarm(alarmId);
@@ -1111,20 +1105,8 @@ function handleWorldClockCardAction(action, clockId, target) {
             window.worldClockManager.pinClock(target);
             break;
         case 'edit-clock':
-             const card = document.getElementById(clockId);
-             if (card) {
-                const clockData = {
-                    id: card.dataset.id,
-                    title: card.dataset.title,
-                    country: card.dataset.country,
-                    timezone: card.dataset.timezone,
-                    countryCode: card.dataset.countryCode
-                };
-                prepareWorldClockForEdit(clockData);
-                 if (getCurrentActiveOverlay() !== 'menuWorldClock') {
-                    activateModule('toggleMenuWorldClock');
-                }
-             }
+            window.worldClockManager.handleEditClock(clockId);
+            console.log("se activo el modoo editar reloj");
             break;
         case 'delete-clock':
             window.worldClockManager.deleteClock(clockId);

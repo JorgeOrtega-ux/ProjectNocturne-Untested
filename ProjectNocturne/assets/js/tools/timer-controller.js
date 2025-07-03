@@ -2,7 +2,7 @@
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
-import { playSound, stopSound, generateSoundList, initializeSortable, getAvailableSounds } from './general-tools.js';
+import { playSound, stopSound, generateSoundList, initializeSortable, getAvailableSounds, handleTimerCardAction  } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js'; // Importar
@@ -205,7 +205,7 @@ function addSearchItemEventListeners(item) {
                 menuContainer.classList.remove('disabled');
             }
         } else {
-           handleTimerCardAction(action, timerId, target);
+           handleTimerCardAction(action, timerId, actionTarget);
         }
     });
 }
@@ -270,37 +270,6 @@ function createExpandableTimerContainer(type, titleKey, icon) {
     header.addEventListener('click', () => toggleTimersSection(type));
 
     return container;
-}
-
-function handleTimerCardAction(action, timerId, target) {
-    if (!window.timerManager) {
-        console.error("Timer manager no está disponible.");
-        return;
-    }
-
-    switch (action) {
-        case 'pin-timer':
-            window.timerManager.handlePinTimer(timerId);
-            break;
-        case 'start-card-timer':
-            window.timerManager.startTimer(timerId);
-            break;
-        case 'pause-card-timer':
-            window.timerManager.pauseTimer(timerId);
-            break;
-        case 'reset-card-timer':
-            window.timerManager.resetTimer(timerId);
-            break;
-        case 'edit-timer':
-            window.timerManager.handleEditTimer(timerId);
-            break;
-        case 'delete-timer':
-            window.timerManager.handleDeleteTimer(timerId);
-            break;
-        case 'dismiss-timer':
-            window.timerManager.dismissTimer(timerId);
-            break;
-    }
 }
 
 

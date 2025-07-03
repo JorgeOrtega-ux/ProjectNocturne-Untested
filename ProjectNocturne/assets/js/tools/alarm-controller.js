@@ -1,10 +1,10 @@
 // /assets/js/tools/alarm-controller.js
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
-import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable } from './general-tools.js';
+import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable, getAvailableSounds } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
-
+import { showConfirmation } from '../general/confirmation-modal-controller.js'; // Importar
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
 
@@ -294,7 +294,7 @@ function createAlarm(title, hour, minute, sound) {
     };
     userAlarms.push(alarm);
     saveAlarmsToStorage();
-    createAlarmCard(alarm);
+    renderAllAlarmCards();
     scheduleAlarm(alarm);
     updateAlarmCounts();
 
@@ -303,11 +303,22 @@ function createAlarm(title, hour, minute, sound) {
     return true;
 }
 
+function renderAllAlarmCards() {
+    const userGrid = document.querySelector('.tool-grid[data-alarm-grid="user"]');
+    const defaultGrid = document.querySelector('.tool-grid[data-alarm-grid="default"]');
+    if (userGrid) userGrid.innerHTML = '';
+    if (defaultGrid) defaultGrid.innerHTML = '';
+
+    userAlarms.forEach(alarm => createAlarmCard(alarm));
+    defaultAlarmsState.forEach(alarm => createAlarmCard(alarm));
+}
+
 function createAlarmCard(alarm) {
     const grid = document.querySelector(`.tool-grid[data-alarm-grid="${alarm.type}"]`);
     if (!grid) return;
 
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+    const soundName = getSoundNameById(alarm.sound);
 
     // Conditionally include delete link for non-default alarms
     const deleteLinkHtml = alarm.type === 'default' ? '' : `
@@ -327,7 +338,7 @@ function createAlarmCard(alarm) {
             </div>
             <div class="card-footer">
                 <div class="card-tags">
-                    <span class="card-tag" data-translate="${alarm.sound.replace(/-/g, '_')}" data-translate-category="sounds">${getTranslation(alarm.sound.replace(/-/g, '_'), 'sounds')}</span>
+                    <span class="card-tag" data-sound-id="${alarm.sound}">${soundName}</span>
                 </div>
             </div>
             <div class="card-options-container">
@@ -406,7 +417,16 @@ function scheduleAlarm(alarm) {
 }
 
 function triggerAlarm(alarm) {
-    playAlarmSound(alarm.sound);
+    let soundToPlay = alarm.sound;
+    const availableSounds = getAvailableSounds();
+    if (!availableSounds.some(s => s.id === soundToPlay)) {
+        console.warn(`Audio "${soundToPlay}" not found for alarm "${alarm.title}". Reverting to default.`);
+        soundToPlay = 'classic_beep';
+        alarm.sound = soundToPlay;
+        updateAlarm(alarm.id, { sound: soundToPlay });
+    }
+
+    playAlarmSound(soundToPlay);
     const alarmCard = document.getElementById(alarm.id);
     if (alarmCard) {
         const optionsContainer = alarmCard.querySelector('.card-options-container');
@@ -565,9 +585,8 @@ function updateAlarmCardVisuals(alarm) {
 
     if (time) time.textContent = formatTime(alarm.hour, alarm.minute);
     if (sound) {
-        const soundKey = alarm.sound.replace(/-/g, '_');
-        sound.textContent = getTranslation(soundKey, 'sounds');
-        sound.dataset.translate = soundKey;
+        sound.textContent = getSoundNameById(alarm.sound);
+        sound.dataset.soundId = alarm.sound;
     }
 
     if (toggleIcon) toggleIcon.textContent = alarm.enabled ? 'toggle_on' : 'toggle_off';
@@ -618,7 +637,6 @@ function loadAlarmsFromStorage() {
     }
     userAlarms.forEach(alarm => {
         alarm.type = 'user';
-        createAlarmCard(alarm);
         if (alarm.enabled) scheduleAlarm(alarm);
     });
 }
@@ -627,7 +645,6 @@ function loadDefaultAlarms() {
     loadDefaultAlarmsOrder();
 
     defaultAlarmsState.forEach(alarm => {
-        createAlarmCard(alarm);
         if (alarm.enabled) scheduleAlarm(alarm);
     });
 }
@@ -727,18 +744,25 @@ function handleAlarmCardAction(action, alarmId, target) {
         case 'edit-alarm':
             handleEditAlarm(alarmId);
             break;
-        case 'delete-alarm':
-            // Added check to prevent deleting default alarms
+      case 'delete-alarm':
             if (alarm.type === 'default') {
                 console.warn(`Deletion of default alarm ${alarmId} is not allowed.`);
                 return;
             }
-            if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
+            const alarmName = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+            showConfirmation('alarm', alarmName, () => {
                 window.alarmManager.deleteAlarm(alarmId);
-            }
+            });
             break;
     }
 }
+
+function getSoundNameById(soundId) {
+    const sound = getAvailableSounds().find(s => s.id === soundId);
+    if (!sound) return getTranslation('classic_beep', 'sounds'); // Fallback a un nombre conocido
+    return sound.isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
+}
+
 
 export function initializeAlarmClock() {
     startClock();
@@ -753,6 +777,7 @@ export function initializeAlarmClock() {
 
     loadAlarmsFromStorage();
     loadDefaultAlarms();
+    renderAllAlarmCards();
     updateAlarmCounts();
     initializeSortableGrids();
     if ('Notification' in window && Notification.permission === 'default') {
@@ -776,7 +801,13 @@ export function initializeAlarmClock() {
         getAlarmCount,
         getAlarmLimit,
         getActiveAlarmsCount,
-        getNextAlarmDetails
+        getNextAlarmDetails,
+        getAllAlarms: () => ({ userAlarms, defaultAlarms: defaultAlarmsState }),
+        saveAllAlarms: () => {
+            saveAlarmsToStorage();
+            saveDefaultAlarmsOrder();
+        },
+        renderAllAlarmCards
     };
 
     updateEverythingWidgets();

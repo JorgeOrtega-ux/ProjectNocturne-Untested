@@ -123,33 +123,10 @@
     "settings": "Configuración",
     "spanish_mx": "Español (MX)",
     "suggest_improvements": "Sugerir mejoras",
-    "sync_with_system": "Sincronizar con el sistema",  "location": "Ubicación",
-    "language": "Idioma",
-    "theme": "Tema",
-    "automatic": "Automático",
-    "light": "Claro",
-    "dark": "Oscuro",
-    "search_country": "Buscar país...",
-    "america": "América",
-    "europe": "Europa",
-    "asia": "Asia",
-    "united_states": "Estados Unidos",
-    "mexico": "México",
-    "canada": "Canadá",
-    "brazil": "Brasil",
-    "argentina": "Argentina",
-    "germany": "Alemania",
-    "united_kingdom": "Reino Unido",
-    "france": "Francia",
-    "italy": "Italia",
-    "spain": "España",
-    "china": "China",
-    "india": "India",
-    "japan": "Japón",
-    "russia": "Rusia",
-    "indonesia": "Indonesia",
-    "location_prefix": "Ubicación:",
-    "auto_approx_prefix": "Automático (Aprox. {country})"
+    "sync_with_system": "Sincronizar con el sistema",
+    "location": "Ubicación",
+    "detecting": "Detectando...",
+    "none_selected": "No seleccionado"
   },
   "search": {
     "no_results": "No se encontraron resultados para",
@@ -312,7 +289,7 @@
     "november": "noviembre",
     "december": "diciembre"
 },
-  "everything": {
+"everything": {
     "main_panel": "Panel Principal",
     "local_time": "Hora Local",
     "active_alarms": "Alarmas Activas",
@@ -328,6 +305,18 @@
     "add_clock": "Añadir Reloj",
     "no_active_alarms": "No hay alarmas activas",
     "no_running_timers": "No hay timers corriendo",
-    "upcoming_festivities": "Próximas Festividades"
+    "upcoming_festivities": "Próximas Festividades",
+    "festivities_not_available": "Las festividades no están disponibles para esta ubicación."
+  },"confirmation": {
+    "confirm_delete_title_alarm": "¿Eliminar Alarma?",
+    "confirm_delete_message_alarm": "Estás a punto de eliminar la alarma {name}. Esta acción no se puede deshacer.",
+    "confirm_delete_title_timer": "¿Eliminar Temporizador?",
+    "confirm_delete_message_timer": "Estás a punto de eliminar el temporizador {name}. Esta acción no se puede deshacer.",
+    "confirm_delete_title_world-clock": "¿Eliminar Reloj?",
+    "confirm_delete_message_world-clock": "Estás a punto de eliminar el reloj {name}. Esta acción no se puede deshacer.",
+    "confirm_delete_title_audio": "¿Eliminar Audio?",
+    "confirm_delete_message_audio": "Estás a punto de eliminar el audio {name}. Se reemplazará en las alarmas/temporizadores que lo usen. Esta acción no se puede deshacer.",
+    "cancel": "Cancelar",
+    "delete": "Eliminar"
   }
 }

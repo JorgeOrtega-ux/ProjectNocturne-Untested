@@ -123,33 +123,10 @@
     "settings": "Settings",
     "spanish_mx": "Español (MX)",
     "suggest_improvements": "Suggest Improvements",
-    "sync_with_system": "Sync with System",    "location": "Location",
-    "language": "Language",
-    "theme": "Theme",
-    "automatic": "Automatic",
-    "light": "Light",
-    "dark": "Dark",
-    "search_country": "Search country...",
-    "america": "America",
-    "europe": "Europe",
-    "asia": "Asia",
-    "united_states": "United States",
-    "mexico": "Mexico",
-    "canada": "Canada",
-    "brazil": "Brazil",
-    "argentina": "Argentina",
-    "germany": "Germany",
-    "united_kingdom": "United Kingdom",
-    "france": "France",
-    "italy": "Italy",
-    "spain": "Spain",
-    "china": "China",
-    "india": "India",
-    "japan": "Japan",
-    "russia": "Russia",
-    "indonesia": "Indonesia",
-    "location_prefix": "Location:",
-    "auto_approx_prefix": "Automatic (Approx. {country})"
+    "sync_with_system": "Sync with System",
+    "location": "Location",
+    "detecting": "Detecting...",
+    "none_selected": "None Selected"
   },
   "search": {
     "no_results": "No results found for",
@@ -289,7 +266,8 @@
     "edit_not_implemented": "Edit clock functionality is pending implementation.",
     "fullscreen_not_implemented": "Fullscreen functionality is pending implementation.",
     "save_changes": "Save Changes"
-  },"weekdays": {
+  },
+  "weekdays": {
     "sunday": "Sunday",
     "monday": "Monday",
     "tuesday": "Tuesday",
@@ -297,8 +275,8 @@
     "thursday": "Thursday",
     "friday": "Friday",
     "saturday": "Saturday"
-},
-"months": {
+  },
+  "months": {
     "january": "January",
     "february": "February",
     "march": "March",
@@ -311,7 +289,7 @@
     "october": "October",
     "november": "November",
     "december": "December"
-},
+  },
   "everything": {
     "main_panel": "Main Panel",
     "local_time": "Local Time",

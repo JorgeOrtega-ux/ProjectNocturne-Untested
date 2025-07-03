@@ -20,9 +20,7 @@
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
-            <div class="worldclock-search-results-wrapper disabled">
-                </div>
-
+            <div class="worldclock-search-results-wrapper disabled"></div>
             <div class="worldclock-creation-wrapper active">
                 <div class="menu-section-center overflow-y">
                     <div class="menu-content-wrapper active">
@@ -30,7 +28,7 @@
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
                                     <span class="material-symbols-rounded">label</span>
-                                    <span data-translate="clock_title" data-translate-category="world_clock">Título del Reloj</span>
+                                    <span data-translate="clock_title" data-translate-category="world_clock"></span>
                                 </div>
                             </div>
                             <div class="menu-content-general">
@@ -43,16 +41,16 @@
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
                                     <span class="material-symbols-rounded">public</span>
-                                    <span data-translate="select_country" data-translate-category="world_clock">Selecciona un país</span>
+                                    <span data-translate="select_country" data-translate-category="world_clock"></span>
                                 </div>
                             </div>
                             <div class="menu-content-general">
-                                <div class="enter-sound-wrapper">
-                                    <div class="enter-sound-content" data-action="toggleCountryDropdown">
-                                        <div class="enter-sound-content-left">
-                                            <span id="worldclock-selected-country" data-translate="select_a_country" data-translate-category="world_clock">Seleccionar un país</span>
+                                <div class="custom-select-wrapper">
+                                    <div class="custom-select-content" data-action="toggleCountryDropdown">
+                                        <div class="custom-select-content-left">
+                                            <span id="worldclock-selected-country" data-translate="select_a_country" data-translate-category="world_clock"></span>
                                         </div>
-                                        <div class="enter-sound-content-right">
+                                        <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">expand_more</span>
                                         </div>
                                     </div>
@@ -81,16 +79,16 @@
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
                                     <span class="material-symbols-rounded">schedule</span>
-                                    <span data-translate="select_timezone" data-translate-category="world_clock">Selecciona una zona horaria</span>
+                                    <span data-translate="select_timezone" data-translate-category="world_clock"></span>
                                 </div>
                             </div>
                             <div class="menu-content-general">
-                                <div class="enter-sound-wrapper">
-                                    <div class="enter-sound-content" data-action="toggleTimezoneDropdown">
-                                        <div class="enter-sound-content-left">
-                                            <span id="worldclock-selected-timezone" data-translate="select_a_timezone" data-translate-category="world_clock">Seleccionar zona horaria</span>
+                                <div class="custom-select-wrapper">
+                                    <div class="custom-select-content" data-action="toggleTimezoneDropdown">
+                                        <div class="custom-select-content-left">
+                                            <span id="worldclock-selected-timezone" data-translate="select_a_timezone" data-translate-category="world_clock"></span>
                                         </div>
-                                        <div class="enter-sound-content-right">
+                                        <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">expand_more</span>
                                         </div>
                                     </div>
@@ -104,7 +102,7 @@
                 </div>
                 <div class="menu-section-bottom">
                     <div class="create-tool" data-action="addWorldClock">
-                        <span data-translate="add_clock" data-translate-category="tooltips">Agregar reloj</span>
+                        <span data-translate="add_clock" data-translate-category="tooltips"></span>
                     </div>
                 </div>
             </div>

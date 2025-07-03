@@ -32,11 +32,10 @@ const WIDGET_DEFINITIONS = {
         className: 'widget-festivities',
         headerIcon: 'celebration',
         headerTitleKey: 'upcoming_festivities',
-        generateContent: () => `
-            <div class="widget-list">
-                <div class="widget-list-item"><div class="widget-list-item-icon"><span class="material-symbols-rounded">emoji_events</span></div><div class="widget-list-item-details"><span class="widget-list-item-title">Día de la Independencia (México)</span><span class="widget-list-item-value">16 de Sep</span></div></div>
-                <div class="widget-list-item"><div class="widget-list-item-icon"><span class="material-symbols-rounded">cake</span></div><div class="widget-list-item-details"><span class="widget-list-item-title">Navidad</span><span class="widget-list-item-value">25 de Dic</span></div></div>
-            </div>`
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Se genera un contenedor vacío que será llenado dinámicamente.
+        generateContent: () => `<div class="widget-list"></div>`
+        // --- FIN DE LA MODIFICACIÓN ---
     },
     'actions-widget': {
         className: 'widget-actions',
@@ -109,18 +108,27 @@ function renderAllWidgets() {
     if (!mainContainer) return;
     mainContainer.innerHTML = '';
 
+    // Crear el widget del reloj (va primero y ocupa todo el ancho)
     const clockWidget = createWidgetElement('clock-widget');
     if (clockWidget) {
         mainContainer.appendChild(clockWidget);
     }
 
+    // Crear el contenedor para los otros widgets
+    const widgetsRow = document.createElement('div');
+    widgetsRow.className = 'widgets-row';
+
+    // Añadir los otros widgets al contenedor de fila
     const savedOrder = JSON.parse(localStorage.getItem(WIDGET_ORDER_KEY)) || DEFAULT_WIDGET_ORDER;
     savedOrder.forEach(widgetId => {
         const widgetElement = createWidgetElement(widgetId);
         if (widgetElement) {
-            mainContainer.appendChild(widgetElement);
+            widgetsRow.appendChild(widgetElement);
         }
     });
+
+    // Añadir la fila de widgets al contenedor principal
+    mainContainer.appendChild(widgetsRow);
 
     if (typeof translateElementTree === 'function') {
         translateElementTree(mainContainer);
@@ -133,7 +141,7 @@ function renderAllWidgets() {
  * Inicializa SortableJS para permitir arrastrar y soltar los widgets.
  */
 function initializeWidgetSortable() {
-    const gridContainer = document.querySelector('.everything-grid-container');
+   const gridContainer = document.querySelector('.widgets-row');
     if (gridContainer && typeof Sortable !== 'undefined') {
         new Sortable(gridContainer, {
             animation: 150,

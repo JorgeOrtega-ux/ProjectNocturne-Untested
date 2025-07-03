@@ -2,10 +2,10 @@
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
-import { playSound, stopSound, generateSoundList, initializeSortable } from './general-tools.js';
+import { playSound, stopSound, generateSoundList, initializeSortable, getAvailableSounds } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
-
+import { showConfirmation } from '../general/confirmation-modal-controller.js'; // Importar
 // --- ESTADO Y CONSTANTES ---
 const TIMERS_STORAGE_KEY = 'user-timers';
 const DEFAULT_TIMERS_STORAGE_KEY = 'default-timers-order';
@@ -19,6 +19,36 @@ const DEFAULT_TIMERS = [
     { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful_tone', isRunning: false, isPinned: false },
     { id: 'default-timer-3', title: 'exercise_1', type: 'countdown', initialDuration: 60000, remaining: 60000, endAction: 'restart', sound: 'digital_alarm', isRunning: false, isPinned: false }
 ];
+
+// --- NUEVA FUNCIÓN PARA ACTUALIZAR EL NOMBRE DEL TEMPORIZADOR FIJADO ---
+function updatePinnedTimerNameDisplay() {
+    const nameDisplayTool = document.querySelector('.info-tool[data-timer-name-display]');
+    if (!nameDisplayTool) return;
+
+    let span = nameDisplayTool.querySelector('span');
+    if (!span) {
+        span = document.createElement('span');
+        nameDisplayTool.innerHTML = '';
+        nameDisplayTool.appendChild(span);
+    }
+
+    const pinnedTimer = findTimerById(pinnedTimerId);
+    if (pinnedTimer) {
+        const title = pinnedTimer.id.startsWith('default-timer-') 
+            ? getTranslation(pinnedTimer.title, 'timer') 
+            : pinnedTimer.title;
+        span.textContent = title;
+        nameDisplayTool.setAttribute('data-translate-target', 'tooltip');
+        nameDisplayTool.setAttribute('data-tooltip', title);
+    } else {
+        span.textContent = '-';
+         nameDisplayTool.removeAttribute('data-tooltip');
+    }
+     if (window.tooltipManager && typeof window.tooltipManager.attachTooltipsToNewElements === 'function') {
+        window.tooltipManager.attachTooltipsToNewElements(nameDisplayTool.parentElement);
+    }
+}
+
 
 // --- LÓGICA DE BÚSQUEDA Y RENDERIZADO ---
 
@@ -362,7 +392,13 @@ function initializeTimerController() {
         findTimerById,
         getTimersCount,
         getTimerLimit, getRunningTimersCount,
-        getActiveTimerDetails
+        getActiveTimerDetails,
+        getAllTimers: () => ({ userTimers, defaultTimers: defaultTimersState }),
+        saveAllTimers: () => {
+            saveTimersToStorage();
+            saveDefaultTimersOrder();
+        },
+        renderAllTimerCards
     };
 
     updateEverythingWidgets();
@@ -735,6 +771,7 @@ function createTimerCard(timer) {
 
     const isDefault = timer.id.startsWith('default-timer-');
     const titleText = isDefault ? getTranslation(timer.title, 'timer') : timer.title;
+    const soundName = getSoundNameById(timer.sound);
 
     let countdownMenu = '';
     if (isCountdown) {
@@ -767,7 +804,7 @@ function createTimerCard(timer) {
         </div>
         <div class="card-footer">
             <div class="card-tags">
-                 <span class="card-tag">${getTranslation((timer.sound || '').replace(/-/g, '_'), 'sounds')}</span>
+                 <span class="card-tag" data-sound-id="${timer.sound}">${soundName}</span>
             </div>
         </div>
         <div class="card-options-container">
@@ -819,6 +856,7 @@ function updateMainDisplay() {
     } else {
         mainDisplay.textContent = formatTime(0, 'countdown');
     }
+    updatePinnedTimerNameDisplay();
 }
 
 function updateMainControlsState() {
@@ -850,7 +888,7 @@ function updateCardDisplay(timerId) {
     // Find both the main card and the search result item
     const mainCard = document.getElementById(timerId);
     const searchItem = document.getElementById(`search-timer-${timerId}`); //
-
+    
     // Update main card display
     if (mainCard) {
         const timeElement = mainCard.querySelector('.card-value');
@@ -973,9 +1011,18 @@ function handleTimerEnd(timerId) {
 
     const isUserTimer = userTimers.some(t => t.id === timerId);
     if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
+    
+    let soundToPlay = timer.sound;
+    const availableSounds = getAvailableSounds();
+    if (!availableSounds.some(s => s.id === soundToPlay)) {
+        console.warn(`Audio "${soundToPlay}" not found for timer "${timer.title}". Reverting to default.`);
+        soundToPlay = 'classic_beep';
+        timer.sound = soundToPlay;
+        updateTimer(timer.id, { sound: soundToPlay });
+    }
 
     if (timer.sound) {
-        playSound(timer.sound);
+        playSound(soundToPlay);
     }
     const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
 
@@ -1081,60 +1128,57 @@ function handleEditTimer(timerId) {
 
 
 function handleDeleteTimer(timerId) {
-    // Prevent deletion of default timers
     if (timerId.startsWith('default-timer-')) {
         console.warn(`Deletion of default timer ${timerId} is not allowed.`);
         return;
     }
 
-    if (!confirm(getTranslation('delete_timer_confirm', 'timer') || '¿Estás seguro de que quieres eliminar este temporizador?')) return;
-
-    if (activeTimers.has(timerId)) {
-        clearInterval(activeTimers.get(timerId));
-        activeTimers.delete(timerId);
-    }
     const timerToDelete = findTimerById(timerId);
-    const originalTitle = timerToDelete.id.startsWith('default-timer-') ? getTranslation(timerToDelete.title, 'timer') : timerToDelete.title;
+    if (!timerToDelete) return;
 
-    const userIndex = userTimers.findIndex(t => t.id === timerId);
-    if (userIndex !== -1) {
-        userTimers.splice(userIndex, 1);
-        saveTimersToStorage();
-    }
+    const timerName = timerToDelete.id.startsWith('default-timer-') ? getTranslation(timerToDelete.title, 'timer') : timerToDelete.title;
 
-    const defaultIndex = defaultTimersState.findIndex(t => t.id === timerId);
-    if (defaultIndex !== -1) {
-        // This block should ideally not be reached due to the initial check, but as a fallback
-        defaultTimersState.splice(defaultIndex, 1);
-        saveDefaultTimersOrder();
-    }
+    showConfirmation('timer', timerName, () => {
+        // ... (el resto de la lógica de handleDeleteTimer)
+        if (activeTimers.has(timerId)) {
+            clearInterval(activeTimers.get(timerId));
+            activeTimers.delete(timerId);
+        }
+        const originalTitle = timerToDelete.id.startsWith('default-timer-') ? getTranslation(timerToDelete.title, 'timer') : timerToDelete.title;
 
-    if (pinnedTimerId === timerId) {
-        const allTimers = [...userTimers, ...defaultTimersState];
-        pinnedTimerId = allTimers.length > 0 ? allTimers[0].id : null;
-        if (pinnedTimerId) {
-            const newPinnedTimer = findTimerById(pinnedTimerId);
-            if (newPinnedTimer) {
-                newPinnedTimer.isPinned = true;
-                const isUser = userTimers.some(t => t.id === newPinnedTimer.id);
-                if (isUser) saveTimersToStorage(); else saveDefaultTimersOrder();
+        const userIndex = userTimers.findIndex(t => t.id === timerId);
+        if (userIndex !== -1) {
+            userTimers.splice(userIndex, 1);
+            saveTimersToStorage();
+        }
+
+        if (pinnedTimerId === timerId) {
+            const allTimers = [...userTimers, ...defaultTimersState];
+            pinnedTimerId = allTimers.length > 0 ? allTimers[0].id : null;
+            if (pinnedTimerId) {
+                const newPinnedTimer = findTimerById(pinnedTimerId);
+                if (newPinnedTimer) {
+                    newPinnedTimer.isPinned = true;
+                    const isUser = userTimers.some(t => t.id === newPinnedTimer.id);
+                    if (isUser) saveTimersToStorage(); else saveDefaultTimersOrder();
+                }
             }
         }
-    }
 
-    renderAllTimerCards();
-    updateMainDisplay();
-    updateMainControlsState();
-    updateTimerCounts();
-    refreshSearchResults();
-    if (window.hideDynamicIsland) {
-        window.hideDynamicIsland();
-    }
+        renderAllTimerCards();
+        updateMainDisplay();
+        updateMainControlsState();
+        updateTimerCounts();
+        refreshSearchResults();
+        if (window.hideDynamicIsland) {
+            window.hideDynamicIsland();
+        }
 
-    showDynamicIslandNotification('timer', 'deleted', 'timer_deleted', 'notifications', {
-        title: originalTitle
+        showDynamicIslandNotification('timer', 'deleted', 'timer_deleted', 'notifications', {
+            title: originalTitle
+        });
+        updateEverythingWidgets();
     });
-    updateEverythingWidgets();
 }
 
 function updateTimerCardVisuals(timer) {
@@ -1156,7 +1200,8 @@ function updateTimerCardVisuals(timer) {
 
     const tagElement = card.querySelector('.card-tag');
     if (tagElement) {
-        tagElement.textContent = getTranslation((timer.sound || '').replace(/-/g, '_'), 'sounds');
+        tagElement.textContent = getSoundNameById(timer.sound);
+        tagElement.dataset.soundId = timer.sound;
     }
 
     const dismissButton = card.querySelector('.card-dismiss-btn span');
@@ -1214,6 +1259,14 @@ document.addEventListener('translationsApplied', () => {
     allTimers.forEach(timer => {
         updateTimerCardVisuals(timer);
     });
+    updateMainDisplay(); 
 });
+
+function getSoundNameById(soundId) {
+    const sound = getAvailableSounds().find(s => s.id === soundId);
+    if (!sound) return getTranslation('classic_beep', 'sounds'); // Fallback
+    return sound.isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
+}
+
 
 export { initializeTimerController };

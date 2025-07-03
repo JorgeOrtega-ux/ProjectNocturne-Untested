@@ -5,6 +5,7 @@ import { initializeSortable } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 // Se importa la función para actualizar los widgets de la sección principal.
 import { updateEverythingWidgets } from './everything-controller.js';
+import { showConfirmation } from '../general/confirmation-modal-controller.js'; // Importar
 
 const clockIntervals = new Map();
 const CLOCKS_STORAGE_KEY = 'world-clocks';
@@ -663,37 +664,40 @@ function deleteClock(clockId) {
     const card = document.getElementById(clockId);
     if (!card) return;
 
-    const deletedClockTitle = card.dataset.title;
-    const isPinned = card.querySelector('.card-pin-btn.active');
-    
-    if (clockIntervals.has(card)) {
-        clearInterval(clockIntervals.get(card));
-        clockIntervals.delete(card);
-    }
+    const clockTitle = card.dataset.title;
 
-    userClocks = userClocks.filter(clock => clock.id !== clockId);
-    saveClocksToStorage();
-    card.remove();
-    
-    const searchItem = document.getElementById(`search-clock-${clockId}`);
-    if (searchItem) searchItem.remove();
+    showConfirmation('world-clock', clockTitle, () => {
+        const isPinned = card.querySelector('.card-pin-btn.active');
+        
+        if (clockIntervals.has(card)) {
+            clearInterval(clockIntervals.get(card));
+            clockIntervals.delete(card);
+        }
+
+        userClocks = userClocks.filter(clock => clock.id !== clockId);
+        saveClocksToStorage();
+        card.remove();
+        
+        const searchItem = document.getElementById(`search-clock-${clockId}`);
+        if (searchItem) searchItem.remove();
 
 
-    if (isPinned) {
-        const localClockCard = document.querySelector('.local-clock-card');
-        const localPinBtn = localClockCard.querySelector('.card-pin-btn');
-        pinClock(localPinBtn);
-    }
+        if (isPinned) {
+            const localClockCard = document.querySelector('.local-clock-card');
+            const localPinBtn = localClockCard.querySelector('.card-pin-btn');
+            pinClock(localPinBtn);
+        }
 
-    showDynamicIslandNotification('worldclock', 'deleted', 'worldclock_deleted', 'notifications', {
-        title: deletedClockTitle
+        showDynamicIslandNotification('worldclock', 'deleted', 'worldclock_deleted', 'notifications', {
+            title: clockTitle
+        });
+
+        if (typeof updateEverythingWidgets === 'function') {
+            updateEverythingWidgets();
+        }
+
+        refreshWorldClockSearchResults();
     });
-
-    if (typeof updateEverythingWidgets === 'function') {
-        updateEverythingWidgets();
-    }
-
-    refreshWorldClockSearchResults();
 }
 
 

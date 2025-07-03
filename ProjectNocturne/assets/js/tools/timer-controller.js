@@ -205,31 +205,7 @@ function addSearchItemEventListeners(item) {
                 menuContainer.classList.remove('disabled');
             }
         } else {
-            // Directly call window.timerManager functions for timer actions
-            switch (action) {
-                case 'pin-timer':
-                    window.timerManager.handlePinTimer(timerId);
-                    break;
-                case 'start-card-timer':
-                    window.timerManager.startTimer(timerId);
-                    break;
-                case 'pause-card-timer':
-                    window.timerManager.pauseTimer(timerId);
-                    break;
-                case 'reset-card-timer':
-                    window.timerManager.resetTimer(timerId);
-                    break;
-                case 'edit-timer':
-                    window.timerManager.handleEditTimer(timerId);
-                    break;
-                case 'delete-timer':
-                    if (confirm(getTranslation('delete_timer_confirm', 'timer'))) {
-                        window.timerManager.handleDeleteTimer(timerId);
-                    }
-                    break;
-                default:
-                    console.warn(`Unhandled action from timer search item: ${action}`);
-            }
+           handleTimerCardAction(action, timerId, target);
         }
     });
 }

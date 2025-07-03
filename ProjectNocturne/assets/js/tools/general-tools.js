@@ -1286,26 +1286,28 @@ export function initializeCardEventListeners() {
 
 function handleAlarmCardAction(action, alarmId, target) {
     const alarm = window.alarmManager.findAlarmById(alarmId);
+    if (!alarm) return;
 
     switch (action) {
         case 'toggle-alarm':
             window.alarmManager.toggleAlarm(alarmId);
             break;
         case 'test-alarm':
-            if (alarm) window.alarmManager.playAlarmSound(alarm.sound);
+            window.alarmManager.playAlarmSound(alarm.sound);
+            setTimeout(() => stopAlarmSound(), 1000);
             break;
         case 'edit-alarm':
-            if (alarm) {
-                prepareAlarmForEdit({ ...alarm, updateAlarm: window.alarmManager.updateAlarm });
-                if (getCurrentActiveOverlay() !== 'menuAlarm') {
-                    activateModule('toggleMenuAlarm');
-                }
+            prepareAlarmForEdit({ ...alarm, updateAlarm: window.alarmManager.updateAlarm });
+            if (getCurrentActiveOverlay() !== 'menuAlarm') {
+                activateModule('toggleMenuAlarm');
             }
             break;
         case 'delete-alarm':
-            if (confirm(getTranslation('confirm_delete_alarm', 'alarms'))) {
+            // ✅ CORRECCIÓN APLICADA AQUÍ
+            const alarmName = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
+            showConfirmation('alarm', alarmName, () => {
                 window.alarmManager.deleteAlarm(alarmId);
-            }
+            });
             break;
         case 'dismiss-alarm':
              window.alarmManager.dismissAlarm(alarmId);

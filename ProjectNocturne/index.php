@@ -116,7 +116,8 @@
 
 .menu-delete-btns button {
     flex-grow: 0;
-    padding: 12px 20px;
+    padding: 0 12px;
+    height: 40px;
     border-radius: 8px;
     border: none;
     font-size: 0.9rem;
@@ -210,7 +211,6 @@
     <script type="module" src="assets/js/tools/worldClock-controller.js"></script>
     <script type="module" src="assets/js/tools/menu-interactions.js"></script>
     <script type="module" src="assets/js/tools/zoneinfo-controller.js"></script>
-    <script type="module" src="assets/js/tools/festivities-manager.js"></script>
 
 </body>
 

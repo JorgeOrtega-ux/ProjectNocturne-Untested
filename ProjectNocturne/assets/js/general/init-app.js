@@ -23,7 +23,6 @@ import {
     isLoading as isModuleManagerLoading
 } from './module-manager.js';
 import { initLocationManager } from '../general/location-manager.js';
-import { initializeFestivitiesManager } from '../tools/festivities-manager.js'; // <-- Se importa el nuevo gestor
 import {
     initializeTooltipSystem,
     refreshTooltips,
@@ -398,11 +397,7 @@ function initializeMainComponents() {
     initializeAlarmClock();
     initWorldClock();
     initializeStopwatch();
-    initializeTimerController();
-
-    // --- INICIO DE LA MODIFICACIÓN ---
-    // 1. Inicializa el gestor de festividades PRIMERO para que esté "escuchando".
-    initializeFestivitiesManager(); 
+    initializeTimerController(); 
     
     // 2. Inicializa el gestor de ubicación DESPUÉS. Este disparará el evento
     //    que el gestor de festividades ahora puede capturar.

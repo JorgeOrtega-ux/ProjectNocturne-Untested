@@ -5,7 +5,7 @@ import { use24HourFormat, toggleModule } from '../general/main.js';
 
 // --- Clave para guardar el orden en localStorage ---
 const WIDGET_ORDER_KEY = 'everything-widget-order';
-const DEFAULT_WIDGET_ORDER = ['upcoming-widget', 'festivities-widget', 'actions-widget'];
+const DEFAULT_WIDGET_ORDER = ['upcoming-widget', 'actions-widget'];
 
 // --- Definiciones de los Widgets ---
 const WIDGET_DEFINITIONS = {
@@ -28,15 +28,6 @@ const WIDGET_DEFINITIONS = {
                 <div class="widget-list-item interactive"><div class="widget-list-item-icon"><span class="material-symbols-rounded">timer</span></div><div class="widget-list-item-details"><span class="widget-list-item-title" data-translate="stopwatch" data-translate-category="everything"></span><span class="widget-list-item-value" id="stopwatch-details">--</span></div></div>
             </div>`
     },
-    'festivities-widget': {
-        className: 'widget-festivities',
-        headerIcon: 'celebration',
-        headerTitleKey: 'upcoming_festivities',
-        // --- INICIO DE LA MODIFICACIÓN ---
-        // Se genera un contenedor vacío que será llenado dinámicamente.
-        generateContent: () => `<div class="widget-list"></div>`
-        // --- FIN DE LA MODIFICACIÓN ---
-    },
     'actions-widget': {
         className: 'widget-actions',
         headerIcon: 'bolt',
@@ -54,7 +45,6 @@ let smartUpdateInterval = null;
 const WIDGET_CONFIG = {
     clock: true,
     upcoming: true,
-    festivities: true,
     quickActions: true
 };
 
@@ -190,7 +180,6 @@ function applyWidgetVisibility() {
     const widgets = {
         clock: document.getElementById('clock-widget'),
         upcoming: document.getElementById('upcoming-widget'),
-        festivities: document.getElementById('festivities-widget'),
         quickActions: document.getElementById('actions-widget')
     };
 

@@ -1411,4 +1411,7 @@ html.light-mode #dynamic-island {
     .clock-time {
         font-size: 2.5rem;
     }
+}.menu-link[data-action="upload-audio"] {
+    border: 1px solid #00000020;
+    margin-bottom: 4px; /* Un poco de margen para separarlo visualmente */
 }

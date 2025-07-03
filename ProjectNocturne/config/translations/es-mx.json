@@ -226,7 +226,10 @@
     "gentle_chime": "Campanita Suave",
     "digital_alarm": "Alarma Digital",
     "peaceful_tone": "Tono Relajante",
-    "urgent_beep": "Beep Urgente"
+    "urgent_beep": "Beep Urgente",
+    "upload_audio": "Subir Audio",
+    "uploaded_audios": "Audios Subidos",
+    "default_audios": "Audios Predeterminados"
   },
   "timer": {
     "countdown": "Cuenta regresiva",

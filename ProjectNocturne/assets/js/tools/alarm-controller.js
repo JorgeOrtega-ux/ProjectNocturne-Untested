@@ -1,7 +1,8 @@
 // /assets/js/tools/alarm-controller.js
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
-import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable, getAvailableSounds, handleAlarmCardAction  } from './general-tools.js';
+// REFACTORIZACIÓN: Se importa la nueva función centralizada
+import { playSound as playAlarmSound, stopSound as stopAlarmSound, generateSoundList, initializeSortable, getAvailableSounds, handleAlarmCardAction, getSoundNameById } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
@@ -22,7 +23,7 @@ let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
 
 // --- LÓGICA DE BÚSQUEDA Y RENDERIZADO (CORREGIDA) ---
-function renderAlarmSearchResults(searchTerm) { // <--- FUNCIÓN RENOMBRADA
+function renderAlarmSearchResults(searchTerm) {
     const resultsWrapper = document.querySelector('.alarm-search-results-wrapper');
     const creationWrapper = document.querySelector('.alarm-creation-wrapper');
 
@@ -147,16 +148,19 @@ function addSearchItemEventListeners(item) {
         }
     });
 }
+
 function refreshSearchResults() {
     const searchInput = document.getElementById('alarm-search-input');
     if (searchInput && searchInput.value) {
-        renderAlarmSearchResults(searchInput.value.toLowerCase()); // <--- LLAMADA ACTUALIZADA
+        renderAlarmSearchResults(searchInput.value.toLowerCase());
     }
 }
+
 function getActiveAlarmsCount() {
     const allAlarms = [...userAlarms, ...defaultAlarmsState].filter(alarm => alarm.enabled);
     return allAlarms.length;
 }
+
 function getNextAlarmDetails() {
     const now = new Date();
     const activeAlarms = [...userAlarms, ...defaultAlarmsState].filter(a => a.enabled);
@@ -176,6 +180,7 @@ function getNextAlarmDetails() {
     const timeString = nextAlarm.time.toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', hour12: !use24HourFormat });
     return `${title} (${timeString})`;
 }
+
 function createExpandableContainer(type, titleKey, icon) {
     const container = document.createElement('div');
     container.className = 'alarms-container';
@@ -201,6 +206,7 @@ function createExpandableContainer(type, titleKey, icon) {
     header.addEventListener('click', () => toggleAlarmsSection(type));
     return container;
 }
+
 function updateAlarmCounts() {
     const userAlarmsCount = userAlarms.length;
     const defaultAlarmsCount = defaultAlarmsState.length;
@@ -230,12 +236,15 @@ function updateAlarmCounts() {
     }
     updateEverythingWidgets();
 }
+
 export function getAlarmCount() {
     return userAlarms.length;
 }
+
 export function getAlarmLimit() {
     return PREMIUM_FEATURES ? 100 : 10;
 }
+
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = getAlarmLimit();
     if (userAlarms.length >= alarmLimit) {
@@ -264,6 +273,7 @@ function createAlarm(title, hour, minute, sound) {
     updateEverythingWidgets();
     return true;
 }
+
 function renderAllAlarmCards() {
     const userGrid = document.querySelector('.tool-grid[data-alarm-grid="user"]');
     const defaultGrid = document.querySelector('.tool-grid[data-alarm-grid="default"]');
@@ -272,6 +282,7 @@ function renderAllAlarmCards() {
     userAlarms.forEach(alarm => createAlarmCard(alarm));
     defaultAlarmsState.forEach(alarm => createAlarmCard(alarm));
 }
+
 function createAlarmCard(alarm) {
     const grid = document.querySelector(`.tool-grid[data-alarm-grid="${alarm.type}"]`);
     if (!grid) return;
@@ -334,6 +345,7 @@ function createAlarmCard(alarm) {
         addCardEventListeners(newCard);
     }
 }
+
 function addCardEventListeners(card) {
     const menuContainer = card.querySelector('.card-menu-container');
     card.addEventListener('mouseenter', () => {
@@ -350,6 +362,7 @@ function addCardEventListeners(card) {
         dismissButton.addEventListener('click', () => dismissAlarm(card.id));
     }
 }
+
 function scheduleAlarm(alarm) {
     if (!alarm.enabled) return;
     const now = new Date();
@@ -368,6 +381,7 @@ function scheduleAlarm(alarm) {
     }, timeUntilAlarm);
     activeAlarmTimers.set(alarm.id, timerId);
 }
+
 function triggerAlarm(alarm) {
     let soundToPlay = alarm.sound;
     const availableSounds = getAvailableSounds();
@@ -402,6 +416,7 @@ function triggerAlarm(alarm) {
     });
     scheduleAlarm(alarm);
 }
+
 function dismissAlarm(alarmId) {
     stopAlarmSound();
     const alarmCard = document.getElementById(alarmId);
@@ -419,9 +434,11 @@ function dismissAlarm(alarmId) {
         window.hideDynamicIsland();
     }
 }
+
 function findAlarmById(alarmId) {
     return userAlarms.find(a => a.id === alarmId) || defaultAlarmsState.find(a => a.id === alarmId);
 }
+
 function toggleAlarm(alarmId) {
     const alarm = findAlarmById(alarmId);
     if (!alarm) return;
@@ -443,6 +460,7 @@ function toggleAlarm(alarmId) {
     refreshSearchResults();
     updateEverythingWidgets();
 }
+
 function deleteAlarm(alarmId) {
     const alarm = findAlarmById(alarmId);
     if (!alarm) return;
@@ -474,6 +492,7 @@ function deleteAlarm(alarmId) {
     refreshSearchResults();
     updateEverythingWidgets();
 }
+
 function updateAlarm(alarmId, newData) {
     const alarm = findAlarmById(alarmId);
     if (!alarm) return;
@@ -496,6 +515,7 @@ function updateAlarm(alarmId, newData) {
     showDynamicIslandNotification('alarm', 'updated', 'alarm_updated', 'notifications', { title: translatedTitle });
     updateEverythingWidgets();
 }
+
 function updateAlarmCardVisuals(alarm) {
     const card = document.getElementById(alarm.id);
     if (!card) return;
@@ -523,12 +543,15 @@ function updateAlarmCardVisuals(alarm) {
     }
     card.classList.toggle('alarm-disabled', !alarm.enabled);
 }
+
 function saveAlarmsToStorage() {
     localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(userAlarms));
 }
+
 function saveDefaultAlarmsOrder() {
     localStorage.setItem(DEFAULT_ALARMS_STORAGE_KEY, JSON.stringify(defaultAlarmsState));
 }
+
 function loadDefaultAlarmsOrder() {
     const stored = localStorage.getItem(DEFAULT_ALARMS_STORAGE_KEY);
     if (stored) {
@@ -548,6 +571,7 @@ function loadDefaultAlarmsOrder() {
         defaultAlarmsState = JSON.parse(JSON.stringify(DEFAULT_ALARMS));
     }
 }
+
 function loadAlarmsFromStorage() {
     const stored = localStorage.getItem(ALARMS_STORAGE_KEY);
     if (stored) {
@@ -558,12 +582,14 @@ function loadAlarmsFromStorage() {
         if (alarm.enabled) scheduleAlarm(alarm);
     });
 }
+
 function loadDefaultAlarms() {
     loadDefaultAlarmsOrder();
     defaultAlarmsState.forEach(alarm => {
         if (alarm.enabled) scheduleAlarm(alarm);
     });
 }
+
 function formatTime(hour, minute) {
     if (use24HourFormat) {
         return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -573,6 +599,7 @@ function formatTime(hour, minute) {
     h12 = h12 ? h12 : 12;
     return `${h12}:${String(minute).padStart(2, '0')} ${ampm}`;
 }
+
 function toggleAlarmsSection(type) {
     const grid = document.querySelector(`.tool-grid[data-alarm-grid="${type}"]`);
     if (!grid) return;
@@ -582,6 +609,7 @@ function toggleAlarmsSection(type) {
     const isActive = grid.classList.toggle('active');
     btn.classList.toggle('expanded', isActive);
 }
+
 function updateLocalTime() {
     const el = document.querySelector('.tool-alarm span');
     if (el) {
@@ -590,11 +618,13 @@ function updateLocalTime() {
         el.textContent = now.toLocaleTimeString(navigator.language, options);
     }
 }
+
 function startClock() {
     if (clockInterval) return;
     updateLocalTime();
     clockInterval = setInterval(updateLocalTime, 1000);
 }
+
 function initializeSortableGrids() {
     if (!allowCardMovement) return;
     const sortableOptions = {
@@ -665,12 +695,6 @@ function testAlarm(alarmId) {
         playAlarmSound(alarm.sound);
         setTimeout(() => stopAlarmSound(), 1000);
     }
-}
-
-function getSoundNameById(soundId) {
-    const sound = getAvailableSounds().find(s => s.id === soundId);
-    if (!sound) return getTranslation('classic_beep', 'sounds');
-    return sound.isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
 }
 
 export function initializeAlarmClock() {

@@ -2,45 +2,158 @@
 
 import { getTranslation } from '../general/translations-controller.js';
 import { prepareAlarmForEdit, prepareWorldClockForEdit } from './menu-interactions.js';
-import { activateModule, getCurrentActiveOverlay } from '../general/main.js';
+import { activateModule, getCurrentActiveOverlay, PREMIUM_FEATURES } from '../general/main.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
+import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
-// --- SOUND LOGIC (SIN CAMBIOS) ---
-const USER_AUDIO_STORAGE_KEY = 'user_custom_audio';
-// ... (resto de la lógica de audio, playSound, stopSound, etc., permanece igual) ...
-function loadUserAudios() {
-    try {
-        const storedAudios = localStorage.getItem(USER_AUDIO_STORAGE_KEY);
-        return storedAudios ? JSON.parse(storedAudios) : [];
-    } catch (e) {
-        console.error("Error loading user audios:", e);
-        return [];
-    }
+// **** INICIO DE LA LÓGICA DE INDEXEDDB INTEGRADA ****
+
+const DB_NAME = 'ProjectNocturneDB';
+const DB_VERSION = 1;
+const AUDIO_STORE_NAME = 'user_audio_store';
+
+let db = null;
+
+/**
+ * Abre y prepara la base de datos IndexedDB.
+ * Esta función ahora es parte de este módulo y no se exporta por separado.
+ * @returns {Promise<IDBDatabase>} Una promesa que se resuelve con la instancia de la base de datos.
+ */
+function openDB() {
+    return new Promise((resolve, reject) => {
+        if (db) {
+            return resolve(db);
+        }
+
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = (event) => {
+            const tempDb = event.target.result;
+            if (!tempDb.objectStoreNames.contains(AUDIO_STORE_NAME)) {
+                tempDb.createObjectStore(AUDIO_STORE_NAME, { keyPath: 'id' });
+            }
+        };
+
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            console.log('✅ IndexedDB database opened successfully.');
+            resolve(db);
+        };
+
+        request.onerror = (event) => {
+            console.error('Error opening IndexedDB:', event.target.error);
+            reject('Error opening IndexedDB');
+        };
+    });
 }
-function saveUserAudio(name, dataUrl) {
-    const userAudios = loadUserAudios();
+
+/**
+ * Función exportada para ser llamada desde init-app.js
+ */
+export function initDB() {
+    return openDB();
+}
+
+/**
+ * Guarda un archivo de audio en la base de datos.
+ * @param {string} id - El ID único para el audio.
+ * @param {string} name - El nombre del archivo.
+ * @param {Blob} fileBlob - El archivo de audio como un objeto Blob.
+ * @returns {Promise<void>}
+ */
+async function saveAudioToDB(id, name, fileBlob) {
+    const db = await openDB();
+    const transaction = db.transaction(AUDIO_STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(AUDIO_STORE_NAME);
+    
+    return new Promise((resolve, reject) => {
+        const audioRecord = { id, name, file: fileBlob };
+        const request = store.put(audioRecord);
+
+        request.onsuccess = () => resolve();
+        request.onerror = (event) => {
+            console.error('Error saving audio to DB:', event.target.error);
+            reject('Error saving audio');
+        };
+    });
+}
+
+/**
+ * Obtiene todos los registros de audio de la base de datos.
+ * @returns {Promise<Array<{id: string, name: string, file: Blob}>>}
+ */
+async function getAllAudiosFromDB() {
+    const db = await openDB();
+    const transaction = db.transaction(AUDIO_STORE_NAME, 'readonly');
+    const store = transaction.objectStore(AUDIO_STORE_NAME);
+    
+    return new Promise((resolve, reject) => {
+        const request = store.getAll();
+
+        request.onsuccess = (event) => resolve(event.target.result || []);
+        request.onerror = (event) => {
+            console.error('Error getting all audios from DB:', event.target.error);
+            reject('Error fetching audios');
+        };
+    });
+}
+
+/**
+ * Elimina un audio de la base de datos por su ID.
+ * @param {string} id - El ID del audio a eliminar.
+ * @returns {Promise<void>}
+ */
+async function deleteAudioFromDB(id) {
+    const db = await openDB();
+    const transaction = db.transaction(AUDIO_STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(AUDIO_STORE_NAME);
+
+    return new Promise((resolve, reject) => {
+        const request = store.delete(id);
+
+        request.onsuccess = () => resolve();
+        request.onerror = (event) => {
+            console.error('Error deleting audio from DB:', event.target.error);
+            reject('Error deleting audio');
+        };
+    });
+}
+// **** FIN DE LA LÓGICA DE INDEXEDDB INTEGRADA ****
+
+
+// --- SOUND LOGIC ---
+let userAudiosCache = [];
+let isCachePopulated = false;
+
+async function populateAudioCache() {
+    if (isCachePopulated) return;
+    userAudiosCache = await getAllAudiosFromDB();
+    isCachePopulated = true;
+}
+
+async function saveUserAudio(name, fileBlob) {
     const newAudio = {
         id: `user_audio_${Date.now()}`,
         name: name,
-        data: dataUrl,
+        file: fileBlob,
         icon: 'music_note'
     };
-    userAudios.push(newAudio);
-    localStorage.setItem(USER_AUDIO_STORAGE_KEY, JSON.stringify(userAudios));
+    await saveAudioToDB(newAudio.id, newAudio.name, newAudio.file);
+    userAudiosCache.push(newAudio);
     return newAudio;
 }
-function deleteUserAudio(audioId) {
-    let userAudios = loadUserAudios();
-    const audioToDelete = userAudios.find(audio => audio.id === audioId);
 
+async function deleteUserAudio(audioId) {
+    const audioToDelete = userAudiosCache.find(audio => audio.id === audioId);
     if (!audioToDelete) return;
-    
-    showConfirmation('audio', audioToDelete.name, () => {
-        userAudios = userAudios.filter(audio => audio.id !== audioId);
-        localStorage.setItem(USER_AUDIO_STORAGE_KEY, JSON.stringify(userAudios));
+
+    showConfirmation('audio', audioToDelete.name, async () => {
+        await deleteAudioFromDB(audioId);
+        userAudiosCache = userAudiosCache.filter(audio => audio.id !== audioId);
         replaceDeletedAudioInTools(audioId, 'classic_beep');
     });
 }
+
 function replaceDeletedAudioInTools(deletedAudioId, defaultSoundId) {
     if (window.alarmManager && typeof window.alarmManager.getAllAlarms === 'function') {
         const { userAlarms, defaultAlarms } = window.alarmManager.getAllAlarms();
@@ -86,15 +199,24 @@ export function getAvailableSounds() {
         { id: 'peaceful_tone', nameKey: 'peaceful_tone', icon: 'self_care' },
         { id: 'urgent_beep', nameKey: 'urgent_beep', icon: 'priority_high' }
     ];
-    const userAudios = loadUserAudios().map(audio => ({
+    const customAudios = userAudiosCache.map(audio => ({
         id: audio.id,
         nameKey: audio.name,
         isCustom: true,
-        icon: audio.icon,
-        data: audio.data
+        icon: 'music_note',
+        file: audio.file
     }));
-    return [...defaultSounds, ...userAudios];
+    return [...defaultSounds, ...customAudios];
 }
+
+function getSoundNameById(soundId) {
+    const sound = getAvailableSounds().find(s => s.id === soundId);
+    if (!sound) {
+        return getTranslation('classic_beep', 'sounds');
+    }
+    return sound.isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
+}
+
 let audioContext = null;
 let activeSoundSource = null;
 let isPlayingSound = false;
@@ -115,12 +237,15 @@ export async function playSound(soundId) {
     isPlayingSound = true;
     const allSounds = getAvailableSounds();
     const soundToPlay = allSounds.find(s => s.id === soundId);
+
     if (soundToPlay && soundToPlay.isCustom) {
         try {
-            const audio = new Audio(soundToPlay.data);
+            // Usa URL.createObjectURL para reproducir el Blob desde IndexedDB
+            const audioURL = URL.createObjectURL(soundToPlay.file);
+            const audio = new Audio(audioURL);
             audio.loop = true;
             audio.play();
-            activeSoundSource = { type: 'file', element: audio };
+            activeSoundSource = { type: 'file', element: audio, url: audioURL };
         } catch (error) {
             console.error("Error playing user audio:", error);
             isPlayingSound = false;
@@ -159,18 +284,22 @@ export function stopSound() {
         } else if (activeSoundSource.type === 'file' && activeSoundSource.element) {
             activeSoundSource.element.pause();
             activeSoundSource.element.currentTime = 0;
+            // Revoca la URL del objeto para liberar memoria
+            URL.revokeObjectURL(activeSoundSource.url);
         }
     }
     activeSoundSource = null;
     isPlayingSound = false;
 }
 export async function generateSoundList(listElement, actionName, activeSoundId = null) {
+    await populateAudioCache(); // Asegura que el caché esté poblado
     if (!listElement) return;
     listElement.innerHTML = '';
     const getTranslation = window.getTranslation || ((key, category) => key);
     const availableSounds = getAvailableSounds();
     const defaultSounds = availableSounds.filter(s => !s.isCustom);
     const userAudios = availableSounds.filter(s => s.isCustom);
+
     const uploadLink = document.createElement('div');
     uploadLink.className = 'menu-link';
     uploadLink.dataset.action = 'upload-audio';
@@ -179,24 +308,28 @@ export async function generateSoundList(listElement, actionName, activeSoundId =
         <div class="menu-link-text"><span data-translate="upload_audio" data-translate-category="sounds">${getTranslation('upload_audio', 'sounds')}</span></div>
     `;
     listElement.appendChild(uploadLink);
+    
+    const defaultSoundsHeader = document.createElement('div');
+    defaultSoundsHeader.className = 'menu-content-header';
+    defaultSoundsHeader.innerHTML = `<span>${getTranslation('default_audios', 'sounds')}</span>`;
+    listElement.appendChild(defaultSoundsHeader);
+
+    defaultSounds.forEach(sound => {
+        const menuLink = createSoundMenuItem(sound, actionName, activeSoundId, false);
+        listElement.appendChild(menuLink);
+    });
+
     if (userAudios.length > 0) {
         const userAudiosHeader = document.createElement('div');
         userAudiosHeader.className = 'menu-content-header';
-        userAudiosHeader.innerHTML = `<span>${getTranslation('user_uploaded_audios', 'sounds')}</span>`;
+        userAudiosHeader.innerHTML = `<span>${getTranslation('uploaded_audios', 'sounds')}</span>`;
         listElement.appendChild(userAudiosHeader);
+
         userAudios.forEach(sound => {
             const menuLink = createSoundMenuItem(sound, actionName, activeSoundId, true);
             listElement.appendChild(menuLink);
         });
     }
-    const defaultSoundsHeader = document.createElement('div');
-    defaultSoundsHeader.className = 'menu-content-header';
-    defaultSoundsHeader.innerHTML = `<span>${getTranslation('default_audios', 'sounds')}</span>`;
-    listElement.appendChild(defaultSoundsHeader);
-    defaultSounds.forEach(sound => {
-        const menuLink = createSoundMenuItem(sound, actionName, activeSoundId, false);
-        listElement.appendChild(menuLink);
-    });
 }
 function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     const menuLink = document.createElement('div');
@@ -211,7 +344,7 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     let deleteButton = '';
     if (isCustom) {
         deleteButton = `
-            <div class="menu-link-action" data-action="delete-user-audio" data-audio-id="${sound.id}">
+            <div class="menu-link-icon" data-action="delete-user-audio" data-audio-id="${sound.id}">
                 <span class="material-symbols-rounded">delete</span>
             </div>
         `;
@@ -223,27 +356,58 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     `;
     return menuLink;
 }
-export function handleAudioUpload(callback) {
+export async function handleAudioUpload(callback) {
+    await populateAudioCache();
+    const uploadLimit = PREMIUM_FEATURES ? 10 : 1;
+    const totalSizeLimit = 5 * 1024 * 1024 * 1024; // 5 GB
+    const singleFileSizeLimit = 256 * 1024 * 1024; // 256 MB
+
+    if (userAudiosCache.length >= uploadLimit) {
+        const messageKey = PREMIUM_FEATURES ? 'limit_reached_generic' : 'limit_reached_audio_free';
+        showDynamicIslandNotification('system', 'premium_required', messageKey, 'notifications', {
+            type: getTranslation('audio', 'sounds'),
+            limit: uploadLimit
+        });
+        return;
+    }
+
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'audio/*';
-    fileInput.onchange = e => {
+    fileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = readerEvent => {
-            const dataUrl = readerEvent.target.result;
-            const newAudio = saveUserAudio(file.name, dataUrl);
+
+        if (!file.type.startsWith('audio/')) {
+            showDynamicIslandNotification('system', 'error', 'invalid_file_type', 'notifications');
+            return;
+        }
+
+        if (PREMIUM_FEATURES) {
+            const currentTotalSize = userAudiosCache.reduce((sum, audio) => sum + audio.file.size, 0);
+            if (currentTotalSize + file.size > totalSizeLimit) {
+                showDynamicIslandNotification('system', 'error', 'total_size_limit_reached', 'notifications', { maxSize: '5 GB' });
+                return;
+            }
+        } else {
+            if (file.size > singleFileSizeLimit) {
+                showDynamicIslandNotification('system', 'error', 'file_too_large', 'notifications', { maxSize: '256 MB' });
+                return;
+            }
+        }
+        
+        try {
+            const newAudio = await saveUserAudio(file.name, file);
             if (callback && typeof callback === 'function') {
                 callback(newAudio);
             }
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+            console.error("Error saving audio:", error);
+        }
     };
     fileInput.click();
 }
 
-// ... (resto de la lógica de sliders, fuentes, etc., permanece igual) ...
 export function initializeCategorySliderService() {
     const config = {
         enableService: true,
@@ -1114,4 +1278,4 @@ function handleWorldClockCardAction(action, clockId, target) {
     }
 }
 
-export {deleteUserAudio, handleAlarmCardAction, handleTimerCardAction, handleWorldClockCardAction  }
+export {deleteUserAudio, handleAlarmCardAction, handleTimerCardAction, handleWorldClockCardAction, getSoundNameById };

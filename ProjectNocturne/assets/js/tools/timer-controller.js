@@ -2,7 +2,8 @@
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
-import { playSound, stopSound, generateSoundList, initializeSortable, getAvailableSounds, handleTimerCardAction  } from './general-tools.js';
+// REFACTORIZACIÓN: Se importa la nueva función centralizada
+import { playSound, stopSound, generateSoundList, initializeSortable, getAvailableSounds, handleTimerCardAction, getSoundNameById } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js'; // Importar
@@ -791,6 +792,7 @@ function createTimerCard(timer) {
 
     return card;
 }
+
 function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
     if (!mainDisplay) return;
@@ -1206,12 +1208,6 @@ document.addEventListener('translationsApplied', () => {
     });
     updateMainDisplay(); 
 });
-
-function getSoundNameById(soundId) {
-    const sound = getAvailableSounds().find(s => s.id === soundId);
-    if (!sound) return getTranslation('classic_beep', 'sounds'); // Fallback
-    return sound.isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
-}
 
 
 export { initializeTimerController };

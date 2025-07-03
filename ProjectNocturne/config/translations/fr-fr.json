@@ -226,7 +226,10 @@
     "gentle_chime": "Carillon doux",
     "digital_alarm": "Alarme numérique",
     "peaceful_tone": "Tonalité paisible",
-    "urgent_beep": "Bip urgent"
+    "urgent_beep": "Bip urgent",
+    "upload_audio": "Télécharger l'audio",
+    "uploaded_audios": "Audios téléchargés",
+    "default_audios": "Audios par défaut"
   },
   "timer": {
     "countdown": "Compte à rebours",
@@ -266,7 +269,8 @@
     "edit_not_implemented": "La fonctionnalité de modification d'horloge n'est pas encore implémentée.",
     "fullscreen_not_implemented": "La fonctionnalité de plein écran n'est pas encore implémentée.",
     "save_changes": "Enregistrer les modifications"
-  },"weekdays": {
+  },
+  "weekdays": {
     "sunday": "dimanche",
     "monday": "lundi",
     "tuesday": "mardi",
@@ -274,8 +278,8 @@
     "thursday": "jeudi",
     "friday": "vendredi",
     "saturday": "samedi"
-},
-"months": {
+  },
+  "months": {
     "january": "janvier",
     "february": "février",
     "march": "mars",
@@ -288,7 +292,7 @@
     "october": "octobre",
     "november": "novembre",
     "december": "décembre"
-},
+  },
   "everything": {
     "main_panel": "Panneau Principal",
     "local_time": "Heure Locale",

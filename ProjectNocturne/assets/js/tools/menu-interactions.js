@@ -5,7 +5,8 @@ import { use24HourFormat, deactivateModule, PREMIUM_FEATURES } from '../general/
 import { getTranslation } from '../general/translations-controller.js';
 import { addTimerAndRender, updateTimer, getTimersCount, getTimerLimit } from './timer-controller.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
-import { playSound, stopSound, generateSoundList, handleAudioUpload, deleteUserAudio } from './general-tools.js';
+// REFACTORIZACIÓN: Se importa la nueva función centralizada y las demás de audio
+import { playSound, stopSound, generateSoundList, handleAudioUpload, deleteUserAudio, getSoundNameById } from './general-tools.js';
 
 const initialState = {
     alarm: { hour: 0, minute: 0, sound: 'classic_beep' },
@@ -249,7 +250,12 @@ export function prepareAlarmForEdit(alarmData) {
     }
 
     updateAlarmDisplay(menuElement);
-    updateDisplay('#alarm-selected-sound', getTranslation(alarmData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
+
+    // **** INICIO DE LA CORRECCIÓN ****
+    // Usa la función centralizada para obtener el nombre del sonido
+    const alarmSoundName = getSoundNameById(alarmData.sound);
+    updateDisplay('#alarm-selected-sound', alarmSoundName, menuElement);
+    // **** FIN DE LA CORRECCIÓN ****
 
     const soundListContainer = menuElement.querySelector('.menu-alarm-sound .menu-list');
     generateSoundList(soundListContainer, 'selectAlarmSound', alarmData.sound);
@@ -298,7 +304,11 @@ export function prepareTimerForEdit(timerData) {
 
     updateTimerDurationDisplay(menuElement);
     updateDisplay('#timer-selected-end-action', getTranslation(`${timerData.endAction}_timer`, 'timer'), menuElement);
-    updateDisplay('#countdown-selected-sound', getTranslation(timerData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
+
+    // **** INICIO DE LA CORRECCIÓN ****
+    const countdownSoundName = getSoundNameById(timerData.sound);
+    updateDisplay('#countdown-selected-sound', countdownSoundName, menuElement);
+    // **** FIN DE LA CORRECCIÓN ****
 
     const soundListContainer = menuElement.querySelector('.menu-countdown-sound .menu-list');
     generateSoundList(soundListContainer, 'selectCountdownSound', timerData.sound);
@@ -347,7 +357,11 @@ export function prepareCountToDateForEdit(timerData) {
     updateDisplay('#selected-date-display', targetDate.toLocaleDateString(), menuElement);
     updateDisplay('#selected-hour-display', String(targetDate.getHours()).padStart(2, '0'), menuElement);
     updateDisplay('#selected-minute-display', String(targetDate.getMinutes()).padStart(2, '0'), menuElement);
-    updateDisplay('#count-to-date-selected-sound', getTranslation(timerData.sound.replace(/-/g, '_'), 'sounds'), menuElement);
+
+    // **** INICIO DE LA CORRECCIÓN ****
+    const countToDateSoundName = getSoundNameById(timerData.sound);
+    updateDisplay('#count-to-date-selected-sound', countToDateSoundName, menuElement);
+    // **** FIN DE LA CORRECCIÓN ****
     
     const soundListContainer = menuElement.querySelector('.menu-count-to-date-sound .menu-list');
     generateSoundList(soundListContainer, 'selectCountToDateSound', timerData.sound);

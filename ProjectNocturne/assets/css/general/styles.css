@@ -351,6 +351,7 @@ body {
     width: 100%;
     height: auto;
     padding: 8px;
+    gap: 8px;
     color: #000000;
     background-color: #ffffff;
     border-radius: 12px;

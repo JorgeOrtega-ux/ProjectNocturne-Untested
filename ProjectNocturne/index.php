@@ -75,7 +75,10 @@
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
     transform: scale(0.95);
     transition: transform 0.3s ease;
 }
@@ -106,12 +109,13 @@
 
 .menu-delete-btns {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 12px;
+    width: 100%;
 }
 
 .menu-delete-btns button {
-    flex-grow: 1;
+    flex-grow: 0;
     padding: 12px 20px;
     border-radius: 8px;
     border: none;
@@ -126,12 +130,13 @@
 }
 
 .menu-delete-btns .cancel-btn {
-    background-color: #e5e5ea;
-    color: #1d1d1f;
+    background-color: transparent;
+    border: 1px solid #00000020;
+    color: #000000;
 }
 
 .menu-delete-btns .cancel-btn:hover {
-    background-color: #dcdce1;
+    background-color: #f5f5fa;
 }
 
 .menu-delete-btns .confirm-btn {

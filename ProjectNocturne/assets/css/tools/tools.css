@@ -1221,7 +1221,6 @@ html.light-mode #dynamic-island {
     order: 1;
     width: 100%;
     min-height: 250px;
-    margin-bottom: 8px;
 }
 
 .widgets-row {
@@ -1413,5 +1412,10 @@ html.light-mode #dynamic-island {
     }
 }.menu-link[data-action="upload-audio"] {
     border: 1px solid #00000020;
-    margin-bottom: 4px; /* Un poco de margen para separarlo visualmente */
+
+}
+
+.dark-mode .menu-link[data-action="upload-audio"] {
+    border-color: #ffffff20;
+    
 }

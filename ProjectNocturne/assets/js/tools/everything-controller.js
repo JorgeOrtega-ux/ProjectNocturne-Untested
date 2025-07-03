@@ -5,7 +5,8 @@ import { use24HourFormat, toggleModule } from '../general/main.js';
 
 // --- Clave para guardar el orden en localStorage ---
 const WIDGET_ORDER_KEY = 'everything-widget-order';
-const DEFAULT_WIDGET_ORDER = ['upcoming-widget', 'actions-widget'];
+// --- MODIFICACIÓN: Se elimina 'actions-widget' del orden por defecto ---
+const DEFAULT_WIDGET_ORDER = ['upcoming-widget'];
 
 // --- Definiciones de los Widgets ---
 const WIDGET_DEFINITIONS = {
@@ -98,27 +99,35 @@ function renderAllWidgets() {
     if (!mainContainer) return;
     mainContainer.innerHTML = '';
 
-    // Crear el widget del reloj (va primero y ocupa todo el ancho)
+    // 1. Renderizar el widget del reloj (siempre primero)
     const clockWidget = createWidgetElement('clock-widget');
     if (clockWidget) {
         mainContainer.appendChild(clockWidget);
     }
 
-    // Crear el contenedor para los otros widgets
-    const widgetsRow = document.createElement('div');
-    widgetsRow.className = 'widgets-row';
+    // =========> INICIO DE LA MODIFICACIÓN <=========
+    // 2. Crear y añadir la fila para Acciones Rápidas en segundo lugar
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'widgets-row';
+    const actionsWidget = createWidgetElement('actions-widget');
+    if (actionsWidget) {
+        actionsRow.appendChild(actionsWidget);
+    }
+    mainContainer.appendChild(actionsRow);
 
-    // Añadir los otros widgets al contenedor de fila
+    // 3. Crear y añadir la fila para los widgets restantes (Próximos eventos) en tercer lugar
+    const upcomingRow = document.createElement('div');
+    upcomingRow.className = 'widgets-row';
     const savedOrder = JSON.parse(localStorage.getItem(WIDGET_ORDER_KEY)) || DEFAULT_WIDGET_ORDER;
     savedOrder.forEach(widgetId => {
         const widgetElement = createWidgetElement(widgetId);
         if (widgetElement) {
-            widgetsRow.appendChild(widgetElement);
+            upcomingRow.appendChild(widgetElement);
         }
     });
+    mainContainer.appendChild(upcomingRow);
+    // =========> FIN DE LA MODIFICACIÓN <=========
 
-    // Añadir la fila de widgets al contenedor principal
-    mainContainer.appendChild(widgetsRow);
 
     if (typeof translateElementTree === 'function') {
         translateElementTree(mainContainer);
@@ -127,30 +136,35 @@ function renderAllWidgets() {
     rebindEventListeners();
 }
 
+
 /**
  * Inicializa SortableJS para permitir arrastrar y soltar los widgets.
  */
 function initializeWidgetSortable() {
-   const gridContainer = document.querySelector('.widgets-row');
-    if (gridContainer && typeof Sortable !== 'undefined') {
-        new Sortable(gridContainer, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            filter: '.widget-clock', // Mantiene el reloj no arrastrable
-            onMove: function (evt) {
-                // Evita que cualquier widget sea movido a la posición del reloj
-                return evt.related.className.indexOf('widget-clock') === -1;
-            },
-            onEnd: (evt) => {
-                const newOrder = Array.from(evt.to.children)
-                                    .map(widget => widget.id)
-                                    .filter(id => id !== 'clock-widget');
-                localStorage.setItem(WIDGET_ORDER_KEY, JSON.stringify(newOrder));
-            }
-        });
-    }
+    // Apuntar a todas las filas de widgets para inicializar Sortable
+    const widgetRows = document.querySelectorAll('.widgets-row');
+    widgetRows.forEach(row => {
+        // Solo hacer arrastrable la fila que NO contiene las acciones rápidas
+        if (!row.querySelector('.widget-actions')) {
+            new Sortable(row, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-drag',
+                // Evitar que se pueda arrastrar sobre el reloj o las acciones
+                filter: '.widget-clock, .widget-actions',
+                onMove: function (evt) {
+                    return !evt.related.classList.contains('widget-clock') && !evt.related.classList.contains('widget-actions');
+                },
+                onEnd: (evt) => {
+                    const newOrder = Array.from(evt.to.children)
+                                        .map(widget => widget.id)
+                                        .filter(id => id !== 'clock-widget' && id !== 'actions-widget');
+                    localStorage.setItem(WIDGET_ORDER_KEY, JSON.stringify(newOrder));
+                }
+            });
+        }
+    });
 }
 
 /**

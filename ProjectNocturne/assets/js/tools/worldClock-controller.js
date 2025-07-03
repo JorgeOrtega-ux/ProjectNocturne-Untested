@@ -582,24 +582,59 @@ function updateMainPinnedDisplay(card) {
 /**
  * Maneja la acción de editar un reloj.
  * @param {string} clockId - El ID del reloj a editar.
+¡Tienes toda la razón! Mis disculpas por no haber identificado esa parte del problema en mi respuesta anterior. Has dado en el clavo: el problema no es que no se encuentren los datos (mi corrección anterior ayudó con eso), sino un problema de lógica en la interfaz de usuario.
+
+Cuando haces clic en "Editar" desde los resultados de búsqueda, el sistema prepara correctamente los datos para el formulario de edición, pero se salta el paso de ocultar la lista de resultados y mostrar el formulario.
+
+¿Por qué sucede esto?
+La función que controla la visibilidad de estas dos secciones es renderWorldClockSearchResults.
+
+Cuando buscas algo, esta función se ejecuta y le dice a la UI: "oculta el formulario de creación (worldclock-creation-wrapper) y muestra los resultados (worldclock-search-results-wrapper)".
+
+Cuando borras la búsqueda, la función le dice a la UI: "muestra el formulario de creación y oculta los resultados".
+
+El problema es que al hacer clic en "Editar" desde un resultado, nunca se le indica a renderWorldClockSearchResults que la búsqueda ha "terminado" para que pueda volver a mostrar el formulario.
+
+La Solución Definitiva
+Para arreglar esto, necesitamos modificar explícitamente la función handleEditClock en el archivo assets/js/tools/worldClock-controller.js. Le añadiremos la lógica para que, justo después de preparar los datos para la edición, también limpie la búsqueda y fuerce la actualización de la interfaz para mostrar el formulario.
+
+Aquí tienes el código corregido para la función handleEditClock. Reemplaza la versión existente en assets/js/tools/worldClock-controller.js con esta:
+
+JavaScript
+
+// /assets/js/tools/worldClock-controller.js
+
+/**
+ * Maneja la acción de editar un reloj, asegurando que la UI
+ * se actualice para mostrar el formulario de edición.
+ * @param {string} clockId - El ID del reloj a editar.
  */
 function handleEditClock(clockId) {
-    const card = document.getElementById(clockId);
-    if (card) {
-        const clockData = {
-            id: card.dataset.id,
-            title: card.dataset.title,
-            country: card.dataset.country,
-            timezone: card.dataset.timezone,
-            countryCode: card.dataset.countryCode
-        };
+    const clockData = userClocks.find(clock => clock.id === clockId);
+
+    if (clockData) {
+        // 1. Prepara el formulario con los datos del reloj (esto ya funciona bien).
         prepareWorldClockForEdit(clockData);
+
+        // 2. Limpia el campo de búsqueda (opcional pero recomendado).
+        const searchInput = document.getElementById('worldclock-search-input');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        // 3. Llama a la función de renderizado con una búsqueda vacía.
+        //    Esta es la corrección clave: obliga a ocultar los resultados
+        //    y mostrar el formulario de creación/edición.
+        renderWorldClockSearchResults('');
+
+        // 4. Activa el menú si no estaba abierto.
         if (getCurrentActiveOverlay() !== 'menuWorldClock') {
             activateModule('toggleMenuWorldClock');
         }
+    } else {
+        console.error(`No se encontraron datos para el reloj con ID: ${clockId}`);
     }
 }
-
 document.addEventListener('languageChanged', (e) => {
     console.log('🌐 Language changed detected in WorldClock controller:', e.detail);
     setTimeout(() => {

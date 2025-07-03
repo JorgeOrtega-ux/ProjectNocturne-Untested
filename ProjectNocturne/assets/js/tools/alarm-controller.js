@@ -21,12 +21,11 @@ let userAlarms = [];
 let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
 
-// --- LÓGICA DE BÚSQUEDA Y RENDERIZADO (SIN CAMBIOS) ---
-// ... (Toda la lógica de renderSearchResults, createSearchResultItem, etc. se mantiene igual) ...
-function renderSearchResults(searchTerm) {
+// --- LÓGICA DE BÚSQUEDA Y RENDERIZADO (CORREGIDA) ---
+function renderAlarmSearchResults(searchTerm) { // <--- FUNCIÓN RENOMBRADA
     const resultsWrapper = document.querySelector('.alarm-search-results-wrapper');
     const creationWrapper = document.querySelector('.alarm-creation-wrapper');
-    
+
     if (!resultsWrapper || !creationWrapper) return;
 
     if (!searchTerm) {
@@ -59,16 +58,17 @@ function renderSearchResults(searchTerm) {
         resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
     }
 }
+
 function createSearchResultItem(alarm) {
     const item = document.createElement('div');
-    item.className = 'search-result-item'; 
+    item.className = 'search-result-item';
     item.id = `search-alarm-${alarm.id}`;
     item.dataset.id = alarm.id;
     item.dataset.type = 'alarm';
 
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
     const time = formatTime(alarm.hour, alarm.minute);
-    
+
     const deleteLinkHtml = alarm.type === 'default' ? '' : `
         <div class="menu-link" data-action="delete-alarm">
             <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
@@ -150,7 +150,7 @@ function addSearchItemEventListeners(item) {
 function refreshSearchResults() {
     const searchInput = document.getElementById('alarm-search-input');
     if (searchInput && searchInput.value) {
-        renderSearchResults(searchInput.value.toLowerCase());
+        renderAlarmSearchResults(searchInput.value.toLowerCase()); // <--- LLAMADA ACTUALIZADA
     }
 }
 function getActiveAlarmsCount() {
@@ -448,7 +448,7 @@ function deleteAlarm(alarmId) {
     if (!alarm) return;
     if (alarm.type === 'default') {
         console.warn(`Attempted to delete default alarm: ${alarmId}. Deletion is not allowed for default alarms.`);
-        return; 
+        return;
     }
     if (activeAlarmTimers.has(alarmId)) {
         clearTimeout(activeAlarmTimers.get(alarmId));
@@ -634,7 +634,7 @@ function handleEditAlarm(alarmId) {
         if (searchInput) {
             searchInput.value = '';
         }
-        renderSearchResults('');
+        renderAlarmSearchResults(''); // <--- LLAMADA ACTUALIZADA
         if (getCurrentActiveOverlay() !== 'menuAlarm') {
             activateModule('toggleMenuAlarm');
         }
@@ -692,9 +692,9 @@ export function initializeAlarmClock() {
     }
     const searchInput = document.getElementById('alarm-search-input');
     if (searchInput) {
-        searchInput.addEventListener('input', (e) => renderSearchResults(e.target.value.toLowerCase()));
+        searchInput.addEventListener('input', (e) => renderAlarmSearchResults(e.target.value.toLowerCase())); // <--- LLAMADA ACTUALIZADA
     }
-    
+
     // --- EXPOSICIÓN DE FUNCIONES EN window.alarmManager ---
     window.alarmManager = {
         createAlarm,
@@ -705,8 +705,8 @@ export function initializeAlarmClock() {
         dismissAlarm,
         findAlarmById,
         handleEditAlarm,
-        testAlarm, // <-- Nueva función expuesta
-        handleDeleteAlarm, // <-- Nueva función expuesta
+        testAlarm,
+        handleDeleteAlarm,
         getAlarmCount,
         getAlarmLimit,
         getActiveAlarmsCount,
@@ -733,7 +733,7 @@ export function initializeAlarmClock() {
         });
         const searchInput = document.getElementById('alarm-search-input');
         if (searchInput && searchInput.value) {
-            renderSearchResults(searchInput.value.toLowerCase());
+            renderAlarmSearchResults(searchInput.value.toLowerCase()); // <--- LLAMADA ACTUALIZADA
         }
     });
     document.addEventListener('moduleDeactivated', (e) => {
@@ -741,7 +741,7 @@ export function initializeAlarmClock() {
             const searchInput = document.getElementById('alarm-search-input');
             if (searchInput) {
                 searchInput.value = '';
-                renderSearchResults('');
+                renderAlarmSearchResults(''); // <--- LLAMADA ACTUALIZADA
             }
         }
     });

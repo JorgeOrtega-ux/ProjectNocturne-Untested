@@ -225,8 +225,9 @@ export function getTimersCount() {
 }
 
 export function getTimerLimit() {
-    return PREMIUM_FEATURES ? 10 : 3;
+    return PREMIUM_FEATURES ? 100 : 5; // Cambiado de 3 a 5
 }
+
 function getRunningTimersCount() {
     const allTimers = [...userTimers, ...defaultTimersState];
     return allTimers.filter(timer => timer.isRunning).length;

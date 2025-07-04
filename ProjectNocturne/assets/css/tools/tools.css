@@ -1208,11 +1208,21 @@ html.light-mode #dynamic-island {
 
 .widget.widget-clock {
     padding: 18px;
-    background-color: #ffffff;
+    background-color: transparent;
     border-radius: 12px;
     border: 1px solid #00000020;
 }
 
+.dark-mode .widget-clock {
+    border-color: #ffffff20;
+}
+
+.dark-mode .action-item:hover {
+    background-color: #ffffff20;
+}
+.dark-mode .tool-card:hover {
+    background-color: #ffffff20;
+}
 .widget.sortable-chosen {
     cursor: grabbing;
 }
@@ -1403,15 +1413,8 @@ html.light-mode #dynamic-island {
 
 /* ---- MODOS OSCUROS ---- */
 .dark-mode .action-item {
-    background-color: #2e2f31;
-    border-color: #ffffff18;
+    border-color: #ffffff20;
 }
-
-.dark-mode .action-item:hover {
-    background-color: #3a3b3d;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
 .dark-mode .action-item-icon-wrapper-square {
     background-color: #48484a;
 }

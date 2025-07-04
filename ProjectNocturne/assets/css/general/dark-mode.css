@@ -401,7 +401,7 @@
 }
 
 .dark-mode .tool-card {
-    background-color: #2e2f31;
+    background-color: transparent;
     border-color: #ffffff18;
 }
 
@@ -520,11 +520,6 @@
 
 .dark-mode .laps-table tbody tr:hover {
     background-color: #ffffff20;
-}
-
-.dark-mode .widget {
-    background-color: #2e2f31;
-    border: 1px solid #ffffff20;
 }
 
 .dark-mode .widget-icon {

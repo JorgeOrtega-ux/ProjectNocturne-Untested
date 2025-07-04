@@ -242,9 +242,8 @@ export function getAlarmCount() {
 }
 
 export function getAlarmLimit() {
-    return PREMIUM_FEATURES ? 100 : 10;
+    return PREMIUM_FEATURES ? 100 : 5; // Cambiado de 10 a 5
 }
-
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = getAlarmLimit();
     if (userAlarms.length >= alarmLimit) {

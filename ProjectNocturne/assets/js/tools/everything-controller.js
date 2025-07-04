@@ -99,7 +99,7 @@ function rebindEventListeners() {
             if (!widget) return;
             const grid = widget.querySelector('.tool-grid');
             const btn = widget.querySelector('.expandable-card-toggle-btn');
-            if(grid && btn) {
+            if (grid && btn) {
                 const isActive = grid.classList.toggle('active');
                 btn.classList.toggle('expanded', isActive);
             }
@@ -148,7 +148,7 @@ function updateActionCounts() {
     }
 
     const clocksCountEl = document.getElementById('clocks-count-details');
-    if(clocksCountEl && window.worldClockManager) {
+    if (clocksCountEl && window.worldClockManager) {
         const count = window.worldClockManager.getClockCount();
         const limit = window.worldClockManager.getClockLimit();
         if (count >= limit) {
@@ -177,7 +177,7 @@ function updateCurrentDate() {
     const clockTime = document.getElementById('main-clock-time-long');
     const clockDate = document.getElementById('main-clock-date');
     if (clockTime) {
-        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: use24HourFormat };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !use24HourFormat };
         clockTime.textContent = now.toLocaleTimeString(navigator.language, timeOptions);
     }
     if (clockDate) {

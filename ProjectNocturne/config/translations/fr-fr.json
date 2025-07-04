@@ -150,7 +150,7 @@
     "tints": "Teintes (+ Blanc)",
     "tones": "Tons (+ Gris)"
   },
- "tooltips": {
+  "tooltips": {
     "add": "Augmenter la taille de la police",
     "add_alarm": "Ajouter une alarme",
     "add_clock": "Ajouter une horloge",
@@ -180,7 +180,7 @@
     "pin_clock": "Épingler l'horloge",
     "pin_timer": "Épingler le minuteur"
   },
-   "stopwatch": {
+  "stopwatch": {
     "lap_header": "Tour",
     "time_header": "Temps",
     "total_time_header": "Temps total",
@@ -307,6 +307,7 @@
     "new_alarm": "Nouvelle Alarme",
     "new_timer": "Nouveau Minuteur",
     "add_clock": "Ajouter une Horloge",
+    "limit_reached": "Limite maximale atteinte",
     "no_active_alarms": "Aucune alarme active",
     "no_running_timers": "Aucun minuteur en cours",
     "upcoming_festivities": "Festivités à venir"

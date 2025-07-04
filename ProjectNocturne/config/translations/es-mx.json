@@ -150,7 +150,7 @@
     "tints": "Tintes (+ Blanco)",
     "tones": "Tonos (+ Gris)"
   },
- "tooltips": {
+  "tooltips": {
     "add": "Aumentar tamaño de fuente",
     "add_alarm": "Añadir alarma",
     "add_clock": "Añadir reloj",
@@ -269,7 +269,8 @@
     "edit_not_implemented": "La funcionalidad para editar el reloj aún no está implementada.",
     "fullscreen_not_implemented": "La funcionalidad de pantalla completa aún no está implementada.",
     "save_changes": "Guardar cambios"
-  },"weekdays": {
+  },
+  "weekdays": {
     "sunday": "domingo",
     "monday": "lunes",
     "tuesday": "martes",
@@ -277,8 +278,8 @@
     "thursday": "jueves",
     "friday": "viernes",
     "saturday": "sábado"
-},
-"months": {
+  },
+  "months": {
     "january": "enero",
     "february": "febrero",
     "march": "marzo",
@@ -291,8 +292,8 @@
     "october": "octubre",
     "november": "noviembre",
     "december": "diciembre"
-},
-"everything": {
+  },
+  "everything": {
     "main_panel": "Panel Principal",
     "local_time": "Hora Local",
     "active_alarms": "Alarmas Activas",
@@ -304,13 +305,15 @@
     "stopwatch": "Cronómetro",
     "quick_actions": "Acciones Rápidas",
     "new_alarm": "Nueva Alarma",
-    "new_timer": "Nuevo Timer",
+    "new_timer": "Nuevo Temporizador",
     "add_clock": "Añadir Reloj",
+    "limit_reached": "Límite máximo alcanzado",
     "no_active_alarms": "No hay alarmas activas",
     "no_running_timers": "No hay timers corriendo",
     "upcoming_festivities": "Próximas Festividades",
     "festivities_not_available": "Las festividades no están disponibles para esta ubicación."
-  },"confirmation": {
+  },
+  "confirmation": {
     "confirm_delete_title_alarm": "¿Eliminar Alarma?",
     "confirm_delete_message_alarm": "Estás a punto de eliminar la alarma {name}. Esta acción no se puede deshacer.",
     "confirm_delete_title_timer": "¿Eliminar Temporizador?",

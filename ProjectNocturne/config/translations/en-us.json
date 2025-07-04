@@ -307,6 +307,7 @@
     "new_alarm": "New Alarm",
     "new_timer": "New Timer",
     "add_clock": "Add Clock",
+    "limit_reached": "Maximum limit reached",
     "no_active_alarms": "No active alarms",
     "no_running_timers": "No running timers",
     "upcoming_festivities": "Upcoming Festivities"

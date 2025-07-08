@@ -89,9 +89,7 @@
             </div>
         </div>
         <div class="menu-section-bottom">
-            <div class="create-tool" data-action="createAlarm">
-                <span data-translate="create_alarm" data-translate-category="alarms"></span>
-            </div>
+            <div class="create-tool" data-action="createAlarm" data-translate="create_alarm" data-translate-category="alarms"></div>
         </div>
     </div>
 </div>

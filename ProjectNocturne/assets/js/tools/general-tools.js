@@ -1,7 +1,7 @@
 // ========== general-tools.js - CÓDIGO COMPLETO ACTUALIZADO ==========
 
 import { getTranslation } from '../general/translations-controller.js';
-import { showModal } from '../general/modal-controller.js';
+import { showModal } from '../general/menu-interactions.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
 const DB_NAME = 'ProjectNocturneDB';

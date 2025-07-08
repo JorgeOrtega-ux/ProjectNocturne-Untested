@@ -22,6 +22,7 @@
                     <div class="menu-content">
                         <div class="menu-content-header">
                             <div class="menu-content-header-primary">
+                                <span class="material-symbols-rounded">rule</span>
                                 <span data-translate="suggestion_type" data-translate-category="menu"></span>
                             </div>
                         </div>
@@ -37,9 +38,14 @@
                         </div>
                     </div>
                     <div class="menu-content">
-                        <div class="menu-content-header" data-translate="suggestion_message" data-translate-category="menu"></div>
+                        <div class="menu-content-header">
+                            <div class="menu-content-header-primary">
+                                <span class="material-symbols-rounded">inbox</span>
+                                <span data-translate="suggestion_message" data-translate-category="menu"></span>
+                            </div>
+                        </div>
                         <div class="menu-content-general">
-                            <textarea class="suggestion-text" id="suggestion-text" name="suggestion-text" rows="5" required></textarea>
+                            <textarea class="suggestion-text overflow-y" id="suggestion-text" name="suggestion-text" rows="5" required></textarea>
                         </div>
                     </div>
                 </div>

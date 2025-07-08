@@ -1,10 +1,119 @@
+// /assets/js/general/menu-interactions.js
+
 "use strict";
-import { use24HourFormat, deactivateModule } from './main.js';
+// La lógica de modal-controller.js se ha integrado en este archivo.
+import { use24HourFormat, deactivateModule, activateModule } from './main.js';
 import { getTranslation } from './translations-controller.js';
 import { addTimerAndRender, updateTimer, getTimersCount, getTimerLimit } from '../tools/timer-controller.js';
 import { showDynamicIslandNotification } from './dynamic-island-controller.js';
 import { playSound, stopSound, generateSoundList, handleAudioUpload, deleteUserAudio, getSoundNameById } from '../tools/general-tools.js';
 import { getCurrentLocation } from './location-manager.js';
+
+// ========== LÓGICA DE MODAL-CONTROLLER INTEGRADA ==========
+
+let onConfirmCallback = null;
+let activeModalType = null;
+
+function populateConfirmationModal(data) {
+    const modalMenu = document.querySelector('.menu-delete');
+    if (!modalMenu) return;
+
+    const { type: itemType, name } = data;
+
+    const headerTitleElement = modalMenu.querySelector('[data-delete-item="header-title"]');
+    const itemTypeLabelElement = modalMenu.querySelector('[data-delete-item="item-type-label"]');
+    const itemNameElement = modalMenu.querySelector('[data-delete-item="name"]');
+    const messageElement = modalMenu.querySelector('[data-delete-item="confirmation-message"]');
+    const confirmButton = modalMenu.querySelector('.confirm-btn');
+    const cancelButton = modalMenu.querySelector('.cancel-btn');
+
+    const headerTitleKey = `confirm_delete_title_${itemType}`;
+    const messageKey = `confirm_delete_message_${itemType}`;
+    const itemTypeLabelKey = `delete_${itemType}_title_prefix`;
+
+    if (headerTitleElement) headerTitleElement.textContent = getTranslation(headerTitleKey, 'confirmation');
+    
+    if (itemTypeLabelElement) {
+        itemTypeLabelElement.textContent = getTranslation(itemTypeLabelKey, 'confirmation');
+    }
+
+    if (itemNameElement) itemNameElement.value = name;
+    if (messageElement) messageElement.innerHTML = getTranslation(messageKey, 'confirmation').replace('{name}', `<strong>${name}</strong>`);
+    if (confirmButton) confirmButton.textContent = getTranslation('delete', 'confirmation');
+    if (cancelButton) cancelButton.textContent = getTranslation('cancel', 'confirmation');
+}
+
+function populateSuggestionModal() {
+    const modalMenu = document.querySelector('.menu-suggestions');
+    if (!modalMenu) return;
+}
+
+function setupModalEventListeners() {
+    const overlay = document.querySelector('.module-overlay');
+    if (!overlay) return;
+
+    const deleteMenu = overlay.querySelector('.menu-delete');
+    if (deleteMenu) {
+        const confirmBtn = deleteMenu.querySelector('.confirm-btn');
+        const cancelBtn = deleteMenu.querySelector('.cancel-btn');
+
+        if(confirmBtn && !confirmBtn.onclick) {
+            confirmBtn.onclick = () => {
+                if (typeof onConfirmCallback === 'function') {
+                    onConfirmCallback();
+                }
+                hideModal();
+            };
+        }
+
+        if(cancelBtn && !cancelBtn.onclick) {
+            cancelBtn.onclick = () => hideModal();
+        }
+    }
+
+    const suggestionsMenu = overlay.querySelector('.menu-suggestions');
+    if (suggestionsMenu) {
+        const form = suggestionsMenu.querySelector('#suggestion-form');
+        const cancelBtn = suggestionsMenu.querySelector('.cancel-btn');
+
+        if(form && !form.onsubmit) {
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                hideModal();
+            };
+        }
+        
+        if(cancelBtn && !cancelBtn.onclick) {
+             cancelBtn.onclick = () => hideModal();
+        }
+    }
+}
+
+export function showModal(type, data = {}, onConfirm = null) {
+    activeModalType = type;
+
+    if (type === 'confirmation') {
+        populateConfirmationModal(data);
+        onConfirmCallback = onConfirm;
+        activateModule('toggleDeleteMenu'); 
+    } else if (type === 'suggestion') {
+        populateSuggestionModal();
+        activateModule('toggleSuggestionMenu');
+    }
+    
+    setupModalEventListeners();
+}
+
+export function hideModal() {
+    if (activeModalType) {
+        deactivateModule('overlayContainer', { source: `hide-modal-${activeModalType}` });
+        activeModalType = null;
+        onConfirmCallback = null;
+    }
+}
+
+
+// ========== LÓGICA ORIGINAL DE MENU-INTERACTIONS ==========
 
 let currentlyPlayingSound = null;
 let soundTimeout = null;
@@ -42,31 +151,21 @@ let areGlobalListenersInitialized = false;
 let soundSelectionContext = null;
 const menuStack = [];
 
-/**
- * Resets the entire overlay navigation state.
- * Hides all sub-menus (like Sounds, Country, Timezone, Calendar, TimePicker) and clears the navigation history stack.
- * This is intended to be called when the main overlay module is closed to prevent stale menu views.
- */
 export function resetOverlayNavigation() {
     const overlay = document.querySelector('.module-overlay');
     if (!overlay) return;
 
-    // Find and hide any active sub-menus.
     const subMenus = overlay.querySelectorAll('.menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker, .menu-suggestion-types');
     subMenus.forEach(subMenu => {
         subMenu.classList.remove('active');
         subMenu.classList.add('disabled');
-
-        // Reset search input if it exists
         const searchInput = subMenu.querySelector('input[type="text"]');
         if (searchInput) {
             searchInput.value = '';
-            // Manually trigger an input event to clear search results
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
 
-    // Clear the navigation history stack.
     menuStack.length = 0;
 }
 
@@ -97,15 +196,12 @@ function navigateBack() {
         currentMenu.classList.remove('active');
         currentMenu.classList.add('disabled');
 
-        // Reset search input when navigating away from a menu with a search bar
         const searchInput = currentMenu.querySelector('input[type="text"]');
         if (['sounds', 'country', 'timeZone'].includes(currentMenu.dataset.menu)) {
             searchInput.value = '';
-            // Dispara un evento 'input' para que la lógica de búsqueda se reinicie
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
-        // If we are leaving the time picker, reset its internal state to show the hour list again.
         if (currentMenu.dataset.menu === 'timePicker') {
             const hourList = currentMenu.querySelector('[data-list-type="hours"]');
             const minuteList = currentMenu.querySelector('[data-list-type="minutes"]');
@@ -701,8 +797,6 @@ async function populateSoundsMenu(context) {
         activeSoundId = state.timer.countTo.sound;
     }
 
-    // `generateSoundList` ahora es asíncrono y espera la caché,
-    // por lo que esperamos a que termine antes de continuar.
     await generateSoundList(uploadContainer, listContainer, 'selectSound', activeSoundId);
 }
 
@@ -752,52 +846,37 @@ function setupGlobalEventListeners() {
         resultsWrapper.innerHTML = '';
 
         if (target.id === 'sound-search-input') {
-            // LÓGICA ESPECÍFICA PARA BÚSQUEDA DE SONIDOS
             const originalListContainer = creationWrapper.querySelector('#sound-list-wrapper');
             if (!originalListContainer) return;
 
             const allSoundItems = originalListContainer.querySelectorAll('.menu-link');
-            console.log(`🔍 Búsqueda de sonidos: "${searchTerm}", elementos encontrados: ${allSoundItems.length}`);
-
             const filteredItems = Array.from(allSoundItems).filter(item => {
-                // Buscar tanto en elementos con data-translate como en texto directo
                 const textSpan = item.querySelector('.menu-link-text span');
                 if (!textSpan) return false;
 
                 let itemName = '';
-
-                // Si tiene atributo data-translate, usar la traducción
                 const translateKey = textSpan.getAttribute('data-translate');
                 if (translateKey && typeof window.getTranslation === 'function') {
                     itemName = window.getTranslation(translateKey, 'sounds');
                 }
 
-                // Si no se pudo obtener traducción o no tiene data-translate, usar texto directo
                 if (!itemName || itemName === translateKey) {
                     itemName = textSpan.textContent;
                 }
 
                 const matches = itemName.toLowerCase().includes(searchTerm);
-                console.log(`   - "${itemName}" ${matches ? '✅' : '❌'}`);
                 return matches;
             });
-
-            console.log(`🎵 Sonidos filtrados: ${filteredItems.length}`);
 
             if (filteredItems.length > 0) {
                 const newList = document.createElement('div');
                 newList.className = 'menu-list';
-
-                // Buscar encabezados de sección y agrupar resultados
                 const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
 
                 if (headers.length > 0) {
-                    // Si hay encabezados, agrupar por sección
                     headers.forEach(header => {
                         const sectionItems = [];
                         let nextElement = header.nextElementSibling;
-
-                        // Recolectar elementos de esta sección que coinciden con la búsqueda
                         while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
                             if (filteredItems.includes(nextElement)) {
                                 sectionItems.push(nextElement);
@@ -805,7 +884,6 @@ function setupGlobalEventListeners() {
                             nextElement = nextElement.nextElementSibling;
                         }
 
-                        // Solo mostrar la sección si tiene elementos que coinciden
                         if (sectionItems.length > 0) {
                             const headerClone = header.cloneNode(true);
                             newList.appendChild(headerClone);
@@ -816,7 +894,6 @@ function setupGlobalEventListeners() {
                         }
                     });
                 } else {
-                    // Si no hay encabezados, mostrar todos los elementos filtrados
                     filteredItems.forEach(item => {
                         const itemClone = item.cloneNode(true);
                         newList.appendChild(itemClone);
@@ -833,7 +910,6 @@ function setupGlobalEventListeners() {
             }
 
         } else {
-            // LÓGICA PARA OTROS TIPOS DE BÚSQUEDA (países, zonas horarias)
             const originalListContainer = creationWrapper.querySelector('.menu-list, .country-list-container, .timezone-list-container');
             if (!originalListContainer) return;
 
@@ -854,41 +930,6 @@ function setupGlobalEventListeners() {
         }
     });
 
-    // FUNCIÓN AUXILIAR PARA DEBUG (opcional)
-    function debugSoundSearch() {
-        const soundsMenu = document.querySelector('.menu-sounds');
-        if (!soundsMenu) {
-            console.log('❌ Menu de sonidos no encontrado');
-            return;
-        }
-
-        const listContainer = soundsMenu.querySelector('#sound-list-wrapper');
-        if (!listContainer) {
-            console.log('❌ Contenedor de lista de sonidos no encontrado');
-            return;
-        }
-
-        const allItems = listContainer.querySelectorAll('.menu-link');
-        console.log(`🎵 Total de elementos de sonido: ${allItems.length}`);
-
-        allItems.forEach((item, index) => {
-            const textSpan = item.querySelector('.menu-link-text span');
-            const soundId = item.getAttribute('data-sound-id');
-            const translateKey = textSpan?.getAttribute('data-translate');
-            const directText = textSpan?.textContent;
-
-            console.log(`   ${index + 1}. ID: ${soundId}, Translate: ${translateKey}, Text: "${directText}"`);
-        });
-
-        const headers = listContainer.querySelectorAll('.menu-content-header-sm');
-        console.log(`📑 Encabezados de sección: ${headers.length}`);
-        headers.forEach((header, index) => {
-            console.log(`   Sección ${index + 1}: "${header.textContent}"`);
-        });
-    }
-
-    // Para usar el debug en la consola del navegador:
-    // debugSoundSearch();
     document.body.addEventListener('click', (event) => {
        const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker, .menu-suggestions, .menu-suggestion-types');
         if (!parentMenu || autoIncrementState.isActive) return;
@@ -926,20 +967,16 @@ function setupGlobalEventListeners() {
 }
 
 async function handleMenuClick(event, parentMenu) {
-    // --- INICIO DE LA CORRECCIÓN ---
-    // Primero, verificamos si se hizo clic en un día del calendario.
     const dayTarget = event.target.closest('.calendar-days .day:not(.other-month)');
     if (dayTarget && dayTarget.dataset.day) {
         event.stopPropagation();
         selectCalendarDate(parseInt(dayTarget.dataset.day, 10));
-        return; // Terminamos la ejecución aquí si fue un clic en un día.
+        return;
     }
 
-    // Si no fue un día, ahora buscamos un elemento con data-action.
     const target = event.target.closest('[data-action]');
-    if (!target) return; // Si no hay acción, ahora sí salimos.
-    // --- FIN DE LA CORRECCIÓN ---
-
+    if (!target) return;
+    
     const action = target.dataset.action;
 
     if (action === 'open-suggestion-types-menu') {

@@ -5,7 +5,7 @@ import { playSound as playAlarmSound, stopSound as stopAlarmSound, initializeSor
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
-import { showModal } from '../general/modal-controller.js';
+import { showModal } from '../general/menu-interactions.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';

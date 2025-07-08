@@ -5,7 +5,7 @@ import { prepareTimerForEdit, prepareCountToDateForEdit } from '../general/menu-
 import { playSound, stopSound, initializeSortable, getAvailableSounds, handleTimerCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
-import { showModal } from '../general/modal-controller.js';
+import { showModal } from '../general/menu-interactions.js';
 
 const TIMERS_STORAGE_KEY = 'user-timers';
 const DEFAULT_TIMERS_STORAGE_KEY = 'default-timers-order';

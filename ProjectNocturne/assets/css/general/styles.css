@@ -420,7 +420,9 @@ body {
 .menu-country,
 .menu-timeZone,
 .menu-calendar,
-.menu-timePicker {
+.menu-timePicker,
+.menu-delete,
+.menu-suggestions {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -1186,9 +1188,11 @@ body {
     .menu-paletteColors,
     .menu-sounds,
     .menu-country,
-    .menu-timeZone,   /* CORREGIDO */
+    .menu-timeZone,
     .menu-calendar,
-    .menu-timePicker { /* CORREGIDO */
+    .menu-timePicker,
+    .menu-delete,
+    .menu-suggestions {
         height: auto;
         max-height: 85%;
         min-height: 85%;
@@ -1303,7 +1307,7 @@ body {
     display: none;
 }
 
-    .alarm-search-result {
+.alarm-search-result {
     position: relative;
     display: flex;
     justify-content: space-between;
@@ -1359,53 +1363,19 @@ body {
     display: none;
 }
 
-    /* ====================================== */
-/* ====== CONFIRMATION MODAL STYLES ===== */
 /* ====================================== */
-.confirmation-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10001; /* Un z-index alto para estar por encima de todo */
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.confirmation-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.menu-delete {
-    max-width: 450px;
-    width: calc(100% - 40px);
-    padding: 32px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+/* ====== MODAL/CONFIRMATION STYLES ===== */
+/* ====================================== */
+.menu-delete .menu-content-general {
     align-items: flex-start;
-    transform: scale(0.95);
-    transition: transform 0.3s ease;
-}
-
-.confirmation-overlay.active .menu-delete {
-    transform: scale(1);
+    text-align: left;
+    padding: 24px;
+    gap: 12px;
 }
 
 .menu-delete h1 {
     font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: 12px;
     color: #1d1d1f;
 }
 
@@ -1413,8 +1383,6 @@ body {
     font-size: 0.95rem;
     color: #6e6e73;
     line-height: 1.5;
-    display: block;
-    margin-bottom: 24px;
 }
 
 .menu-delete span strong {
@@ -1427,6 +1395,7 @@ body {
     justify-content: flex-end;
     gap: 12px;
     width: 100%;
+    margin-top: 12px;
 }
 
 .menu-delete-btns button {
@@ -1463,6 +1432,69 @@ body {
 .menu-delete-btns .confirm-btn:hover {
     background-color: #b71c1c;
 }
+
+/* ====== SUGGESTION MODAL STYLES ===== */
+.menu-suggestions .menu-section-center {
+    gap: 16px;
+}
+
+.menu-suggestions .suggestions-description {
+    font-size: 0.9rem;
+    color: #6e6e73;
+    line-height: 1.5;
+    margin: 0;
+    text-align: left;
+}
+
+#suggestion-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #1d1d1f;
+    text-align: left;
+}
+
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #00000020;
+    background-color: #f5f5fa;
+    font-size: 0.9rem;
+    font-family: "Roboto", sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+.menu-suggestions .menu-delete-btns {
+    margin-top: 0;
+}
+.suggestion-type-dropdown {
+    max-height: 200px;
+}
+
 .action-item {
     display: flex;
     flex-direction: column;
@@ -1570,73 +1602,4 @@ display: flex;
 flex-direction: row;
 gap: 4px;
 padding-right: 8px;
-}/* ====================================== */
-/* ====== SUGGESTION MODAL STYLES ===== */
-/* ====================================== */
-.menu-suggestion {
-    max-width: 480px;
-    width: calc(100% - 40px);
-    padding: 24px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.menu-suggestion h1 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #1d1d1f;
-    margin: 0;
-}
-
-.menu-suggestion p {
-    font-size: 0.9rem;
-    color: #6e6e73;
-    line-height: 1.5;
-    margin: 0;
-}
-
-#suggestion-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.form-group label {
-    font-weight: 500;
-    color: #1d1d1f;
-}
-
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #00000020;
-    background-color: #f5f5fa;
-    font-size: 0.9rem;
-    font-family: "Roboto", sans-serif;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #007aff;
-    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 100px;
 }

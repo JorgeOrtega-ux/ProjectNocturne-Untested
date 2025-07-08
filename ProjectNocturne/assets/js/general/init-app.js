@@ -10,7 +10,7 @@ import { initializeZoneInfoTool } from '../config/zoneinfo-controller.js';
 
 import { showModal } from './modal-controller.js'; // Importar la nueva función
 import { initMobileDragController } from './drag-controller.js';
-import { initSidebarMobile, initSidebarSections, initControlCenter, initNewOverlayModules, logAllStates, getAppliedTextStyle, getAppliedColor, getAppliedFontScale } from './main.js';
+import { initSidebarMobile, initSidebarSections, initControlCenter, initNewOverlayModules, logAllStates, getAppliedTextStyle, getAppliedColor, getAppliedFontScale, activateModule } from './main.js';
 import { initModuleManager, updateMenuLabels, applyInitialStates as applyModuleManagerInitialStates, setTranslationFunction as setModuleManagerTranslationFunction, getCurrentLanguage as getModuleManagerCurrentLanguage, getCurrentTheme as getModuleManagerCurrentTheme, isLoading as isModuleManagerLoading } from './module-manager.js';
 import { initializeTooltipSystem, refreshTooltips, batchMigrateTooltips, initializeMobileSidebarTooltips, updateTooltipTextMap, setTranslationGetter as setTooltipTranslationGetter } from './tooltip-controller.js';
 import { initTranslationSystem, refreshTranslations, updateDynamicMenuLabels, translateElementsWithDataTranslate, getTranslation as getTranslationFunction, getCurrentLanguage as getTranslationCurrentLanguage } from './translations-controller.js';
@@ -327,7 +327,6 @@ function initializeMainComponents() {
     initializeEverything();
     applyCollapsedSectionsState();
     setupCollapsibleSectionEvents();
-    // initConfirmationModal(); // Se elimina la llamada
     initializeCategorySliderService();
     initializeCentralizedFontManager();
     initializeFullScreenManager();
@@ -472,7 +471,7 @@ function setupEventListeners() {
         const suggestButton = e.target.closest('[data-action="suggest-improvements"]');
         if (suggestButton) {
             e.preventDefault();
-            showModal('suggestion');
+            activateModule('toggleSuggestionMenu');
         }
     });
 

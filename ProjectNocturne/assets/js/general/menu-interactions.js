@@ -724,174 +724,171 @@ function setupGlobalEventListeners() {
         }
     });
 
-// CORRECCIÓN PARA EL SISTEMA DE BÚSQUEDA DE SONIDOS
 
-// En menu-interactions.js, reemplazar la sección del event listener 'input' por esto:
+    document.body.addEventListener('input', (event) => {
+        const target = event.target;
+        if (!['sound-search-input', 'country-search-input', 'timezone-search-input'].includes(target.id)) return;
 
-document.body.addEventListener('input', (event) => {
-    const target = event.target;
-    if (!['sound-search-input', 'country-search-input', 'timezone-search-input'].includes(target.id)) return;
+        const menu = target.closest('.menu-sounds, .menu-country, .menu-timeZone');
+        if (!menu) return;
 
-    const menu = target.closest('.menu-sounds, .menu-country, .menu-timeZone');
-    if (!menu) return;
+        const searchTerm = target.value.toLowerCase();
+        const creationWrapper = menu.querySelector('.creation-wrapper');
+        const resultsWrapper = menu.querySelector('.search-results-wrapper');
 
-    const searchTerm = target.value.toLowerCase();
-    const creationWrapper = menu.querySelector('.creation-wrapper');
-    const resultsWrapper = menu.querySelector('.search-results-wrapper');
+        if (!creationWrapper || !resultsWrapper) return;
 
-    if (!creationWrapper || !resultsWrapper) return;
+        if (!searchTerm) {
+            resultsWrapper.innerHTML = '';
+            resultsWrapper.classList.add('disabled');
+            creationWrapper.classList.remove('disabled');
+            return;
+        }
 
-    if (!searchTerm) {
+        creationWrapper.classList.add('disabled');
+        resultsWrapper.classList.remove('disabled');
         resultsWrapper.innerHTML = '';
-        resultsWrapper.classList.add('disabled');
-        creationWrapper.classList.remove('disabled');
-        return;
-    }
 
-    creationWrapper.classList.add('disabled');
-    resultsWrapper.classList.remove('disabled');
-    resultsWrapper.innerHTML = '';
+        if (target.id === 'sound-search-input') {
+            // LÓGICA ESPECÍFICA PARA BÚSQUEDA DE SONIDOS
+            const originalListContainer = creationWrapper.querySelector('#sound-list-wrapper');
+            if (!originalListContainer) return;
 
-    if (target.id === 'sound-search-input') {
-        // LÓGICA ESPECÍFICA PARA BÚSQUEDA DE SONIDOS
-        const originalListContainer = creationWrapper.querySelector('#sound-list-wrapper');
-        if (!originalListContainer) return;
+            const allSoundItems = originalListContainer.querySelectorAll('.menu-link');
+            console.log(`🔍 Búsqueda de sonidos: "${searchTerm}", elementos encontrados: ${allSoundItems.length}`);
 
-        const allSoundItems = originalListContainer.querySelectorAll('.menu-link');
-        console.log(`🔍 Búsqueda de sonidos: "${searchTerm}", elementos encontrados: ${allSoundItems.length}`);
+            const filteredItems = Array.from(allSoundItems).filter(item => {
+                // Buscar tanto en elementos con data-translate como en texto directo
+                const textSpan = item.querySelector('.menu-link-text span');
+                if (!textSpan) return false;
 
-        const filteredItems = Array.from(allSoundItems).filter(item => {
-            // Buscar tanto en elementos con data-translate como en texto directo
-            const textSpan = item.querySelector('.menu-link-text span');
-            if (!textSpan) return false;
+                let itemName = '';
 
-            let itemName = '';
-            
-            // Si tiene atributo data-translate, usar la traducción
-            const translateKey = textSpan.getAttribute('data-translate');
-            if (translateKey && typeof window.getTranslation === 'function') {
-                itemName = window.getTranslation(translateKey, 'sounds');
-            }
-            
-            // Si no se pudo obtener traducción o no tiene data-translate, usar texto directo
-            if (!itemName || itemName === translateKey) {
-                itemName = textSpan.textContent;
-            }
+                // Si tiene atributo data-translate, usar la traducción
+                const translateKey = textSpan.getAttribute('data-translate');
+                if (translateKey && typeof window.getTranslation === 'function') {
+                    itemName = window.getTranslation(translateKey, 'sounds');
+                }
 
-            const matches = itemName.toLowerCase().includes(searchTerm);
-            console.log(`   - "${itemName}" ${matches ? '✅' : '❌'}`);
-            return matches;
-        });
+                // Si no se pudo obtener traducción o no tiene data-translate, usar texto directo
+                if (!itemName || itemName === translateKey) {
+                    itemName = textSpan.textContent;
+                }
 
-        console.log(`🎵 Sonidos filtrados: ${filteredItems.length}`);
+                const matches = itemName.toLowerCase().includes(searchTerm);
+                console.log(`   - "${itemName}" ${matches ? '✅' : '❌'}`);
+                return matches;
+            });
 
-        if (filteredItems.length > 0) {
-            const newList = document.createElement('div');
-            newList.className = 'menu-list';
+            console.log(`🎵 Sonidos filtrados: ${filteredItems.length}`);
 
-            // Buscar encabezados de sección y agrupar resultados
-            const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
-            
-            if (headers.length > 0) {
-                // Si hay encabezados, agrupar por sección
-                headers.forEach(header => {
-                    const sectionItems = [];
-                    let nextElement = header.nextElementSibling;
-                    
-                    // Recolectar elementos de esta sección que coinciden con la búsqueda
-                    while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
-                        if (filteredItems.includes(nextElement)) {
-                            sectionItems.push(nextElement);
+            if (filteredItems.length > 0) {
+                const newList = document.createElement('div');
+                newList.className = 'menu-list';
+
+                // Buscar encabezados de sección y agrupar resultados
+                const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
+
+                if (headers.length > 0) {
+                    // Si hay encabezados, agrupar por sección
+                    headers.forEach(header => {
+                        const sectionItems = [];
+                        let nextElement = header.nextElementSibling;
+
+                        // Recolectar elementos de esta sección que coinciden con la búsqueda
+                        while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
+                            if (filteredItems.includes(nextElement)) {
+                                sectionItems.push(nextElement);
+                            }
+                            nextElement = nextElement.nextElementSibling;
                         }
-                        nextElement = nextElement.nextElementSibling;
-                    }
-                    
-                    // Solo mostrar la sección si tiene elementos que coinciden
-                    if (sectionItems.length > 0) {
-                        const headerClone = header.cloneNode(true);
-                        newList.appendChild(headerClone);
-                        sectionItems.forEach(item => {
-                            const itemClone = item.cloneNode(true);
-                            newList.appendChild(itemClone);
-                        });
-                    }
-                });
+
+                        // Solo mostrar la sección si tiene elementos que coinciden
+                        if (sectionItems.length > 0) {
+                            const headerClone = header.cloneNode(true);
+                            newList.appendChild(headerClone);
+                            sectionItems.forEach(item => {
+                                const itemClone = item.cloneNode(true);
+                                newList.appendChild(itemClone);
+                            });
+                        }
+                    });
+                } else {
+                    // Si no hay encabezados, mostrar todos los elementos filtrados
+                    filteredItems.forEach(item => {
+                        const itemClone = item.cloneNode(true);
+                        newList.appendChild(itemClone);
+                    });
+                }
+
+                if (newList.hasChildNodes()) {
+                    resultsWrapper.appendChild(newList);
+                } else {
+                    resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+                }
             } else {
-                // Si no hay encabezados, mostrar todos los elementos filtrados
-                filteredItems.forEach(item => {
-                    const itemClone = item.cloneNode(true);
-                    newList.appendChild(itemClone);
-                });
+                resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
             }
 
-            if (newList.hasChildNodes()) {
+        } else {
+            // LÓGICA PARA OTROS TIPOS DE BÚSQUEDA (países, zonas horarias)
+            const originalListContainer = creationWrapper.querySelector('.menu-list, .country-list-container, .timezone-list-container');
+            if (!originalListContainer) return;
+
+            const allItems = originalListContainer.querySelectorAll('.menu-link');
+            const filteredItems = Array.from(allItems).filter(item => {
+                const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
+                return itemName && itemName.includes(searchTerm);
+            });
+
+            if (filteredItems.length > 0) {
+                const newList = document.createElement('div');
+                newList.className = 'menu-list';
+                filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
                 resultsWrapper.appendChild(newList);
             } else {
                 resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
             }
-        } else {
-            resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+        }
+    });
+
+    // FUNCIÓN AUXILIAR PARA DEBUG (opcional)
+    function debugSoundSearch() {
+        const soundsMenu = document.querySelector('.menu-sounds');
+        if (!soundsMenu) {
+            console.log('❌ Menu de sonidos no encontrado');
+            return;
         }
 
-    } else {
-        // LÓGICA PARA OTROS TIPOS DE BÚSQUEDA (países, zonas horarias)
-        const originalListContainer = creationWrapper.querySelector('.menu-list, .country-list-container, .timezone-list-container');
-        if (!originalListContainer) return;
+        const listContainer = soundsMenu.querySelector('#sound-list-wrapper');
+        if (!listContainer) {
+            console.log('❌ Contenedor de lista de sonidos no encontrado');
+            return;
+        }
 
-        const allItems = originalListContainer.querySelectorAll('.menu-link');
-        const filteredItems = Array.from(allItems).filter(item => {
-            const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
-            return itemName && itemName.includes(searchTerm);
+        const allItems = listContainer.querySelectorAll('.menu-link');
+        console.log(`🎵 Total de elementos de sonido: ${allItems.length}`);
+
+        allItems.forEach((item, index) => {
+            const textSpan = item.querySelector('.menu-link-text span');
+            const soundId = item.getAttribute('data-sound-id');
+            const translateKey = textSpan?.getAttribute('data-translate');
+            const directText = textSpan?.textContent;
+
+            console.log(`   ${index + 1}. ID: ${soundId}, Translate: ${translateKey}, Text: "${directText}"`);
         });
 
-        if (filteredItems.length > 0) {
-            const newList = document.createElement('div');
-            newList.className = 'menu-list';
-            filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
-            resultsWrapper.appendChild(newList);
-        } else {
-            resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
-        }
-    }
-});
-
-// FUNCIÓN AUXILIAR PARA DEBUG (opcional)
-function debugSoundSearch() {
-    const soundsMenu = document.querySelector('.menu-sounds');
-    if (!soundsMenu) {
-        console.log('❌ Menu de sonidos no encontrado');
-        return;
+        const headers = listContainer.querySelectorAll('.menu-content-header-sm');
+        console.log(`📑 Encabezados de sección: ${headers.length}`);
+        headers.forEach((header, index) => {
+            console.log(`   Sección ${index + 1}: "${header.textContent}"`);
+        });
     }
 
-    const listContainer = soundsMenu.querySelector('#sound-list-wrapper');
-    if (!listContainer) {
-        console.log('❌ Contenedor de lista de sonidos no encontrado');
-        return;
-    }
-
-    const allItems = listContainer.querySelectorAll('.menu-link');
-    console.log(`🎵 Total de elementos de sonido: ${allItems.length}`);
-
-    allItems.forEach((item, index) => {
-        const textSpan = item.querySelector('.menu-link-text span');
-        const soundId = item.getAttribute('data-sound-id');
-        const translateKey = textSpan?.getAttribute('data-translate');
-        const directText = textSpan?.textContent;
-        
-        console.log(`   ${index + 1}. ID: ${soundId}, Translate: ${translateKey}, Text: "${directText}"`);
-    });
-
-    const headers = listContainer.querySelectorAll('.menu-content-header-sm');
-    console.log(`📑 Encabezados de sección: ${headers.length}`);
-    headers.forEach((header, index) => {
-        console.log(`   Sección ${index + 1}: "${header.textContent}"`);
-    });
-}
-
-// Para usar el debug en la consola del navegador:
-// debugSoundSearch();
+    // Para usar el debug en la consola del navegador:
+    // debugSoundSearch();
     document.body.addEventListener('click', (event) => {
-        const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker');
+       const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker, .menu-suggestions');
         if (!parentMenu || autoIncrementState.isActive) return;
         handleMenuClick(event, parentMenu);
     });
@@ -1182,6 +1179,65 @@ async function handleMenuClick(event, parentMenu) {
                 window.worldClockManager?.createAndStartClockCard(clockTitleInput.value.trim(), country, timezone);
                 deactivateModule('overlayContainer');
             }, 500);
+            break;
+        }// Agregar este case al switch de handleMenuClick en menu-interactions.js
+
+        case 'toggle-suggestion-type': {
+            event.stopPropagation();
+            const dropdown = parentMenu.querySelector('.suggestion-type-dropdown');
+            if (!dropdown) return;
+
+            const isCurrentlyOpen = !dropdown.classList.contains('disabled');
+
+            // Cerrar otros dropdowns
+            document.querySelectorAll('.dropdown-menu-container').forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.add('disabled');
+                }
+            });
+
+            // Toggle el dropdown de tipo de sugerencia
+            if (!isCurrentlyOpen) {
+                dropdown.classList.remove('disabled');
+                target.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdown.classList.add('disabled');
+                target.setAttribute('aria-expanded', 'false');
+            }
+            break;
+        }
+
+        // También agregar este case para manejar la selección de opciones
+        case 'select-suggestion-type': {
+            event.stopPropagation();
+            const option = target.closest('[data-value]');
+            if (!option) return;
+
+            const value = option.dataset.value;
+            const textSpan = option.querySelector('span[data-translate]');
+            const display = parentMenu.querySelector('#suggestion-type-display');
+            const dropdown = parentMenu.querySelector('.suggestion-type-dropdown');
+            const trigger = parentMenu.querySelector('[data-action="toggle-suggestion-type"]');
+
+            if (display && textSpan && dropdown && trigger) {
+                // Guardar el valor seleccionado en el trigger para poder accederlo después
+                trigger.setAttribute('data-selected-value', value);
+
+                // Copiar los atributos de traducción al display
+                const translateKey = textSpan.getAttribute('data-translate');
+                const translateCategory = textSpan.getAttribute('data-translate-category');
+
+                if (translateKey && translateCategory) {
+                    display.setAttribute('data-translate', translateKey);
+                    display.setAttribute('data-translate-category', translateCategory);
+                    display.textContent = getTranslation(translateKey, translateCategory);
+                } else {
+                    display.textContent = textSpan.textContent;
+                }
+
+                dropdown.classList.add('disabled');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
             break;
         }
         case 'saveAlarmChanges': {

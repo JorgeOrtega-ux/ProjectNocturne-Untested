@@ -1570,4 +1570,73 @@ display: flex;
 flex-direction: row;
 gap: 4px;
 padding-right: 8px;
+}/* ====================================== */
+/* ====== SUGGESTION MODAL STYLES ===== */
+/* ====================================== */
+.menu-suggestion {
+    max-width: 480px;
+    width: calc(100% - 40px);
+    padding: 24px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.menu-suggestion h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin: 0;
+}
+
+.menu-suggestion p {
+    font-size: 0.9rem;
+    color: #6e6e73;
+    line-height: 1.5;
+    margin: 0;
+}
+
+#suggestion-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #1d1d1f;
+}
+
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #00000020;
+    background-color: #f5f5fa;
+    font-size: 0.9rem;
+    font-family: "Roboto", sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
 }

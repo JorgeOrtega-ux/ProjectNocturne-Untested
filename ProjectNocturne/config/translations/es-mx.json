@@ -126,7 +126,16 @@
     "sync_with_system": "Sincronizar con el sistema",
     "location": "Ubicación",
     "detecting": "Detectando...",
-    "none_selected": "No seleccionado"
+    "none_selected": "No seleccionado",
+    "suggest_improvements_title": "Sugerir Mejoras",
+    "suggest_improvements_desc": "Tus comentarios nos ayudan a mejorar ProjectNocturne. ¿Qué te gustaría que añadiéramos o cambiáramos?",
+    "suggestion_type": "Tipo de Sugerencia",
+    "suggestion_type_improvement": "Mejora",
+    "suggestion_type_bug": "Reportar un Error",
+    "suggestion_type_feature": "Solicitud de Característica",
+    "suggestion_type_other": "Otro",
+    "suggestion_message": "Mensaje",
+    "send_suggestion": "Enviar Sugerencia"
   },
   "search": {
     "no_results": "No se encontraron resultados para",

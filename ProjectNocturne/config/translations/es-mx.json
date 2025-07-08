@@ -130,7 +130,7 @@
     "suggest_improvements_title": "Sugerir Mejoras",
     "suggest_improvements_desc": "Tus comentarios nos ayudan a mejorar ProjectNocturne. ¿Qué te gustaría que añadiéramos o cambiáramos?",
     "suggestion_type": "Tipo de Sugerencia",
-    "suggestion_type_improvement": "Mejora",
+    "suggestion_type_improvement": "Sugerir mejora",
     "suggestion_type_bug": "Reportar un Error",
     "suggestion_type_feature": "Solicitud de Característica",
     "suggestion_type_other": "Otro",

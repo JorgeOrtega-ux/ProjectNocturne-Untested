@@ -52,7 +52,7 @@ export function resetOverlayNavigation() {
     if (!overlay) return;
 
     // Find and hide any active sub-menus.
-    const subMenus = overlay.querySelectorAll('.menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker');
+    const subMenus = overlay.querySelectorAll('.menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker, .menu-suggestion-types');
     subMenus.forEach(subMenu => {
         subMenu.classList.remove('active');
         subMenu.classList.add('disabled');
@@ -99,7 +99,7 @@ function navigateBack() {
 
         // Reset search input when navigating away from a menu with a search bar
         const searchInput = currentMenu.querySelector('input[type="text"]');
-        if (searchInput && ['sounds', 'country', 'timeZone'].includes(currentMenu.dataset.menu)) {
+        if (['sounds', 'country', 'timeZone'].includes(currentMenu.dataset.menu)) {
             searchInput.value = '';
             // Dispara un evento 'input' para que la lógica de búsqueda se reinicie
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -157,7 +157,8 @@ function getMenuElement(menuName) {
         'menuWorldClock': '.menu-worldClock[data-menu="worldClock"]',
         'menuCalendar': '.menu-calendar[data-menu="calendar"]',
         'timePicker': '.menu-timePicker[data-menu="timePicker"]',
-        'timeZone': '.menu-timeZone[data-menu="timeZone"]'
+        'timeZone': '.menu-timeZone[data-menu="timeZone"]',
+        'menuSuggestionTypes': '.menu-suggestion-types[data-menu="suggestionTypes"]'
     };
     return document.querySelector(menuSelectorMap[menuName]);
 };
@@ -524,14 +525,15 @@ const updateAlarmDisplay = (parent) => {
     if (use24HourFormat) {
         finalHourText = String(hour).padStart(2, '0');
     } else {
-        finalAmPm = hour >= 12 ? 'PM' : 'AM';
+        const ampm = hour >= 12 ? 'PM' : 'AM';
         let hour12 = hour % 12;
         hour12 = hour12 ? hour12 : 12;
         finalHourText = String(hour12).padStart(2, '0');
+        finalAmPm = ` ${ampm}`;
     }
 
     updateDisplay('#hour-display', finalHourText, parent);
-    updateDisplay('#minute-display', `${String(minute).padStart(2, '0')}${finalAmPm ? ' ' + finalAmPm : ''}`, parent);
+    updateDisplay('#minute-display', `${String(minute).padStart(2, '0')}${finalAmPm}`, parent);
 };
 
 const updateTimerDurationDisplay = (timerMenu) => {
@@ -888,7 +890,7 @@ function setupGlobalEventListeners() {
     // Para usar el debug en la consola del navegador:
     // debugSoundSearch();
     document.body.addEventListener('click', (event) => {
-       const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker, .menu-suggestions');
+       const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker, .menu-suggestions, .menu-suggestion-types');
         if (!parentMenu || autoIncrementState.isActive) return;
         handleMenuClick(event, parentMenu);
     });
@@ -922,6 +924,7 @@ function setupGlobalEventListeners() {
 
     areGlobalListenersInitialized = true;
 }
+
 async function handleMenuClick(event, parentMenu) {
     // --- INICIO DE LA CORRECCIÓN ---
     // Primero, verificamos si se hizo clic en un día del calendario.
@@ -938,6 +941,40 @@ async function handleMenuClick(event, parentMenu) {
     // --- FIN DE LA CORRECCIÓN ---
 
     const action = target.dataset.action;
+
+    if (action === 'open-suggestion-types-menu') {
+        navigateToMenu('suggestionTypes');
+        return;
+    }
+    if (action === 'select-suggestion-type') {
+        event.stopPropagation();
+        const option = target.closest('[data-value]');
+        if (!option) return;
+
+        const value = option.dataset.value;
+        const textSpan = option.querySelector('span[data-translate]');
+        const suggestionsMenu = document.querySelector('.menu-suggestions');
+        if(!suggestionsMenu) return;
+
+        const display = suggestionsMenu.querySelector('#suggestion-type-display');
+        const trigger = suggestionsMenu.querySelector('[data-action="open-suggestion-types-menu"]');
+
+        if (display && textSpan && trigger) {
+            trigger.setAttribute('data-selected-value', value);
+            const translateKey = textSpan.getAttribute('data-translate');
+            const translateCategory = textSpan.getAttribute('data-translate-category');
+            if (translateKey && translateCategory) {
+                display.setAttribute('data-translate', translateKey);
+                display.setAttribute('data-translate-category', translateCategory);
+                display.textContent = getTranslation(translateKey, translateCategory);
+            } else {
+                display.textContent = textSpan.textContent;
+            }
+            navigateBack();
+        }
+        return;
+    }
+
     const testSoundActions = ['test-sound', 'previewAlarmSound', 'previewCountdownSound', 'previewCountToDateSound'];
 
     if (testSoundActions.includes(action)) {
@@ -1179,124 +1216,6 @@ async function handleMenuClick(event, parentMenu) {
                 window.worldClockManager?.createAndStartClockCard(clockTitleInput.value.trim(), country, timezone);
                 deactivateModule('overlayContainer');
             }, 500);
-            break;
-        }// Agregar este case al switch de handleMenuClick en menu-interactions.js
-
-        case 'toggle-suggestion-type': {
-            event.stopPropagation();
-            const dropdown = parentMenu.querySelector('.suggestion-type-dropdown');
-            if (!dropdown) return;
-
-            const isCurrentlyOpen = !dropdown.classList.contains('disabled');
-
-            // Cerrar otros dropdowns
-            document.querySelectorAll('.dropdown-menu-container').forEach(d => {
-                if (d !== dropdown) {
-                    d.classList.add('disabled');
-                }
-            });
-
-            // Toggle el dropdown de tipo de sugerencia
-            if (!isCurrentlyOpen) {
-                dropdown.classList.remove('disabled');
-                target.setAttribute('aria-expanded', 'true');
-            } else {
-                dropdown.classList.add('disabled');
-                target.setAttribute('aria-expanded', 'false');
-            }
-            break;
-        }
-
-        // También agregar este case para manejar la selección de opciones
-        case 'select-suggestion-type': {
-            event.stopPropagation();
-            const option = target.closest('[data-value]');
-            if (!option) return;
-
-            const value = option.dataset.value;
-            const textSpan = option.querySelector('span[data-translate]');
-            const display = parentMenu.querySelector('#suggestion-type-display');
-            const dropdown = parentMenu.querySelector('.suggestion-type-dropdown');
-            const trigger = parentMenu.querySelector('[data-action="toggle-suggestion-type"]');
-
-            if (display && textSpan && dropdown && trigger) {
-                // Guardar el valor seleccionado en el trigger para poder accederlo después
-                trigger.setAttribute('data-selected-value', value);
-
-                // Copiar los atributos de traducción al display
-                const translateKey = textSpan.getAttribute('data-translate');
-                const translateCategory = textSpan.getAttribute('data-translate-category');
-
-                if (translateKey && translateCategory) {
-                    display.setAttribute('data-translate', translateKey);
-                    display.setAttribute('data-translate-category', translateCategory);
-                    display.textContent = getTranslation(translateKey, translateCategory);
-                } else {
-                    display.textContent = textSpan.textContent;
-                }
-
-                dropdown.classList.add('disabled');
-                trigger.setAttribute('aria-expanded', 'false');
-            }
-            break;
-        }
-        case 'saveAlarmChanges': {
-            const editingId = parentMenu.getAttribute('data-editing-id');
-            const alarmTitleInput = parentMenu.querySelector('#alarm-title');
-            if (!editingId || !validateField(alarmTitleInput.parentElement, alarmTitleInput.value.trim())) return;
-            addSpinnerToCreateButton(target);
-            setTimeout(() => {
-                window.alarmManager?.updateAlarm(editingId, { title: alarmTitleInput.value.trim(), hour: state.alarm.hour, minute: state.alarm.minute, sound: state.alarm.sound });
-                deactivateModule('overlayContainer');
-            }, 500);
-            break;
-        }
-        case 'saveTimerChanges': {
-            const editingId = parentMenu.getAttribute('data-editing-id');
-            const timerTitleInput = parentMenu.querySelector('#timer-title');
-            if (!editingId || !validateField(timerTitleInput.parentElement, timerTitleInput.value.trim())) return;
-            addSpinnerToCreateButton(target);
-            setTimeout(() => {
-                const { hours, minutes, seconds } = state.timer.duration;
-                updateTimer(editingId, { title: timerTitleInput.value.trim(), duration: (hours * 3600 + minutes * 60 + seconds) * 1000, sound: state.timer.sound });
-                deactivateModule('overlayContainer');
-            }, 500);
-            break;
-        }
-        case 'saveCountToDateChanges': {
-            const editingId = parentMenu.getAttribute('data-editing-id');
-            const eventTitleInput = parentMenu.querySelector('#countto-title');
-            const { selectedDate, selectedHour, selectedMinute } = state.timer.countTo;
-            if (!editingId || !validateField(eventTitleInput.parentElement, eventTitleInput.value.trim()) || !selectedDate || typeof selectedHour !== 'number' || typeof selectedMinute !== 'number') return;
-            addSpinnerToCreateButton(target);
-            setTimeout(() => {
-                const targetDate = new Date(selectedDate);
-                targetDate.setHours(selectedHour, selectedMinute, 0, 0);
-                updateTimer(editingId, { type: 'count_to_date', title: eventTitleInput.value.trim(), targetDate: targetDate.toISOString(), sound: state.timer.countTo.sound });
-                deactivateModule('overlayContainer');
-            }, 500);
-            break;
-        }
-        case 'saveWorldClockChanges': {
-            const editingId = parentMenu.getAttribute('data-editing-id');
-            const clockTitleInput = parentMenu.querySelector('#worldclock-title');
-            const { country, timezone } = state.worldClock;
-            if (!editingId || !validateField(clockTitleInput.parentElement, clockTitleInput.value.trim()) || !country || !timezone) return;
-            addSpinnerToCreateButton(target);
-            setTimeout(() => {
-                window.worldClockManager?.updateClockCard(editingId, { title: clockTitleInput.value.trim(), country, timezone });
-                deactivateModule('overlayContainer');
-            }, 500);
-            break;
-        }
-        case 'prev-month': {
-            state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() - 1);
-            renderCalendar();
-            break;
-        }
-        case 'next-month': {
-            state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() + 1);
-            renderCalendar();
             break;
         }
     }

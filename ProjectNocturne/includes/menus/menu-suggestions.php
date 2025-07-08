@@ -25,32 +25,12 @@
                     <div class="form-group">
                         <div class="field-label" data-translate="suggestion_type" data-translate-category="menu"></div>
                         <div class="custom-select-wrapper">
-                            <div class="custom-select-content" data-action="toggle-suggestion-type" role="button" tabindex="0" aria-label="Select suggestion type" aria-expanded="false">
+                            <div class="custom-select-content" data-action="open-suggestion-types-menu" role="button" tabindex="0" aria-label="Select suggestion type">
                                 <div class="custom-select-content-left">
                                     <span id="suggestion-type-display" data-translate="suggestion_type_improvement" data-translate-category="menu"></span>
                                 </div>
                                 <div class="custom-select-content-right">
-                                    <span class="material-symbols-rounded">expand_more</span>
-                                </div>
-                            </div>
-                            <div class="dropdown-menu-container suggestion-type-dropdown disabled" role="listbox">
-                                <div class="menu-list">
-                                    <div class="menu-link" data-action="select-suggestion-type" data-value="improvement" role="option" tabindex="0">
-                                        <div class="menu-link-icon"><span class="material-symbols-rounded">trending_up</span></div>
-                                        <div class="menu-link-text"><span data-translate="suggestion_type_improvement" data-translate-category="menu"></span></div>
-                                    </div>
-                                    <div class="menu-link" data-action="select-suggestion-type" data-value="bug" role="option" tabindex="0">
-                                        <div class="menu-link-icon"><span class="material-symbols-rounded">bug_report</span></div>
-                                        <div class="menu-link-text"><span data-translate="suggestion_type_bug" data-translate-category="menu"></span></div>
-                                    </div>
-                                    <div class="menu-link" data-action="select-suggestion-type" data-value="feature_request" role="option" tabindex="0">
-                                        <div class="menu-link-icon"><span class="material-symbols-rounded">star</span></div>
-                                        <div class="menu-link-text"><span data-translate="suggestion_type_feature" data-translate-category="menu"></span></div>
-                                    </div>
-                                    <div class="menu-link" data-action="select-suggestion-type" data-value="other" role="option" tabindex="0">
-                                        <div class="menu-link-icon"><span class="material-symbols-rounded">help_outline</span></div>
-                                        <div class="menu-link-text"><span data-translate="suggestion_type_other" data-translate-category="menu"></span></div>
-                                    </div>
+                                    <span class="material-symbols-rounded">arrow_right</span>
                                 </div>
                             </div>
                         </div>

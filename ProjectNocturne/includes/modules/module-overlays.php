@@ -10,4 +10,5 @@
     <?php include 'includes/menus/menu-timePicker.php'; ?>
     <?php include 'includes/menus/menu-delete.php'; ?>
     <?php include 'includes/menus/menu-suggestions.php'; ?>
+    <?php include 'includes/menus/menu-suggestion-types.php'; ?>
 </div>

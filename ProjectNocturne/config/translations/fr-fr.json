@@ -351,6 +351,10 @@
     "confirm_delete_title_audio": "Supprimer l'audio?",
     "confirm_delete_message_audio": "Vous êtes sur le point de supprimer l'audio {name}. Il sera remplacé dans les alarmes/minuteurs qui l'utilisent. Cette action est irréversible.",
     "cancel": "Annuler",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "delete_alarm_title_prefix": "Titre de l'Alarme",
+    "delete_timer_title_prefix": "Titre du Minuteur",
+    "delete_world-clock_title_prefix": "Titre de l'Horloge",
+    "delete_audio_title_prefix": "Titre de l'Audio"
   }
 }

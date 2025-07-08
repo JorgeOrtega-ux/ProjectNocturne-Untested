@@ -4,9 +4,14 @@
     </div>
     <div class="menu-section">
         <div class="menu-section-top">
-            <div class="menu-content-header">
-                <div class="menu-content-header-primary">
-                    <span></span>
+            <div class="menu-header-fixed">
+                <div class="search-content">
+                    <div class="search-content-icon">
+                        <span class="material-symbols-rounded">delete_forever</span>
+                    </div>
+                    <div class="search-content-text">
+                        <span id="delete-modal-header-title"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -17,19 +22,19 @@
                         <div class="menu-content-header">
                             <div class="menu-content-header-primary">
                                 <span class="material-symbols-rounded">label</span>
-                                <span>Título de la alarma</span>
+                                <span id="delete-modal-item-type-label"></span>
                             </div>
                         </div>
                         <div class="menu-content-general">
                             <div class="enter-text-tool">
-                                <input type="text">
+                                <input type="text" id="delete-modal-item-name" readonly>
                             </div>
                         </div>
                     </div>
                     <div class="menu-content">
                         <div class="menu-content-general">
                             <div class="details-info">
-                                <span>Estás a punto de eliminar la alarma <strong>rrrr</strong>. Esta acción no se puede deshacer.</span>
+                                <span id="delete-modal-confirmation-message"></span>
                             </div>
                         </div>
                     </div>
@@ -38,8 +43,8 @@
         </div>
         <div class="menu-section-bottom">
             <div class="menu-delete-btns">
-                <button class="cancel-btn body-title" data-translate="cancel" data-translate-category="confirmation">Cancelar</button>
-                <button class="confirm-btn body-title" data-translate="delete" data-translate-category="confirmation">Eliminar</button>
+                <button class="cancel-btn body-title" data-translate="cancel" data-translate-category="confirmation"></button>
+                <button class="confirm-btn body-title" data-translate="delete" data-translate-category="confirmation"></button>
             </div>
         </div>
     </div>

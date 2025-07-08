@@ -351,6 +351,10 @@
     "confirm_delete_title_audio": "Delete Audio?",
     "confirm_delete_message_audio": "You are about to delete the audio {name}. It will be replaced in any alarms/timers using it. This action cannot be undone.",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "delete_alarm_title_prefix": "Alarm Title",
+    "delete_timer_title_prefix": "Timer Title",
+    "delete_world-clock_title_prefix": "Clock Title",
+    "delete_audio_title_prefix": "Audio Title"
   }
 }

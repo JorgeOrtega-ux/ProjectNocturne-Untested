@@ -355,6 +355,10 @@
     "confirm_delete_title_audio": "¿Eliminar Audio?",
     "confirm_delete_message_audio": "Estás a punto de eliminar el audio {name}. Se reemplazará en las alarmas/temporizadores que lo usen. Esta acción no se puede deshacer.",
     "cancel": "Cancelar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "delete_alarm_title_prefix": "Título de la Alarma",
+    "delete_timer_title_prefix": "Título del Temporizador",
+    "delete_world-clock_title_prefix": "Título del Reloj",
+    "delete_audio_title_prefix": "Título del Audio"
   }
 }

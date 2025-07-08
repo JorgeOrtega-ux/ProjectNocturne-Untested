@@ -6,19 +6,34 @@
         <div class="menu-section-top">
             <div class="menu-content-header">
                 <div class="menu-content-header-primary">
-                    <span data-translate="confirm_delete_title_alarm" data-translate-category="confirmation">Confirmar eliminación</span>
+                    <span></span>
                 </div>
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
-        <div class="menu-section-center">
-            <div class="menu-content-wrapper active">
-                <div class="menu-content">
-                    <div class="menu-content-general">
-                        <span>Estás a punto de eliminar la alarma <strong>rrrr</strong>. Esta acción no se puede deshacer.</span>
+            <div class="menu-section-center">
+                <div class="menu-content-wrapper active">
+                    <div class="menu-content">
+                        <div class="menu-content-header">
+                            <div class="menu-content-header-primary">
+                                <span class="material-symbols-rounded">label</span>
+                                <span>Título de la alarma</span>
+                            </div>
+                        </div>
+                        <div class="menu-content-general">
+                            <div class="enter-text-tool">
+                                <input type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-content">
+                        <div class="menu-content-general">
+                            <div class="details-info">
+                                <span>Estás a punto de eliminar la alarma <strong>rrrr</strong>. Esta acción no se puede deshacer.</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
         <div class="menu-section-bottom">

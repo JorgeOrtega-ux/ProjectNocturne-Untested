@@ -1366,19 +1366,19 @@ body {
 /* ====================================== */
 /* ====== MODAL/CONFIRMATION STYLES ===== */
 /* ====================================== */
-.menu-delete .menu-content-general {
-    align-items: flex-start;
-    text-align: left;
-    padding: 24px;
-    gap: 12px;
-}
 
 .menu-delete h1 {
     font-size: 1.25rem;
     font-weight: 600;
     color: #1d1d1f;
 }
-
+.details-info {
+    width: 100%;
+    height: auto;
+    padding: 8px;
+    border: 1px solid #00000020;
+    border-radius: 12px;
+}
 .menu-delete span {
     font-size: 0.95rem;
     color: #6e6e73;

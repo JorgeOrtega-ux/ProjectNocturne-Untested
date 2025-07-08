@@ -1,36 +1,11 @@
-// ========== MODULE-MANAGER.JS - WITH PROCESS CANCELLATION ON MENU CLOSE ==========
+// ========== MODULE-MANAGER.JS - WITH PROCESS CANCELLATION AND NAVIGATION RESET ==========
 
 // ========== IMPORTS AND DEPENDENCIES ==========
 
-import {
-    initThemeManager,
-    applyTheme,
-    getCurrentTheme,
-    isThemeChanging,
-    applyThemeStates,
-    updateThemeLabel,
-    setupThemeEventListeners,
-    setTranslationFunction as setThemeTranslationFunction,
-    setThemeChangeCallback,
-    resetThemeStates
-} from './theme-manager.js';
-
-import {
-    initLanguageManager,
-    setLanguage,
-    getCurrentLanguage,
-    isLanguageChanging,
-    applyLanguageStates,
-    updateLanguageLabel,
-    setupLanguageEventListeners,
-    setTranslationFunction as setLanguageTranslationFunction,
-    setLanguageChangeCallback,
-    resetLanguageStates
-} from './language-manager.js';
-
-import { clearSearchColors } from '../tools/color-search-system.js';
-// ========== NUEVA INTEGRACIÓN CON MENU-INTERACTIONS ==========
-import { initializeMenuForOverlay, resetMenuForOverlay } from '../tools/menu-interactions.js';
+import { initializeMenuForOverlay, resetMenuForOverlay, resetOverlayNavigation } from './menu-interactions.js';
+import { applyLanguageStates, getCurrentLanguage, initLanguageManager, isLanguageChanging, resetLanguageStates, setLanguage, setLanguageChangeCallback, setTranslationFunction as setLanguageTranslationFunction, setupLanguageEventListeners, updateLanguageLabel } from './language-manager.js';
+import { applyTheme, applyThemeStates, getCurrentTheme, initThemeManager, isThemeChanging, resetThemeStates, setThemeChangeCallback, setTranslationFunction as setThemeTranslationFunction, setupThemeEventListeners, updateThemeLabel } from './theme-manager.js';
+import { isLocationChanging, cleanLocationChangeStates } from './location-manager.js';
 
 
 // ========== CONSTANTS AND CONFIGURATION ==========
@@ -70,14 +45,15 @@ const CONTROL_CENTER_MENUS = {
     'appearance': 'appearance',
     'language': 'language',
     'settings': 'settings',
-    'location': 'location' // <-- AÑADIR ESTA LÍNEA
+    'location': 'location'
 };
 
 const INDEPENDENT_OVERLAYS = {
-    'menuAlarm': '[data-menu="Alarm"]',
-    'menuTimer': '[data-menu="Timer"]',
-    'menuWorldClock': '[data-menu="WorldClock"]',
-    'menuPaletteColors': '[data-menu="paletteColors"]'
+    'menuAlarm': '[data-menu="alarm"]',
+    'menuTimer': '[data-menu="timer"]',
+    'menuWorldClock': '[data-menu="worldClock"]',
+    'menuPaletteColors': '[data-menu="paletteColors"]',
+    'menuSounds': '[data-menu="sounds"]'
 };
 
 const TOGGLE_TO_MODULE_MAP = {
@@ -85,7 +61,8 @@ const TOGGLE_TO_MODULE_MAP = {
     'toggleMenuAlarm': 'overlayContainer',
     'toggleMenuTimer': 'overlayContainer',
     'toggleMenuWorldClock': 'overlayContainer',
-    'togglePaletteColors': 'overlayContainer'
+    'togglePaletteColors': 'overlayContainer',
+    'toggleSoundsMenu': 'overlayContainer'
 };
 
 // ========== CENTRALIZED STATE ==========
@@ -127,10 +104,6 @@ const domCache = {
     overlays: {}
 };
 
-// ========== EXTERNAL REFERENCES ==========
-
-let getTranslation = null;
-
 // ========== EVENT DISPATCHER ==========
 function dispatchModuleEvent(eventName, detail = {}) {
     const event = new CustomEvent(eventName, {
@@ -159,6 +132,12 @@ function cancelAllActiveProcesses(reason = 'unknown') {
         console.log(`🚫 Cancelling active language change (${reason})`);
 
         cleanLanguageChangeStates();
+        processesCancelled = true;
+    }
+
+    if (isLocationChanging()) {
+        console.log(`🚫 Cancelling active location change (${reason})`);
+        cleanLocationChangeStates();
         processesCancelled = true;
     }
 
@@ -295,7 +274,7 @@ function initializeEventListeners() {
 
 // ========== UPDATED CORE FUNCTIONS ==========
 
-function activateModule(moduleName) {
+function activateModule(moduleName, options = {}) {
     const normalizedName = normalizeModuleName(moduleName);
 
     if (!MODULE_CONFIG[normalizedName] || moduleState.isModuleChanging) {
@@ -310,7 +289,7 @@ function activateModule(moduleName) {
     if (normalizedName === 'controlCenter') {
         activateControlCenter();
     } else if (normalizedName === 'overlayContainer') {
-        activateOverlayContainer(moduleName);
+        activateOverlayContainer(moduleName, options);
     }
 
     dispatchModuleEvent('moduleActivated', { module: moduleName });
@@ -339,7 +318,7 @@ function deactivateModule(moduleName, options = {}) {
     }
 }
 
-function toggleModule(moduleName) {
+function toggleModule(moduleName, options = {}) {
     const normalizedName = normalizeModuleName(moduleName);
 
     if (!MODULE_CONFIG[normalizedName]) {
@@ -353,12 +332,12 @@ function toggleModule(moduleName) {
         const overlayContainer = domCache.overlayContainer.module;
         const currentToggle = getToggleFromOverlay(moduleState.modules.overlayContainer.currentOverlay);
         if (normalizedName === 'overlayContainer' && currentToggle !== moduleName) {
-            activateModule(moduleName);
+            activateModule(moduleName, options);
         } else {
             deactivateModule(normalizedName);
         }
     } else {
-        activateModule(moduleName);
+        activateModule(moduleName, options);
     }
 }
 
@@ -387,7 +366,7 @@ function activateControlCenter() {
     }
 }
 
-function activateOverlayContainer(originalToggleName) {
+function activateOverlayContainer(originalToggleName, options = {}) {
     const overlayContainer = domCache.overlayContainer.module;
 
     if (overlayContainer) {
@@ -400,9 +379,7 @@ function activateOverlayContainer(originalToggleName) {
             showSpecificOverlay(overlayToShow);
             moduleState.modules.overlayContainer.currentOverlay = overlayToShow;
 
-            // ========== HOOK DE ACTIVACIÓN ==========
-            // Llama a la función de inicialización del menú correspondiente.
-            initializeMenuForOverlay(overlayToShow);
+            initializeMenuForOverlay(overlayToShow, options.context);
         }
     }
 }
@@ -418,11 +395,11 @@ function deactivateModuleWithAnimation(moduleName, source) {
     if (moduleName === 'controlCenter') {
         const controlCenterModule = domCache.controlCenter.module;
         activeMenu = controlCenterModule?.querySelector('.menu-control-center.active');
-    } else if (moduleName === 'overlayContainer') {
+   } else if (moduleName === 'overlayContainer') {
         const overlayContainer = domCache.overlayContainer.module;
-        const currentOverlay = moduleState.modules.overlayContainer.currentOverlay;
-        if (currentOverlay) {
-            activeMenu = domCache.overlays[currentOverlay];
+        if (overlayContainer) {
+            // Encuentra CUALQUIER menú o submenú activo dentro del overlay
+          activeMenu = overlayContainer.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timeZone.active, .menu-calendar.active, .menu-timePicker.active');
         }
     }
 
@@ -472,17 +449,19 @@ function performModuleDeactivation(moduleName) {
             overlayContainer.classList.add('disabled');
             module.active = false;
 
-            // ========== HOOK DE DESACTIVACIÓN ==========
-            // Obtiene el nombre del overlay que se va a cerrar...
             const overlayToReset = module.currentOverlay;
             deactivatedToggle = getToggleFromOverlay(overlayToReset);
 
             hideAllOverlays();
             module.currentOverlay = null;
 
-            // ...y llama a su función de reseteo correspondiente.
             if (overlayToReset) {
                 resetMenuForOverlay(overlayToReset);
+            }
+
+            // Reset sub-menu navigation state (e.g., close 'Sounds' menu) to ensure a clean slate.
+            if (typeof resetOverlayNavigation === 'function') {
+                resetOverlayNavigation();
             }
         }
     }
@@ -550,7 +529,7 @@ function normalizeModuleName(moduleName) {
         return TOGGLE_TO_MODULE_MAP[moduleName];
     }
 
-    if (moduleName.startsWith('toggleMenu') || moduleName === 'togglePaletteColors') {
+    if (moduleName.startsWith('toggleMenu') || moduleName === 'togglePaletteColors' || moduleName === 'toggleSoundsMenu') {
         return 'overlayContainer';
     }
 
@@ -562,7 +541,8 @@ function getOverlayFromToggle(toggleName) {
         'toggleMenuAlarm': 'menuAlarm',
         'toggleMenuTimer': 'menuTimer',
         'toggleMenuWorldClock': 'menuWorldClock',
-        'togglePaletteColors': 'menuPaletteColors'
+        'togglePaletteColors': 'menuPaletteColors',
+        'toggleSoundsMenu': 'menuSounds'
     };
 
     return toggleToOverlayMap[toggleName] || null;
@@ -573,7 +553,8 @@ function getToggleFromOverlay(overlayName) {
         'menuAlarm': 'toggleMenuAlarm',
         'menuTimer': 'toggleMenuTimer',
         'menuWorldClock': 'toggleMenuWorldClock',
-        'menuPaletteColors': 'togglePaletteColors'
+        'menuPaletteColors': 'togglePaletteColors',
+        'menuSounds': 'toggleSoundsMenu'
     };
     return overlayToToggleMap[overlayName] || null;
 }
@@ -800,14 +781,16 @@ function setupModuleEvents() {
         { selector: '[data-module="toggleMenuAlarm"]', toggle: 'toggleMenuAlarm' },
         { selector: '[data-module="toggleMenuTimer"]', toggle: 'toggleMenuTimer' },
         { selector: '[data-module="toggleMenuWorldClock"]', toggle: 'toggleMenuWorldClock' },
-        { selector: '[data-module="togglePaletteColors"]', toggle: 'togglePaletteColors' }
+        { selector: '[data-module="togglePaletteColors"]', toggle: 'togglePaletteColors' },
+        { selector: '[data-module="toggleSoundsMenu"]', toggle: 'toggleSoundsMenu' }
     ];
 
     overlayToggles.forEach(item => {
         const elements = document.querySelectorAll(item.selector);
         elements.forEach(element => {
-            element.addEventListener('click', () => {
-                toggleModule(item.toggle);
+            element.addEventListener('click', (e) => {
+                const context = e.currentTarget.dataset.context;
+                toggleModule(item.toggle, { context });
             });
         });
     });
@@ -881,7 +864,7 @@ function handleDesktopOutsideClick(e) {
         const overlayContainer = domCache.overlayContainer.module;
 
         const isClickInOverlay = overlayContainer?.contains(e.target);
-        const isClickInToggle = e.target.closest('[data-module^="toggleMenu"], [data-module="togglePaletteColors"]');
+        const isClickInToggle = e.target.closest('[data-module^="toggleMenu"], [data-module="togglePaletteColors"], [data-module="toggleSoundsMenu"]');
 
         if (!isClickInOverlay && !isClickInToggle) {
             deactivateModule('overlayContainer', { source: 'desktop-outside-click' });
@@ -961,7 +944,7 @@ function isModuleCurrentlyChanging() {
         controlCenterModule?.querySelector('.menu-control-center.closing') || false;
 
     const isOverlayBusy = overlayContainer?.classList.contains('closing') ||
-        overlayContainer?.querySelector('.menu-alarm.closing, .menu-timer.closing, .menu-worldClock.closing, .menu-paletteColors.closing') || false;
+        overlayContainer?.querySelector('.menu-alarm.closing, .menu-timer.closing, .menu-worldClock.closing, .menu-paletteColors.closing, .menu-sounds.closing') || false;
 
     return moduleState.isModuleChanging || isControlCenterBusy || isOverlayBusy;
 }
@@ -1107,50 +1090,15 @@ function handleEscapeKey() {
 // ========== EXPORTS ==========
 
 export {
-    initModuleManager,
+    activateModule, applyInitialStates, applyLanguageStates, applyTheme, applyThemeStates,
+    cancelActiveProcesses, cancelAllActiveProcesses, checkLanguageConsistency, checkModuleStateConsistency,
+    checkThemeConsistency, debugModuleState, debugStateConsistency, deactivateAllModules,
+    deactivateModule, forceUpdateStates, getActiveModule, getCurrentLanguage, getCurrentTheme,
+    getModuleStates, handleEscapeKey, hasStateInconsistencies, initModuleManager, isAnyModuleActive,
+    isAnyProcessActive, isLoading, isModuleActive, isModuleCurrentlyChanging, isReady, logModuleStates
+};
 
-    activateModule,
-    deactivateModule,
-    toggleModule,
-    deactivateAllModules,
-
-    showControlCenterMenu,
-    showSpecificOverlay,
-
-    applyTheme,
-    setLanguage,
-    getCurrentTheme,
-    getCurrentLanguage,
-
-    applyInitialStates,
-    forceUpdateStates,
-    updateMenuLabels,
-    isModuleCurrentlyChanging,
-    isLoading,
-    isReady,
-    resetModuleChangeFlag,
-
-    setTranslationFunction,
-
-    getModuleStates,
-    getActiveModule,
-    isModuleActive,
-    isAnyModuleActive,
-
-    cancelAllActiveProcesses,
-    cancelActiveProcesses,
-    isAnyProcessActive,
-    handleEscapeKey,
-
-    logModuleStates,
-    debugModuleState,
-
-    hasStateInconsistencies,
-    debugStateConsistency,
-    checkModuleStateConsistency,
-    checkThemeConsistency,
-    checkLanguageConsistency,
-
-    applyThemeStates,
-    applyLanguageStates
+export {
+    resetModuleChangeFlag, setLanguage, setTranslationFunction, showControlCenterMenu,
+    showSpecificOverlay, toggleModule, updateMenuLabels
 };

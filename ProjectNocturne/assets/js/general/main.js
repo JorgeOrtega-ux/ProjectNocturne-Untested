@@ -1,30 +1,11 @@
 // ========== MAIN.JS - UPDATED FOR NEW MODULE MANAGER FUNCTIONS ==========
 
-import {
-    initModuleManager,
-    activateModule,
-    deactivateModule,
-    toggleModule,
-    deactivateAllModules,
-    isModuleCurrentlyChanging,
-    logModuleStates,
-    resetModuleChangeFlag,
-    showControlCenterMenu,
-    showSpecificOverlay,
-    getActiveModule,
-    isModuleActive,
-    isAnyModuleActive
-} from './module-manager.js';
-
+import { activateModule, deactivateAllModules, deactivateModule, getActiveModule, isAnyModuleActive, isModuleActive, isModuleCurrentlyChanging, logModuleStates, resetModuleChangeFlag, showControlCenterMenu, showSpecificOverlay, toggleModule } from './module-manager.js';
 import { initializeTextStyleManager } from '../tools/general-tools.js';
-
-import { getCurrentColor, getColorInfo, isGradientColor } from '../tools/palette-colors.js';
+import { isGradientColor } from '../components/palette-colors.js';
 
 // ========== GLOBAL TIME FORMAT SETTING ==========
-export let use24HourFormat = true; // true for 24-hour, false for 12-hour
-
-// ========== PREMIUM FEATURES CONSTANT ==========
-export const PREMIUM_FEATURES = false;
+export let use24HourFormat = true;
 
 // ========== CARD MOVEMENT SETTING ==========
 export let allowCardMovement = true;
@@ -40,7 +21,10 @@ function initSidebarMobile() {
         return;
     }
 
-    function handleSidebarToggle() {
+    function handleSidebarToggle(e) {
+        // Detener la propagación para evitar que el listener global lo cierre inmediatamente
+        if (e) e.stopPropagation();
+
         if (btn.hasAttribute('disabled')) {
             btn.removeAttribute('disabled');
         } else {
@@ -57,6 +41,22 @@ function initSidebarMobile() {
     }
 
     btn.addEventListener('click', handleSidebarToggle);
+
+    // --- NUEVA LÓGICA ---
+    // Cierra el sidebar si se hace clic fuera de él
+    document.addEventListener('click', (e) => {
+        if (sidebar.classList.contains('active') && !sidebar.contains(e.target) && !btn.contains(e.target)) {
+            handleSidebarToggle();
+        }
+    });
+
+    // Cierra el sidebar cuando se selecciona una nueva sección
+    document.addEventListener('sectionChanged', () => {
+        if (sidebar.classList.contains('active')) {
+            handleSidebarToggle();
+        }
+    });
+    // --- FIN DE LA NUEVA LÓGICA ---
 
     function updateSidebarVisibility() {
         const screenWidth = window.innerWidth;
@@ -107,13 +107,9 @@ function logSectionStates() {
 }
 
 function activateSection(sectionName, showLog) {
-    // =========> INICIO DE LA MODIFICACIÓN <=========
-    // Si la sección que se quiere activar ya es la activa, no hagas nada.
     if (activeSectionStates[sectionName] === true) {
         return;
     }
-    // =========> FIN DE LA MODIFICACIÓN <=========
-
     if (showLog === undefined) showLog = true;
 
     const sections = Object.keys(activeSectionStates);
@@ -278,10 +274,10 @@ function isControlCenterActive() {
 
 function isAnyOverlayActive() {
     return isModuleActive('menuAlarm') ||
-           isModuleActive('menuTimer') ||
-           isModuleActive('menuWorldClock') ||
-           isModuleActive('menuPaletteColors') ||
-           isModuleActive('overlayContainer');
+        isModuleActive('menuTimer') ||
+        isModuleActive('menuWorldClock') ||
+        isModuleActive('menuPaletteColors') ||
+        isModuleActive('overlayContainer');
 }
 
 // ========== OVERLAY SPECIFIC FUNCTIONS ==========
@@ -328,12 +324,17 @@ function getCurrentActiveOverlay() {
         const activeOverlay = overlayContainer.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active');
         if (activeOverlay) {
             const dataMenu = activeOverlay.getAttribute('data-menu');
+            
+            // ===== CÓDIGO CORREGIDO =====
+            // Las claves ahora coinciden con los atributos data-menu (minúsculas y camelCase)
             const overlayMap = {
-                'Alarm': 'menuAlarm',
-                'Timer': 'menuTimer',
-                'WorldClock': 'menuWorldClock',
+                'alarm': 'menuAlarm',
+                'timer': 'menuTimer',
+                'worldClock': 'menuWorldClock',
                 'paletteColors': 'menuPaletteColors'
             };
+            // ===== FIN DEL CÓDIGO CORREGIDO =====
+            
             return overlayMap[dataMenu] || null;
         }
     }
@@ -535,65 +536,17 @@ document.addEventListener('DOMContentLoaded', initializeTextStyleManager);
 // ========== EXPORTS - COMPLETE AND UNIFIED FUNCTIONS ==========
 
 export {
-    initSidebarMobile,
-    initSidebarSections,
-    initControlCenter,
-    initNewOverlayModules,
+    activateControlCenterMenu, activateModuleByName as activateModule, activateSection, activateSpecificOverlay,
+    closeActiveModule, closeAllModules, closeControlCenter, closeOverlayByName, closeOverlays,
+    deactivateModule, dispatchModuleEvent, executeWhenModuleReady, getActiveModule, getActiveSection,
+    getAllSectionStates, getAppliedColor, getAppliedFontScale, getAppliedTextStyle, getCurrentActiveOverlay,
+    getModuleInfo, getModulePreference, getSystemStatus, initControlCenter, initNewOverlayModules,
+    initSidebarMobile, initSidebarSections, isAnyModuleActive, isAnyOverlayActive, isControlCenterActive
+};
 
-    logSectionStates,
-    getActiveSection,
-    getAllSectionStates,
-    switchToSection,
-    activateSection,
-
-    activateModuleByName as activateModule,
-    deactivateModule,
-    toggleModuleByName as toggleModule,
-    closeActiveModule,
-    closeAllModules,
-
-    activateControlCenterMenu,
-    switchControlCenterMenu,
-    showControlCenterMenu,
-
-    activateSpecificOverlay,
-    closeSpecificOverlay,
-    switchOverlay,
-    getCurrentActiveOverlay,
-    showSpecificOverlay,
-
-    isModuleCurrentlyChanging,
-    isModuleBusy,
-    resetModuleChangeFlag,
-    logModuleStates,
-
-    isAnyModuleActive,
-    isControlCenterActive,
-    isAnyOverlayActive,
-    getModuleInfo,
-    getSystemStatus,
-    logAllStates,
-
-    getActiveModule,
-    isModuleActive,
-
-    closeControlCenter,
-    closeOverlays,
-    closeOverlayByName,
-
-
-    waitForModuleReady,
-    executeWhenModuleReady,
-
-    dispatchModuleEvent,
-    onModuleActivated,
-    onModuleDeactivated,
-    onOverlayChanged,
-
-    setModulePreference,
-    getModulePreference,
-
-    getAppliedColor,
-    getAppliedFontScale,
-    getAppliedTextStyle
+export {
+    isModuleActive, isModuleBusy, isModuleCurrentlyChanging, logAllStates, logModuleStates, logSectionStates,
+    onModuleActivated, onModuleDeactivated, onOverlayChanged, resetModuleChangeFlag, setModulePreference,
+    showControlCenterMenu, showSpecificOverlay, switchControlCenterMenu, switchOverlay, switchToSection,
+    toggleModuleByName as toggleModule, waitForModuleReady
 };

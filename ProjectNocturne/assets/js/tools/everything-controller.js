@@ -1,9 +1,7 @@
-// /assets/js/tools/everything-controller.js
-
 import { getTranslation, translateElementTree } from '../general/translations-controller.js';
 import { use24HourFormat, toggleModule } from '../general/main.js';
+import { refreshTooltips } from '../general/tooltip-controller.js';
 
-// --- Definiciones de los Widgets Esenciales ---
 const WIDGET_DEFINITIONS = {
     'clock-widget': {
         className: 'widget-clock',
@@ -11,58 +9,24 @@ const WIDGET_DEFINITIONS = {
             <div class="clock-content">
                 <div class="clock-time" id="main-clock-time-long">--:--:--</div>
                 <div class="clock-date" id="main-clock-date"></div>
-            </div>`
-    },
-    'actions-widget': {
-        className: 'widget-actions',
-        generateContent: () => `
-            <div class="expandable-card-header" data-action="toggle-actions-widget">
-                <div class="expandable-card-header-left">
-                    <div class="expandable-card-header-icon">
-                        <span class="material-symbols-rounded">bolt</span>
-                    </div>
-                    <h3 data-translate="quick_actions" data-translate-category="everything"></h3>
-                </div>
-                <div class="expandable-card-header-right">
-                    <button class="expandable-card-toggle-btn expanded">
-                        <span class="material-symbols-rounded expand-icon">expand_more</span>
-                    </button>
-                </div>
             </div>
-            <div class="tool-grid active">
-                <div class="action-item" data-module="toggleMenuAlarm">
-                    <div class="action-item-content">
-                        <div class="action-item-icon-wrapper-square">
-                            <span class="material-symbols-rounded action-item-icon">add_alarm</span>
+            <div class="add-button-container">
+                <button class="header-button add-btn" data-action="toggle-add-menu" data-translate="add_element" data-translate-category="tooltips" data-translate-target="tooltip">
+                    <span class="material-symbols-rounded">add</span>
+                </button>
+                <div class="dropdown-menu-container add-menu-custom disabled">
+                    <div class="menu-list">
+                        <div class="menu-link" data-module="toggleMenuAlarm">
+                            <div class="menu-link-icon"><span class="material-symbols-rounded">add_alarm</span></div>
+                            <div class="menu-link-text"><span data-translate="new_alarm" data-translate-category="everything">Nueva alarma</span></div>
                         </div>
-                        <div class="action-item-text-wrapper">
-                            <span class="action-item-title" data-translate="new_alarm" data-translate-category="everything"></span>
-                            <span class="action-item-description">Crea y personaliza una nueva alarma.</span>
-                            <span class="action-item-count" id="alarms-count-details"></span>
+                        <div class="menu-link" data-module="toggleMenuTimer">
+                            <div class="menu-link-icon"><span class="material-symbols-rounded">timer</span></div>
+                            <div class="menu-link-text"><span data-translate="new_timer" data-translate-category="everything">Nuevo temporizador</span></div>
                         </div>
-                    </div>
-                </div>
-                <div class="action-item" data-module="toggleMenuTimer">
-                    <div class="action-item-content">
-                        <div class="action-item-icon-wrapper-square">
-                            <span class="material-symbols-rounded action-item-icon">add_circle</span>
-                        </div>
-                        <div class="action-item-text-wrapper">
-                            <span class="action-item-title" data-translate="new_timer" data-translate-category="everything"></span>
-                            <span class="action-item-description">Inicia un temporizador o cuenta regresiva.</span>
-                            <span class="action-item-count" id="timers-count-details"></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="action-item" data-module="toggleMenuWorldClock">
-                    <div class="action-item-content">
-                         <div class="action-item-icon-wrapper-square">
-                            <span class="material-symbols-rounded action-item-icon">public</span>
-                        </div>
-                        <div class="action-item-text-wrapper">
-                            <span class="action-item-title" data-translate="add_clock" data-translate-category="everything"></span>
-                             <span class="action-item-description">Añade relojes de otras partes del mundo.</span>
-                             <span class="action-item-count" id="clocks-count-details"></span>
+                        <div class="menu-link" data-module="toggleMenuWorldClock">
+                            <div class="menu-link-icon"><span class="material-symbols-rounded">public</span></div>
+                            <div class="menu-link-text"><span data-translate="add_clock" data-translate-category="everything">Añadir reloj</span></div>
                         </div>
                     </div>
                 </div>
@@ -72,6 +36,7 @@ const WIDGET_DEFINITIONS = {
 };
 
 let smartUpdateInterval = null;
+let updateTimeout = null;
 
 function createWidgetElement(id) {
     const definition = WIDGET_DEFINITIONS[id];
@@ -84,78 +49,112 @@ function createWidgetElement(id) {
 }
 
 function rebindEventListeners() {
-    const actionItems = document.querySelectorAll('.action-item[data-module]');
+    const actionItems = document.querySelectorAll('.add-menu-custom .menu-link[data-module]');
     actionItems.forEach(item => {
         const moduleName = item.dataset.module;
         if (moduleName) {
-            item.addEventListener('click', () => toggleModule(moduleName));
+            item.addEventListener('click', () => {
+                if (!item.classList.contains('disabled-interactions')) {
+                    toggleModule(moduleName);
+                    const menu = item.closest('.add-menu-custom');
+                    if (menu) {
+                        menu.classList.add('disabled');
+                    }
+                }
+            });
         }
     });
 
-    const actionsHeader = document.querySelector('[data-action="toggle-actions-widget"]');
-    if (actionsHeader) {
-        actionsHeader.addEventListener('click', () => {
-            const widget = actionsHeader.closest('.widget');
-            if (!widget) return;
-            const grid = widget.querySelector('.tool-grid');
-            const btn = widget.querySelector('.expandable-card-toggle-btn');
-            if (grid && btn) {
-                const isActive = grid.classList.toggle('active');
-                btn.classList.toggle('expanded', isActive);
+    const addMenuButton = document.querySelector('[data-action="toggle-add-menu"]');
+    if (addMenuButton) {
+        addMenuButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const menu = document.querySelector('.add-menu-custom');
+            if (menu) {
+                menu.classList.toggle('disabled');
             }
         });
     }
+
+    document.addEventListener('click', (e) => {
+        const menu = document.querySelector('.add-menu-custom');
+        const addButton = document.querySelector('[data-action="toggle-add-menu"]');
+        if (menu && !menu.classList.contains('disabled') && !menu.contains(e.target) && !addButton.contains(e.target)) {
+            menu.classList.add('disabled');
+        }
+    });
 }
 
 function renderAllWidgets() {
     const mainContainer = document.querySelector('.everything-grid-container');
     if (!mainContainer) return;
+
     mainContainer.innerHTML = '';
+
     const clockWidget = createWidgetElement('clock-widget');
     if (clockWidget) mainContainer.appendChild(clockWidget);
-    const actionsRow = document.createElement('div');
-    actionsRow.className = 'widgets-row';
-    const actionsWidget = createWidgetElement('actions-widget');
-    if (actionsWidget) actionsRow.appendChild(actionsWidget);
-    mainContainer.appendChild(actionsRow);
+
     if (typeof translateElementTree === 'function') {
         translateElementTree(mainContainer);
     }
     rebindEventListeners();
+    updateActionCounts();
 }
 
+// everything-controller.js - FUNCIÓN updateActionCounts MEJORADA
+
 function updateActionCounts() {
-    const alarmsCountEl = document.getElementById('alarms-count-details');
-    if (alarmsCountEl && window.alarmManager) {
+    const alarmMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuAlarm"]');
+    const timerMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuTimer"]');
+    const clockMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuWorldClock"]');
+
+    // ========== VERIFICAR QUÉ ESTÁ SONANDO ESPECÍFICAMENTE ==========
+    let isAnyAlarmRinging = false;
+    let isAnyTimerRinging = false;
+
+    // Verificar alarmas sonando
+    if (window.alarmManager && typeof window.alarmManager.getAllAlarms === 'function') {
+        const { userAlarms, defaultAlarms } = window.alarmManager.getAllAlarms();
+        isAnyAlarmRinging = [...userAlarms, ...defaultAlarms].some(a => a.isRinging);
+    }
+
+    // Verificar timers sonando
+    if (window.timerManager && typeof window.timerManager.getAllTimers === 'function') {
+        const { userTimers, defaultTimers } = window.timerManager.getAllTimers();
+        isAnyTimerRinging = [...userTimers, ...defaultTimers].some(t => t.isRinging);
+    }
+
+    // ========== BLOQUEAR SOLO LA TOOL QUE ESTÁ SONANDO ==========
+    
+    // ALARMAS: Bloquear si limite alcanzado O si una alarma está sonando
+    if (alarmMenuItem && window.alarmManager) {
         const count = window.alarmManager.getAlarmCount();
         const limit = window.alarmManager.getAlarmLimit();
-        if (count >= limit) {
-            alarmsCountEl.textContent = getTranslation('limit_reached', 'everything');
-        } else {
-            alarmsCountEl.textContent = `Te quedan ${limit - count} de ${limit}`;
-        }
+        const isAlarmDisabled = count >= limit || isAnyAlarmRinging;
+        alarmMenuItem.classList.toggle('disabled-interactions', isAlarmDisabled);
+        
+        console.log(`🚨 Alarm menu: count=${count}/${limit}, ringing=${isAnyAlarmRinging}, disabled=${isAlarmDisabled}`);
     }
 
-    const timersCountEl = document.getElementById('timers-count-details');
-    if (timersCountEl && window.timerManager) {
+    // TIMERS: Bloquear si limite alcanzado O si un timer está sonando O si otro timer está corriendo
+    if (timerMenuItem && window.timerManager) {
         const count = window.timerManager.getTimersCount();
         const limit = window.timerManager.getTimerLimit();
-        if (count >= limit) {
-            timersCountEl.textContent = getTranslation('limit_reached', 'everything');
-        } else {
-            timersCountEl.textContent = `Te quedan ${limit - count} de ${limit}`;
-        }
+        const runningCount = window.timerManager.getRunningTimersCount();
+        const isTimerDisabled = count >= limit || isAnyTimerRinging || runningCount > 0;
+        timerMenuItem.classList.toggle('disabled-interactions', isTimerDisabled);
+        
+        console.log(`⏲️ Timer menu: count=${count}/${limit}, ringing=${isAnyTimerRinging}, running=${runningCount}, disabled=${isTimerDisabled}`);
     }
 
-    const clocksCountEl = document.getElementById('clocks-count-details');
-    if (clocksCountEl && window.worldClockManager) {
+    // WORLD CLOCK: Solo bloquear por límite (nunca por sonidos)
+    if (clockMenuItem && window.worldClockManager) {
         const count = window.worldClockManager.getClockCount();
         const limit = window.worldClockManager.getClockLimit();
-        if (count >= limit) {
-            clocksCountEl.textContent = getTranslation('limit_reached', 'everything');
-        } else {
-            clocksCountEl.textContent = `Te quedan ${limit - count} de ${limit}`;
-        }
+        const isClockDisabled = count >= limit;
+        clockMenuItem.classList.toggle('disabled-interactions', isClockDisabled);
+        
+        console.log(`🌍 Clock menu: count=${count}/${limit}, disabled=${isClockDisabled}`);
     }
 }
 
@@ -163,23 +162,20 @@ export function initializeEverything() {
     if (smartUpdateInterval) clearInterval(smartUpdateInterval);
     renderAllWidgets();
     updateCurrentDate();
-    updateActionCounts();
-    smartUpdateInterval = setInterval(() => {
-        updateCurrentDate();
-        updateActionCounts();
-    }, 1000);
-    console.log('✅ Controlador "Everything" con nuevo diseño de acciones inicializado.');
-    document.addEventListener('translationsApplied', updateCurrentDate);
+    smartUpdateInterval = setInterval(updateCurrentDate, 1000);
+    document.addEventListener('translationsApplied', updateEverythingWidgets);
 }
 
 function updateCurrentDate() {
     const now = new Date();
     const clockTime = document.getElementById('main-clock-time-long');
     const clockDate = document.getElementById('main-clock-date');
+
     if (clockTime) {
         const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !use24HourFormat };
         clockTime.textContent = now.toLocaleTimeString(navigator.language, timeOptions);
     }
+
     if (clockDate) {
         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
@@ -190,7 +186,19 @@ function updateCurrentDate() {
 }
 
 export function updateEverythingWidgets() {
-    console.log('🔄 Actualizando widgets de "Everything"...');
-    updateCurrentDate();
-    updateActionCounts();
+    if (updateTimeout) {
+        clearTimeout(updateTimeout);
+    }
+
+    updateTimeout = setTimeout(() => {
+        if (typeof translateElementTree === 'function') {
+            const mainContainer = document.querySelector('.everything-grid-container');
+            if (mainContainer) {
+                translateElementTree(mainContainer);
+            }
+        }
+        updateCurrentDate();
+        updateActionCounts();
+        updateTimeout = null;
+    }, 50);
 }

@@ -97,7 +97,6 @@ function applyTranslations() {
     }
 
     translateElementsWithDataTranslate();
-    translateLegacyElements();
     updateDynamicMenuLabels();
     updateTooltipTranslations();
     updateColorSystemHeaders();
@@ -153,17 +152,11 @@ function translateElementsWithDataTranslate(parentElement = document.body) {
     });
 }
 
-/**
- * Traduce un elemento específico y sus hijos. Ideal para contenido dinámico.
- * @param {HTMLElement} element El elemento contenedor a traducir.
- */
 function translateElementTree(element) {
     if (element) {
-        // Traducir el propio elemento si tiene el atributo
         if (element.hasAttribute('data-translate')) {
             translateElementsWithDataTranslate(new DocumentFragment().appendChild(element.cloneNode(false)));
         }
-        // Traducir todos los hijos
         translateElementsWithDataTranslate(element);
     }
 }
@@ -175,7 +168,6 @@ function isDynamicMenuElement(element) {
     const menuLink = element.closest('.menu-link');
     if (menuLink) {
         const toggle = menuLink.getAttribute('data-toggle');
-        // --- MODIFICADO ---
         if (toggle === 'appearance' || toggle === 'language' || toggle === 'location') {
             return true;
         }
@@ -204,75 +196,6 @@ function updateColorSystemHeaders() {
     });
 }
 
-// ========== MAINTAIN COMPATIBILITY WITH PREVIOUS SYSTEM ==========
-
-function translateLegacyElements() {
-    translateHeaderButtons();
-    translateSidebarButtons();
-    translateSpecificMenuItems();
-}
-
-function translateHeaderButtons() {
-    const menuButton = document.querySelector('[data-module="toggleSidebarMovile"]');
-    if (menuButton && translations.tooltips && translations.tooltips.menu) {
-        menuButton.setAttribute('data-translate', 'menu');
-        menuButton.setAttribute('data-translate-category', 'tooltips');
-        menuButton.setAttribute('data-translate-target', 'tooltip');
-    }
-
-    const settingsButton = document.querySelector('[data-module="toggleControlCenter"]');
-    if (settingsButton && translations.tooltips && translations.tooltips.settings) {
-        settingsButton.setAttribute('data-translate', 'settings');
-        settingsButton.setAttribute('data-translate-category', 'tooltips');
-        settingsButton.setAttribute('data-translate-target', 'tooltip');
-    }
-}
-
-function translateSidebarButtons() {
-    if (!translations.tooltips) return;
-
-    const sidebarButtons = [
-        { selector: '.sidebar-button .material-symbols-rounded', iconName: 'home', key: 'everything' },
-        { selector: '.sidebar-button .material-symbols-rounded', iconName: 'alarm', key: 'alarms' },
-        { selector: '.sidebar-button .material-symbols-rounded', iconName: 'timer', key: 'timer' },
-        { selector: '.sidebar-button .material-symbols-rounded', iconName: 'timelapse', key: 'stopwatch' },
-        { selector: '.sidebar-button .material-symbols-rounded', iconName: 'schedule', key: 'world_clock' }
-    ];
-
-    sidebarButtons.forEach(button => {
-        const elements = document.querySelectorAll(button.selector);
-        elements.forEach(element => {
-            if (element.textContent.trim() === button.iconName && translations.tooltips[button.key]) {
-                const parentButton = element.closest('.sidebar-button');
-                if (parentButton) {
-                    parentButton.setAttribute('data-translate', button.key);
-                    parentButton.setAttribute('data-translate-category', 'tooltips');
-                    parentButton.setAttribute('data-translate-target', 'tooltip');
-                }
-            }
-        });
-    });
-}
-
-function translateSpecificMenuItems() {
-    if (!translations.menu) return;
-
-    const specificTranslations = [
-        { selector: '.menu-link[data-toggle="settings"] .menu-link-text span', key: 'settings' },
-        { selector: '.menu-link .menu-link-text span[data-translate="privacy_policy"]', key: 'privacy_policy' },
-        { selector: '.menu-link .menu-link-text span[data-translate="suggest_improvements"]', key: 'suggest_improvements' }
-    ];
-
-    specificTranslations.forEach(item => {
-        const elements = document.querySelectorAll(item.selector);
-        elements.forEach(element => {
-            if (translations.menu[item.key] && !isDynamicMenuElement(element)) {
-                element.textContent = translations.menu[item.key];
-            }
-        });
-    });
-}
-
 // ========== FUNCTIONS FOR IMPROVED DYNAMIC ELEMENTS ==========
 
 function updateDynamicMenuLabels() {
@@ -283,7 +206,7 @@ function updateDynamicMenuLabels() {
 
     updateAppearanceLabel();
     updateLanguageLabel();
-    updateLocationLabel(); // --- AÑADIDO ---
+    updateLocationLabel();
 }
 
 function updateAppearanceLabel() {
@@ -310,7 +233,6 @@ function updateLanguageLabel() {
     }
 }
 
-// --- NUEVA FUNCIÓN AÑADIDA ---
 function updateLocationLabel() {
     const locationLinkSpan = document.querySelector('.menu-link[data-toggle="location"] .menu-link-text span');
     if (locationLinkSpan && typeof window.getCurrentLocation === 'function') {
@@ -451,19 +373,11 @@ window.getColorSystemTranslation = getColorSystemTranslation;
 // ========== EXPORTS ==========
 
 export {
-    initTranslationSystem,
-    setCurrentLanguage,
-    getCurrentLanguage,
-    getTranslation,
-    getSearchTranslation,
-    getSearchSectionTranslation,
-    getColorSystemTranslation,
-    isSystemReady,
-    refreshTranslations,
-    updateDynamicMenuLabels,
-    applyTranslations,
-    translateElementsWithDataTranslate,
-    translateElementTree,
-    updateColorSystemHeaders,
-    debugTranslationsController
+    applyTranslations, debugTranslationsController, getColorSystemTranslation, getCurrentLanguage,
+    getSearchSectionTranslation, getSearchTranslation, getTranslation, initTranslationSystem,
+    isSystemReady, refreshTranslations, setCurrentLanguage, translateElementTree
+};
+
+export {
+    translateElementsWithDataTranslate, updateColorSystemHeaders, updateDynamicMenuLabels
 };

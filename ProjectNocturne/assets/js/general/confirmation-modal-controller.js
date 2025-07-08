@@ -1,13 +1,6 @@
-// /assets/js/general/confirmation-modal-controller.js
-
 import { getTranslation } from './translations-controller.js';
 
 let modalElement = null;
-let titleElement = null;
-let messageElement = null;
-let nameElement = null;
-let cancelButton = null;
-let confirmButton = null;
 let onConfirmCallback = null;
 
 const typeToTranslationKey = {
@@ -17,12 +10,7 @@ const typeToTranslationKey = {
     'audio': 'sounds'
 };
 
-/**
- * Inicializa el controlador del modal de confirmación.
- */
-export function initConfirmationModal() {
-    if (modalElement) return;
-
+function createConfirmationModal() {
     const modalHTML = `
         <div class="menu-delete">
             <h1></h1>
@@ -35,15 +23,12 @@ export function initConfirmationModal() {
     `;
 
     modalElement = document.createElement('div');
-    modalElement.className = 'module-overlay confirmation-overlay disabled';
+    modalElement.className = 'module-overlay confirmation-overlay';
     modalElement.innerHTML = modalHTML;
     document.body.appendChild(modalElement);
 
-    titleElement = modalElement.querySelector('h1');
-    messageElement = modalElement.querySelector('span');
-    nameElement = modalElement.querySelector('.item-name');
-    cancelButton = modalElement.querySelector('.cancel-btn');
-    confirmButton = modalElement.querySelector('.confirm-btn');
+    const cancelButton = modalElement.querySelector('.cancel-btn');
+    const confirmButton = modalElement.querySelector('.confirm-btn');
 
     cancelButton.addEventListener('click', hideConfirmation);
     confirmButton.addEventListener('click', () => {
@@ -59,17 +44,33 @@ export function initConfirmationModal() {
         }
     });
 
-    console.log('✅ Confirmation Modal Initialized');
+    console.log('✅ Confirmation Modal Created');
+    return modalElement;
 }
 
-/**
- * Muestra el modal de confirmación con un mensaje dinámico.
- * @param {string} type - El tipo de elemento a eliminar ('alarm', 'timer', 'world-clock', 'audio').
- * @param {string} name - El nombre del elemento a eliminar.
- * @param {function} onConfirm - La función a ejecutar si el usuario confirma.
- */
+function destroyConfirmationModal() {
+    if (modalElement) {
+        modalElement.remove();
+        modalElement = null;
+        onConfirmCallback = null;
+        console.log('🗑️ Confirmation Modal Destroyed');
+    }
+}
+
 export function showConfirmation(type, name, onConfirm) {
-    if (!modalElement) initConfirmationModal();
+    // Si ya existe un modal (por alguna razón), lo eliminamos primero
+    if (modalElement) {
+        destroyConfirmationModal();
+    }
+    
+    // Creamos un nuevo modal
+    const currentModal = createConfirmationModal();
+
+    const titleElement = currentModal.querySelector('h1');
+    const messageElement = currentModal.querySelector('span');
+    const nameElement = currentModal.querySelector('.item-name');
+    const cancelButton = currentModal.querySelector('.cancel-btn');
+    const confirmButton = currentModal.querySelector('.confirm-btn');
 
     const category = typeToTranslationKey[type] || 'general';
     const titleText = getTranslation(`confirm_delete_title_${type}`, 'confirmation') || `¿Quieres eliminar ${type}?`;
@@ -78,23 +79,27 @@ export function showConfirmation(type, name, onConfirm) {
     titleElement.textContent = titleText;
     messageElement.innerHTML = messageText.replace('{name}', `<strong>${name}</strong>`);
     
-    // Asignar textos a los botones
     cancelButton.textContent = getTranslation('cancel', 'confirmation') || 'Cancelar';
     confirmButton.textContent = getTranslation('delete', 'confirmation') || 'Eliminar';
 
-
     onConfirmCallback = onConfirm;
-
-    modalElement.classList.remove('disabled');
-    modalElement.classList.add('active');
+    
+    // Forzar la animación de entrada
+    requestAnimationFrame(() => {
+        currentModal.classList.add('active');
+    });
 }
 
-/**
- * Oculta el modal de confirmación.
- */
 function hideConfirmation() {
     if (!modalElement) return;
+    
+    // Forzar animación de salida
     modalElement.classList.remove('active');
-    modalElement.classList.add('disabled');
-    onConfirmCallback = null;
+    
+    // Esperar a que la animación termine para destruir el modal
+    setTimeout(destroyConfirmationModal, 300); // 300ms para la transición de opacidad
+}
+
+export function initConfirmationModal() {
+    // La inicialización ahora no hace nada, todo es bajo demanda.
 }

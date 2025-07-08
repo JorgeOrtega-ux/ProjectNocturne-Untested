@@ -1,68 +1,26 @@
 // ========== APPLICATION MAIN INITIALIZER - UPDATED FOR UNIFIED MODULE MANAGER ==========
+import { initLocationManager, resetLocationSearch } from '../general/location-manager.js';
 
-import {
-    initSidebarMobile,
-    initSidebarSections,
-    initControlCenter,
-    logModuleStates,
-    logSectionStates,
-    initNewOverlayModules,
-    logAllStates,
-    getAppliedTextStyle,
-    getAppliedColor,
-    getAppliedFontScale
-} from './main.js';
+import { initColorSearchSystem } from './color-search-system.js';
 import { initializeEverything } from '../tools/everything-controller.js';
-import {
-    initModuleManager,
-    updateMenuLabels,
-    applyInitialStates as applyModuleManagerInitialStates,
-    setTranslationFunction as setModuleManagerTranslationFunction,
-    getCurrentLanguage as getModuleManagerCurrentLanguage,
-    getCurrentTheme as getModuleManagerCurrentTheme,
-    isLoading as isModuleManagerLoading
-} from './module-manager.js';
-import { initLocationManager } from '../general/location-manager.js';
-import {
-    initializeTooltipSystem,
-    refreshTooltips,
-    batchMigrateTooltips,
-    initializeMobileSidebarTooltips,
-    updateTooltipTextMap,
-    setTranslationGetter as setTooltipTranslationGetter
-} from './tooltip-controller.js';
 
-import {
-    initMobileDragController
-} from './drag-controller.js';
-import { initConfirmationModal } from './confirmation-modal-controller.js'; // Añadir esta línea
-import {
-    initTranslationSystem,
-    refreshTranslations,
-    updateDynamicMenuLabels,
-    translateElementsWithDataTranslate,
-    getTranslation as getTranslationFunction,
-    getCurrentLanguage as getTranslationCurrentLanguage
-} from './translations-controller.js';
-import { initColorSearchSystem } from '../tools/color-search-system.js';
-import {
-    initializeCategorySliderService,
-    initializeCentralizedFontManager,
-    initializeFullScreenManager,
-    initializeCardEventListeners
-} from '../tools/general-tools.js';
+import { initializeCategorySliderService, initializeCentralizedFontManager, initializeFullScreenManager, initializeCardEventListeners, initializeScrollShadow, startAudioCachePreload, initDB } from '../tools/general-tools.js';
+import { initColorTextSystem, refreshColorSystem, applyCollapsedSectionsState, setupCollapsibleSectionEvents } from '../components/palette-colors.js';
+import { initializeZoneInfoTool } from '../config/zoneinfo-controller.js';
 
-import { initializeZoneInfoTool } from '../tools/zoneinfo-controller.js';
-import {
-    initColorTextSystem,
-    refreshColorSystem
-} from '../tools/palette-colors.js';
+import { initConfirmationModal } from './confirmation-modal-controller.js';
+import { initMobileDragController } from './drag-controller.js';
+import { initSidebarMobile, initSidebarSections, initControlCenter, initNewOverlayModules, logAllStates, getAppliedTextStyle, getAppliedColor, getAppliedFontScale } from './main.js';
+import { initModuleManager, updateMenuLabels, applyInitialStates as applyModuleManagerInitialStates, setTranslationFunction as setModuleManagerTranslationFunction, getCurrentLanguage as getModuleManagerCurrentLanguage, getCurrentTheme as getModuleManagerCurrentTheme, isLoading as isModuleManagerLoading } from './module-manager.js';
+import { initializeTooltipSystem, refreshTooltips, batchMigrateTooltips, initializeMobileSidebarTooltips, updateTooltipTextMap, setTranslationGetter as setTooltipTranslationGetter } from './tooltip-controller.js';
+import { initTranslationSystem, refreshTranslations, updateDynamicMenuLabels, translateElementsWithDataTranslate, getTranslation as getTranslationFunction, getCurrentLanguage as getTranslationCurrentLanguage } from './translations-controller.js';
+
+import { initMenuInteractions } from './menu-interactions.js';
+
 import { initializeStopwatch } from '../tools/stopwatch-controller.js';
 import { initializeTimerController } from '../tools/timer-controller.js';
-
 import { initializeAlarmClock } from '../tools/alarm-controller.js';
 import { initWorldClock } from '../tools/worldClock-controller.js';
-import { initDynamicIsland } from './dynamic-island-controller.js';
 
 // ========== CONFIGURATION CONSTANTS ==========
 
@@ -117,40 +75,30 @@ const REFRESH_PRESETS = {
         skipTranslations: false,
         skipTooltips: false,
         skipMenuLabels: true,
-        skipMobileSidebar: false,
-        skipInitialStates: true,
         skipColorSystem: false
     },
     TRANSLATIONS_ONLY: {
         skipTranslations: false,
         skipTooltips: true,
         skipMenuLabels: true,
-        skipMobileSidebar: true,
-        skipInitialStates: true,
         skipColorSystem: true
     },
     TOOLTIPS_ONLY: {
         skipTranslations: true,
         skipTooltips: false,
         skipMenuLabels: true,
-        skipMobileSidebar: false,
-        skipInitialStates: true,
         skipColorSystem: true
     },
     COLOR_SYSTEM_ONLY: {
         skipTranslations: true,
         skipTooltips: true,
         skipMenuLabels: true,
-        skipMobileSidebar: true,
-        skipInitialStates: true,
         skipColorSystem: false
     },
     MINIMAL: {
         skipTranslations: true,
         skipTooltips: true,
         skipMenuLabels: true,
-        skipMobileSidebar: true,
-        skipInitialStates: true,
         skipColorSystem: true
     }
 };
@@ -193,7 +141,7 @@ function createRefreshConfig(options = {}) {
 function forceRefresh(options = {}) {
     const config = createRefreshConfig(options);
     const now = Date.now();
-    
+
     const criticalUiSources = [
         REFRESH_SOURCES.SEARCH_UPDATE,
         REFRESH_SOURCES.RECENT_COLORS_RENDERED,
@@ -232,7 +180,7 @@ function forceRefresh(options = {}) {
     }
 
     const executeRefresh = () => performRefreshOperation(config);
-    
+
     if (config.immediate || criticalUiSources.includes(config.source)) {
         executeRefresh();
     } else {
@@ -266,10 +214,6 @@ function performRefreshOperation(config) {
 
         if (!config.skipTooltips) {
             refreshTooltips();
-        }
-
-        if (!config.skipMobileSidebar) {
-            initializeMobileSidebarTooltips();
         }
 
         if (!config.skipColorSystem) {
@@ -379,34 +323,35 @@ function initApp() {
 }
 
 function initializeMainComponents() {
+    initDB(); // Asegurarse de que la BD se abra pronto.
+    startAudioCachePreload(); // **MODIFICACIÓN**: Iniciamos la precarga de sonidos.
+
     initSidebarMobile();
     initSidebarSections();
     initControlCenter();
     initMobileDragController();
+    initMenuInteractions();
     initNewOverlayModules();
     initializeZoneInfoTool();
     initializeEverything();
-    initDynamicIsland();
-     initConfirmationModal(); // Añadir esta línea
+    applyCollapsedSectionsState();
+    setupCollapsibleSectionEvents();
+    initConfirmationModal();
     initializeCategorySliderService();
     initializeCentralizedFontManager();
     initializeFullScreenManager();
     initializeCardEventListeners();
     initColorTextSystem();
-    initColorSearchSystem(); 
+    initColorSearchSystem();
     initializeAlarmClock();
     initWorldClock();
     initializeStopwatch();
-    initializeTimerController(); 
-    
-    // 2. Inicializa el gestor de ubicación DESPUÉS. Este disparará el evento
-    //    que el gestor de festividades ahora puede capturar.
+    initializeTimerController();
     initLocationManager();
-    // --- FIN DE LA MODIFICACIÓN ---
-
     setupEventListeners();
     batchMigrateTooltips();
     initializeMobileSidebarTooltips();
+    initializeScrollShadow();
 }
 
 function finalizeInitialization() {
@@ -530,21 +475,20 @@ function getLanguageDisplayName(language) {
     return languageNames[language] || language;
 }
 
-function getAppliedThemeClass() {
-    const html = document.documentElement;
-    if (html.classList.contains('dark-mode')) {
-        return 'dark-mode';
-    } else if (html.classList.contains('light-mode')) {
-        return 'light-mode';
-    }
-    return 'none';
-}
-
 // ========== EVENT LISTENERS CONFIGURATION - OPTIMIZED ==========
 
 function setupEventListeners() {
     setupRefreshEventListeners();
     setupMutationObserver();
+
+    // AÑADE ESTE BLOQUE
+    document.addEventListener('moduleDeactivated', (e) => {
+        if (e.detail && (e.detail.module === 'controlCenter' || e.detail.module === 'toggleControlCenter')) {
+            if (typeof resetLocationSearch === 'function') {
+                resetLocationSearch();
+            }
+        }
+    });
 }
 
 function setupRefreshEventListeners() {

@@ -1,4 +1,4 @@
-// /assets/js/general/dynamic-island-controller.js
+// ========== DYNAMIC ISLAND CONTROLLER - REFACTORIZADO CON CLASES ==========
 
 import { translateElementTree } from './translations-controller.js';
 
@@ -6,44 +6,51 @@ let dynamicIslandElement = null;
 let notificationTimeout = null;
 let dismissCallback = null;
 let currentRingingToolId = null;
+let isAnimating = false;
 
 const NOTIFICATION_DISPLAY_DURATION = 5000;
+const ANIMATION_TIMING = {
+    APPEAR: 600,
+    DISAPPEAR: 400,
+    CONTENT_DELAY: 300,
+    DISMISS_BUTTON_DELAY: 200
+};
 
 const ICONS = {
     'alarm': 'alarm',
     'timer': 'timer',
-    'worldClock': 'schedule',
+    'worldclock': 'schedule',
     'system_info': 'info',
     'system_error': 'error',
-    'system_premium': 'workspace_premium',
     'system_success': 'check_circle',
     'default': 'info'
 };
 
-/**
- * Initializes the dynamic island DOM element and appends it to the body.
- */
-export function initDynamicIsland() {
-    if (dynamicIslandElement) return;
+function createDynamicIslandDOM() {
+    if (document.querySelector('.dynamic-island')) return;
 
     dynamicIslandElement = document.createElement('div');
-    dynamicIslandElement.id = 'dynamic-island';
-    dynamicIslandElement.classList.remove('expanded', 'active-tool-ringing');
+    dynamicIslandElement.className = 'dynamic-island';
 
-    // Estructura HTML con atributos data-translate
     dynamicIslandElement.innerHTML = `
         <div class="island-notification-content">
-            <div class="island-left-group">
-                <div class="island-circle">
-                    <span class="material-symbols-rounded notification-icon-symbol"></span>
+            <div class="island-main-content">
+                <div class="island-left">
+                    <div class="island-circle">
+                        <span class="material-symbols-rounded notification-icon-symbol"></span>
+                    </div>
                 </div>
-                <div class="notification-text-info">
-                    <p class="notification-title" data-translate="" data-translate-category="notifications"></p>
-                    <p class="notification-message" data-translate="" data-translate-category="notifications"></p>
+                <div class="island-center">
+                    <div class="notification-text-info">
+                        <p class="notification-title" data-translate="" data-translate-category="notifications"></p>
+                        <p class="notification-message" data-translate="" data-translate-category="notifications"></p>
+                    </div>
                 </div>
             </div>
-            <button class="island-dismiss-button" data-action="dismiss-active-tool" data-translate="dismiss" data-translate-category="notifications">
-            </button>
+            <div class="island-right">
+                <button class="island-dismiss-button" data-action="dismiss-active-tool" data-translate="dismiss" data-translate-category="notifications">
+                </button>
+            </div>
         </div>
     `;
 
@@ -51,109 +58,227 @@ export function initDynamicIsland() {
 
     const dismissButton = dynamicIslandElement.querySelector('.island-dismiss-button');
     if (dismissButton) {
-        dismissButton.addEventListener('click', () => {
-            if (dismissCallback && typeof dismissCallback === 'function') {
-                dismissCallback(currentRingingToolId);
-            }
-            hideDynamicIsland();
-        });
+        dismissButton.addEventListener('click', handleDismissClick);
     }
-
-    console.log('✨ Dynamic Island initialized and added to DOM.');
 }
 
-/**
- * Muestra una notificación en la isla dinámica utilizando el sistema data-translate.
- * @param {string} toolType - El tipo de herramienta ('alarm', 'timer', 'system').
- * @param {string} actionType - La acción ('created', 'updated', 'ringing', 'deleted').
- * @param {string} messageKey - La clave de traducción para el cuerpo del mensaje.
- * @param {string} category - La categoría de la traducción para el mensaje (usualmente 'notifications').
- * @param {object} [data={}] - Datos para los marcadores de posición (ej. {title: 'Mi Alarma'}).
- * @param {function} [onDismiss=null] - Callback para el botón de descarte.
- */
+function handleDismissClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (dismissCallback && typeof dismissCallback === 'function') {
+        dismissCallback(currentRingingToolId);
+    }
+    hideDynamicIsland();
+}
+
+function destroyDynamicIslandDOM() {
+    if (dynamicIslandElement) {
+        const dismissButton = dynamicIslandElement.querySelector('.island-dismiss-button');
+        if (dismissButton) {
+            dismissButton.removeEventListener('click', handleDismissClick);
+        }
+        dynamicIslandElement.remove();
+        dynamicIslandElement = null;
+    }
+}
+
 export function showDynamicIslandNotification(toolType, actionType, messageKey, category, data = {}, onDismiss = null) {
-    if (!dynamicIslandElement) initDynamicIsland();
+    if (isAnimating) {
+        setTimeout(() => {
+            showDynamicIslandNotification(toolType, actionType, messageKey, category, data, onDismiss);
+        }, 100);
+        return;
+    }
+
+    if (!dynamicIslandElement) {
+        createDynamicIslandDOM();
+    }
     if (!dynamicIslandElement) return;
 
-    if (notificationTimeout) clearTimeout(notificationTimeout);
-    dynamicIslandElement.classList.remove('active-tool-ringing');
-
-    const iconSymbol = dynamicIslandElement.querySelector('.notification-icon-symbol');
-    const titleP = dynamicIslandElement.querySelector('.notification-title');
-    const messageP = dynamicIslandElement.querySelector('.notification-message');
-    const dismissButton = dynamicIslandElement.querySelector('.island-dismiss-button');
-
-    if (!iconSymbol || !titleP || !messageP) return;
-
-    // 1. Configurar Icono
-    let iconKey = toolType;
-    if (toolType === 'system') {
-        if (actionType.includes('error')) iconKey = 'system_error';
-        else if (actionType.includes('premium') || actionType.includes('limit')) iconKey = 'system_premium';
-        else if (actionType.includes('success') || actionType.includes('deleted')) iconKey = 'system_success';
-        else iconKey = 'system_info';
+    if (notificationTimeout) {
+        clearTimeout(notificationTimeout);
+        notificationTimeout = null;
     }
-    iconSymbol.textContent = ICONS[iconKey] || ICONS.default;
 
-    // 2. Establecer las claves de traducción y los placeholders
-    const titleKey = `${toolType}_${actionType}_title`;
-    titleP.setAttribute('data-translate', titleKey);
+    dynamicIslandElement.classList.remove('active-tool-ringing', 'active', 'appearing', 'disappearing');
 
-    messageP.setAttribute('data-translate', messageKey);
-    // Convertir el objeto de datos en un string JSON para el atributo
-    if (data && Object.keys(data).length > 0) {
-        messageP.setAttribute('data-placeholders', JSON.stringify(data));
-    } else {
-        messageP.removeAttribute('data-placeholders');
-    }
-    
-    // 3. Llamar al traductor para que actualice el contenido del DOM de la isla
-    if (typeof translateElementTree === 'function') {
-        translateElementTree(dynamicIslandElement);
-    } else {
-        console.error("translateElementTree function is not available.");
-    }
-    
-    // 4. Manejar el estado de 'sonando'
+    isAnimating = true;
+
+    setupNotificationContent(toolType, actionType, messageKey, category, data);
+
     if (actionType === 'ringing') {
-        dynamicIslandElement.classList.add('active-tool-ringing');
         dismissCallback = onDismiss;
         currentRingingToolId = data.toolId;
     } else {
         dismissCallback = null;
         currentRingingToolId = null;
-        notificationTimeout = setTimeout(hideDynamicIsland, NOTIFICATION_DISPLAY_DURATION);
     }
 
-    dynamicIslandElement.classList.add('expanded');
-    console.log(`Dynamic Island Display: ${toolType} ${actionType} - TitleKey: ${titleKey}, MsgKey: ${messageKey}`);
+    requestAnimationFrame(() => {
+        startAppleStyleAppearAnimation(actionType);
+    });
+
+    console.log(`🏝️ Dynamic Island: ${toolType} ${actionType} - Class-based animation`);
 }
 
-/**
- * Hides the dynamic island.
- */
+function setupNotificationContent(toolType, actionType, messageKey, category, data) {
+    const iconSymbol = dynamicIslandElement.querySelector('.notification-icon-symbol');
+    const titleP = dynamicIslandElement.querySelector('.notification-title');
+    const messageP = dynamicIslandElement.querySelector('.notification-message');
+
+    if (!iconSymbol || !titleP || !messageP) return;
+
+    let iconKey = toolType.toLowerCase();
+    if (toolType === 'system') {
+        if (actionType.includes('error') || actionType.includes('limit')) iconKey = 'system_error';
+        else if (actionType.includes('success') || actionType.includes('deleted')) iconKey = 'system_success';
+        else iconKey = 'system_info';
+    }
+    iconSymbol.textContent = ICONS[iconKey] || ICONS.default;
+
+    let titleKey;
+    let finalMessageKey = messageKey;
+
+    if (actionType === 'limit_reached') {
+        titleKey = 'limit_reached_title';
+        finalMessageKey = 'limit_reached_message_premium';
+    } else if (toolType === 'system') {
+        titleKey = `${actionType}_title`;
+    } else {
+        titleKey = `${toolType.toLowerCase()}_${actionType}_title`;
+    }
+
+    titleP.setAttribute('data-translate', titleKey);
+    titleP.setAttribute('data-translate-category', 'notifications');
+    messageP.setAttribute('data-translate', finalMessageKey);
+
+    if (data && Object.keys(data).length > 0) {
+        messageP.setAttribute('data-placeholders', JSON.stringify(data));
+    } else {
+        messageP.removeAttribute('data-placeholders');
+    }
+
+    if (typeof translateElementTree === 'function') {
+        translateElementTree(dynamicIslandElement);
+    }
+}
+
+function startAppleStyleAppearAnimation(actionType) {
+    dynamicIslandElement.classList.add('appearing');
+
+    setTimeout(() => {
+        dynamicIslandElement.classList.remove('appearing');
+        dynamicIslandElement.classList.add('active');
+
+        setTimeout(() => {
+            const content = dynamicIslandElement.querySelector('.island-notification-content');
+            if (content) {
+                // **CAMBIO:** Usar clases para la animación de contenido
+                content.classList.add('content-visible');
+            }
+
+            if (actionType === 'ringing') {
+                setTimeout(() => {
+                    dynamicIslandElement.classList.add('active-tool-ringing');
+                }, ANIMATION_TIMING.DISMISS_BUTTON_DELAY);
+            } else {
+                notificationTimeout = setTimeout(() => {
+                    hideDynamicIsland();
+                }, NOTIFICATION_DISPLAY_DURATION);
+            }
+
+            isAnimating = false;
+
+        }, ANIMATION_TIMING.CONTENT_DELAY);
+
+    }, 100);
+}
+
 export function hideDynamicIsland() {
-    if (!dynamicIslandElement) return;
-    if (notificationTimeout) clearTimeout(notificationTimeout);
-    notificationTimeout = null;
-    
-    dynamicIslandElement.classList.remove('expanded', 'active-tool-ringing');
+    if (!dynamicIslandElement || isAnimating) return;
+
+    if (notificationTimeout) {
+        clearTimeout(notificationTimeout);
+        notificationTimeout = null;
+    }
+
+    isAnimating = true;
+
+    const content = dynamicIslandElement.querySelector('.island-notification-content');
+    if (content) {
+        // **CAMBIO:** Usar clases para la animación de contenido
+        content.classList.remove('content-visible');
+    }
+
+    setTimeout(() => {
+        dynamicIslandElement.classList.remove('active', 'active-tool-ringing');
+        dynamicIslandElement.classList.add('disappearing');
+
+        setTimeout(() => {
+            resetIslandState();
+            destroyDynamicIslandDOM();
+            isAnimating = false;
+        }, ANIMATION_TIMING.DISAPPEAR);
+
+    }, 150);
+}
+
+function resetIslandState() {
     dismissCallback = null;
     currentRingingToolId = null;
-}
-
-/**
- * Retrieves a translation string. Assumes window.getTranslation is available.
- * @param {string} key - The translation key.
- * @param {string} category - The translation category.
- * @returns {string} The translated string or the key if not found.
- */
-function getTranslation(key, category = 'general') {
-    if (typeof window.getTranslation === 'function') {
-        const translated = window.getTranslation(key, category);
-        return (translated && translated !== key) ? translated : key;
+    if (notificationTimeout) {
+        clearTimeout(notificationTimeout);
+        notificationTimeout = null;
     }
-    return key;
 }
 
-window.hideDynamicIsland = hideDynamicIsland;
+export function updateDynamicIslandContent(newTitle, newMessage) {
+    if (!dynamicIslandElement || !dynamicIslandElement.classList.contains('active')) return;
+    const titleElement = dynamicIslandElement.querySelector('.notification-title');
+    const messageElement = dynamicIslandElement.querySelector('.notification-message');
+    if (titleElement && newTitle) titleElement.textContent = newTitle;
+    if (messageElement && newMessage) messageElement.textContent = newMessage;
+}
+
+export function updateDynamicIslandIcon(newIconName) {
+    if (!dynamicIslandElement || !dynamicIslandElement.classList.contains('active')) return;
+    const iconElement = dynamicIslandElement.querySelector('.notification-icon-symbol');
+    if (iconElement && newIconName) iconElement.textContent = newIconName;
+}
+
+export function extendNotificationDisplay(additionalTime = 3000) {
+    if (notificationTimeout && !currentRingingToolId) {
+        clearTimeout(notificationTimeout);
+        notificationTimeout = setTimeout(() => hideDynamicIsland(), additionalTime);
+    }
+}
+
+export function isDynamicIslandVisible() {
+    return dynamicIslandElement && (dynamicIslandElement.classList.contains('active') || dynamicIslandElement.classList.contains('appearing'));
+}
+
+export function hasRingingTool() {
+    return dynamicIslandElement && dynamicIslandElement.classList.contains('active-tool-ringing');
+}
+
+export function forceHideDynamicIsland() {
+    if (dynamicIslandElement) {
+        isAnimating = false;
+        resetIslandState();
+        destroyDynamicIslandDOM();
+    }
+}
+
+function handleWindowResize() {
+    if (!dynamicIslandElement) return;
+    // **CAMBIO:** Usar una clase para manejar el tamaño en viewports pequeños
+    const isSmallViewport = window.innerWidth < 360;
+    dynamicIslandElement.classList.toggle('small-viewport', isSmallViewport);
+}
+
+window.addEventListener('resize', handleWindowResize);
+window.addEventListener('beforeunload', () => {
+    forceHideDynamicIsland();
+    window.removeEventListener('resize', handleWindowResize);
+});

@@ -74,9 +74,15 @@
 .custom-select-wrapper {
     position: relative;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
-    height: 45px;
+    height: auto;
+    gap: 8px;
+}
+
+.sound-list-container {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
@@ -84,7 +90,7 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    height: 100%;
+    height: 45px;
     border-radius: 8px;
     border: 1px solid #00000020;
     transition: background-color 0.2s ease;
@@ -135,6 +141,10 @@
 
 .menu-list-grid .menu-link {
     padding: 8px 4px;
+}
+
+.menu-list-grid.disabled {
+    display: none;
 }
 
 .menu-list-grid .menu-link .menu-link-text {
@@ -252,7 +262,7 @@
 .calendar-nav {
     padding: 4px 8px;
     background: none;
-    border-radius: 4px;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
 }
@@ -342,11 +352,16 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 8px;
     margin-top: 8px;
+    user-select: none;
 }
 
 .worldclock-creation-wrapper {
     flex: 1 1 auto;
     flex-direction: column;
+}
+.menu-section-selector {
+    padding: 8px;
+    border-bottom: 1px solid #00000020;
 }
 
 .tool-grid.world-clocks-grid {
@@ -370,7 +385,7 @@
     background-color: #ffffff;
     border-radius: 8px;
     border: 1px solid #00000020;
-    transition: opacity 0.3s, background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: opacity 0.3s, box-shadow 0.2s ease;
 }
 
 .tool-card.timer-finished .card-header,
@@ -386,7 +401,6 @@
 .tool-card.alarm-disabled .card-dropdown-menu {
     opacity: 1 !important;
 }
-
 
 .tool-card .card-header {
     display: flex;
@@ -429,7 +443,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
+
 .tool-card .card-tag {
     padding: 4px 12px;
     font-size: 0.85rem;
@@ -439,6 +455,7 @@
     background-color: transparent;
     border-radius: 29px;
 }
+
 .tool-card .card-pin-btn,
 .tool-card .card-menu-btn {
     display: flex;
@@ -487,12 +504,9 @@
     margin-bottom: 16px;
 }
 
-/* Apply reddish hover background to delete links within search result items (light mode) */
 .search-result-item .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
     background-color: rgba(229, 57, 53, 0.08);
 }
-
-
 
 .world-clocks-grid {
     display: grid;
@@ -505,7 +519,7 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    z-index: 999;
+    z-index: 998;
     display: flex;
     padding: 2px;
     gap: 4px;
@@ -547,6 +561,7 @@
     flex-direction: column;
     width: 245px;
     padding: 8px;
+    border: 1px solid transparent;
     gap: 4px;
     margin-top: 4px;
     background-color: #ffffff;
@@ -557,8 +572,6 @@
 .card-dropdown-menu.disabled {
     display: none;
 }
-
-
 
 .loading-overlay {
     position: absolute;
@@ -653,6 +666,7 @@
     flex-direction: column;
     gap: 8px;
     padding: 8px;
+    user-select: none;
 }
 
 .alarm-search-results-wrapper,
@@ -681,10 +695,6 @@
     border-radius: 8px;
     border: 1px solid #00000020;
     transition: background-color 0.2s ease;
-}
-
-.dark-mode .search-result-item {
-    border-color: #ffffff20;
 }
 
 .search-result-item .card-pin-btn,
@@ -740,6 +750,7 @@
 .no-results-message {
     padding: 20px;
     text-align: center;
+    overflow-wrap: break-word;
     color: #888;
 }
 
@@ -775,12 +786,15 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+    flex: 1;
 }
 
 .expandable-card-header-icon {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex: 0 0 auto;
     width: 40px;
     height: 40px;
     border-radius: 8px;
@@ -808,10 +822,11 @@
     min-width: 24px;
     height: 24px;
     padding: 0 8px;
+    border: 1px solid #00000020;
     font-size: 0.8rem;
     font-weight: 500;
     color: #000000;
-    background-color: #f5f5fa;
+    background-color: transparent;
     border-radius: 12px;
 }
 
@@ -855,27 +870,12 @@
 .card-dismiss-btn {
     padding: 8px 16px;
     color: #fff;
-    border-radius: 8px;
+    border-radius: 50px;
+    background-color: #000;
     border: 1px solid #00000020;
     font-weight: 500;
     transition: background-color 0.2s ease;
     cursor: pointer;
-}
-
-.card-dismiss-btn[data-type="alarm"] {
-    background-color: #ff5555;
-}
-
-.card-dismiss-btn[data-type="alarm"]:hover {
-    background-color: #ff2f2f;
-}
-
-.card-dismiss-btn[data-type="timer"] {
-    background-color: #000;
-}
-
-.card-dismiss-btn[data-type="timer"]:hover {
-    background-color: #45a049;
 }
 
 @media (max-width: 768px) {
@@ -976,8 +976,12 @@
 .laps-table tbody tr {
     cursor: pointer;
 }
-
-#dynamic-island {
+.island-main-content {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+.dynamic-island {
     position: fixed;
     top: 20px;
     left: 50%;
@@ -988,8 +992,7 @@
     width: 44px;
     height: 44px;
     opacity: 0;
-    background: #252627;
-    background: linear-gradient(135deg, #252627 0%, #18191b 100%);
+    background: #ffffff10;
     border-radius: 22px;
     border: 0.5px solid rgba(255, 255, 255, 0.08);
     transform: translateX(-50%) translateY(-15px);
@@ -999,7 +1002,7 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-#dynamic-island.expanded {
+.dynamic-island.active {
     opacity: 1;
     width: 300px;
     height: 54px;
@@ -1009,11 +1012,11 @@
     pointer-events: auto;
 }
 
-#dynamic-island.active-tool-ringing {
+.dynamic-island.active-tool-ringing {
     width: 340px;
 }
 
-#dynamic-island.active-tool-ringing.expanded {
+.dynamic-island.active.active-tool-ringing {
     width: 340px;
 }
 
@@ -1023,15 +1026,21 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    padding: 0 18px;
+    padding: 12px;
     opacity: 0;
-    transition: opacity 0.2s ease-out;
+    transform: scale(0.9);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
     box-sizing: border-box;
 }
 
-#dynamic-island.expanded .island-notification-content {
+.island-notification-content.content-visible {
     opacity: 1;
-    transition: opacity 0.4s ease-in 0.2s;
+    transform: scale(1);
+    transition: opacity 0.4s ease-in 0.2s, transform 0.4s ease-in 0.2s;
+}
+
+.dynamic-island.active-tool-ringing.small-viewport {
+    width: 320px;
 }
 
 .island-left-group {
@@ -1114,7 +1123,7 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-#dynamic-island.expanded.active-tool-ringing .island-dismiss-button {
+.dynamic-island.active.active-tool-ringing .island-dismiss-button {
     opacity: 1;
     pointer-events: auto;
 }
@@ -1142,34 +1151,30 @@
     }
 }
 
-#dynamic-island.active-tool-ringing {
+.dynamic-island.active-tool-ringing {
     animation: island-pulse 2s ease-in-out infinite;
 }
 
-html.light-mode #dynamic-island {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
 @media (max-width: 768px) {
-    #dynamic-island {
+    .dynamic-island {
         top: 15px;
         width: 40px;
         height: 40px;
         border-radius: 20px;
     }
 
-    #dynamic-island.expanded {
+    .dynamic-island.active {
         width: 280px;
         height: 50px;
         border-radius: 25px;
     }
 
-    #dynamic-island.active-tool-ringing {
+    .dynamic-island.active-tool-ringing {
         width: 320px;
     }
-
-    .island-notification-content {
-        padding: 0 14px;
+    
+    .dynamic-island.active-tool-ringing.small-viewport {
+        width: 280px;
     }
 
     .island-circle {
@@ -1189,16 +1194,7 @@ html.light-mode #dynamic-island {
     .notification-message {
         font-size: 10px;
     }
-
-    .island-dismiss-button {
-        margin-left: 8px;
-        padding: 5px 10px;
-        font-size: 10px;
-        border-radius: 12px;
-    }
 }
-
-
 
 .everything-grid-container {
     display: flex;
@@ -1213,16 +1209,21 @@ html.light-mode #dynamic-island {
     border: 1px solid #00000020;
 }
 
-.dark-mode .widget-clock {
-    border-color: #ffffff20;
+.menu-content-header-sm {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    padding: 12px;
+    gap: 8px;
+    font-weight: 500;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #00000020;
 }
 
-.dark-mode .action-item:hover {
-    background-color: #ffffff20;
-}
-.dark-mode .tool-card:hover {
-    background-color: #ffffff20;
-}
 .widget.sortable-chosen {
     cursor: grabbing;
 }
@@ -1251,6 +1252,54 @@ html.light-mode #dynamic-island {
     margin-bottom: 20px;
 }
 
+.widget-clock {
+    position: relative;
+}
+
+.add-button-container {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.add-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #00000020;
+    background-color: transparent;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.add-btn:hover {
+    background-color: #f5f5fa;
+}
+
+.add-menu-container {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    width: 225px;
+    border: 1px solid transparent;
+    background-color: #ffffff;
+    border-radius: 12px;
+    filter: drop-shadow(0 4px 12px #00000020);
+    z-index: 10;
+}
+
+.add-menu-container .menu-list {
+    padding: 8px;
+}
+
+.menu-link.disabled-interactions {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 .widget-icon {
     display: flex;
     flex-shrink: 0;
@@ -1266,7 +1315,7 @@ html.light-mode #dynamic-island {
 .widget-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1d1d1f;
+    color: #000000e6;
 }
 
 .clock-content {
@@ -1276,7 +1325,7 @@ html.light-mode #dynamic-island {
 .clock-time {
     font-size: 4rem;
     font-weight: 700;
-    color: #1d1d1f;
+    color: #000000e6;
 }
 
 .clock-date {
@@ -1334,106 +1383,6 @@ html.light-mode #dynamic-island {
     color: #000000e6;
 }
 
-/* ---- ESTILOS MEJORADOS PARA LAS TARJETAS DE ACCIÓN ---- */
-.action-item {
-    display: flex;
-    flex-direction: column;
-    background-color: transparent;
-    border-radius: 8px;
-    border: 1px solid #0000001a;
-    padding: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    min-height: 110px;
-}
-
-.action-item:hover {
-    background-color: #f5f5fa;
-}
-
-.action-item-content {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    flex-grow: 1;
-}
-
-.action-item-icon-wrapper-square {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    border: 1px solid #00000020;
-    background-color: transparent;
-    flex-shrink: 0;
-}
-
-.action-item-icon {
-    font-size: 24px;
-    color: #333;
-}
-
-.action-item-text-wrapper {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    gap: 4px;
-    /* Espacio entre descripción y contador */
-}
-
-.action-item-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1d1d1f;
-}
-
-.action-item-description {
-    font-size: 0.8rem;
-    color: #6e6e73;
-    line-height: 1.4;
-}
-
-/* --- ESTILOS NUEVOS PARA EL CONTADOR TIPO INSIGNIA --- */
-.action-item-count {
-    display: inline-block;
-    width: fit-content;
-    /* Se ajusta al contenido */
-    padding: 4px 12px;
-    font-size: 0.75rem;
-    border: 1px solid #00000020;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.7);
-    background-color: transparent;
-    border-radius: 50px;
-    margin-top: 4px;
-    /* Espacio desde la descripción */
-}
-
-/* ---- MODOS OSCUROS ---- */
-.dark-mode .action-item {
-    border-color: #ffffff20;
-}
-.dark-mode .action-item-icon-wrapper-square {
-    background-color: #48484a;
-}
-
-.dark-mode .action-item-icon,
-.dark-mode .action-item-title {
-    color: #f5f5f7;
-}
-
-.dark-mode .action-item-description {
-    color: #9a9a9f;
-}
-
-/* --- ESTILO OSCURO PARA LA INSIGNIA --- */
-.dark-mode .action-item-count {
-    background-color: #48484a;
-    color: #aeaeae;
-}
-
 @media (max-width: 768px) {
     .section-everything {
         gap: 14px;
@@ -1477,10 +1426,6 @@ html.light-mode #dynamic-island {
         gap: 12px;
     }
 
-    .widget {
-        padding: 14px;
-    }
-
     .widget-clock {
         min-height: 180px;
     }
@@ -1495,7 +1440,23 @@ html.light-mode #dynamic-island {
 
 }
 
-.dark-mode .menu-link[data-action="upload-audio"] {
-    border-color: #ffffff20;
+.enter-text-tool.input-error {
+    border-color: #d32f2f;
+}
 
+.custom-select-content.input-error {
+    border-color: #d32f2f;
+}
+
+.custom-select-wrapper--row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.custom-select-wrapper--row > .custom-select-content {
+    flex: 1;
+}
+
+.custom-select-wrapper--row > .menu-action-button {
+    flex-shrink: 0;
 }

@@ -1,24 +1,18 @@
-// /assets/js/tools/general-tools.js
+// ========== general-tools.js - CÓDIGO COMPLETO ACTUALIZADO ==========
 
 import { getTranslation } from '../general/translations-controller.js';
-import { prepareAlarmForEdit, prepareWorldClockForEdit } from './menu-interactions.js';
-import { activateModule, getCurrentActiveOverlay, PREMIUM_FEATURES } from '../general/main.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
-
-// **** INICIO DE LA LÓGICA DE INDEXEDDB INTEGRADA ****
 
 const DB_NAME = 'ProjectNocturneDB';
 const DB_VERSION = 1;
 const AUDIO_STORE_NAME = 'user_audio_store';
 
 let db = null;
+let isCachePopulated = false;
+let userAudiosCache = [];
+let audioCachePromise = null;
 
-/**
- * Abre y prepara la base de datos IndexedDB.
- * Esta función ahora es parte de este módulo y no se exporta por separado.
- * @returns {Promise<IDBDatabase>} Una promesa que se resuelve con la instancia de la base de datos.
- */
 function openDB() {
     return new Promise((resolve, reject) => {
         if (db) {
@@ -47,25 +41,15 @@ function openDB() {
     });
 }
 
-/**
- * Función exportada para ser llamada desde init-app.js
- */
 export function initDB() {
     return openDB();
 }
 
-/**
- * Guarda un archivo de audio en la base de datos.
- * @param {string} id - El ID único para el audio.
- * @param {string} name - El nombre del archivo.
- * @param {Blob} fileBlob - El archivo de audio como un objeto Blob.
- * @returns {Promise<void>}
- */
 async function saveAudioToDB(id, name, fileBlob) {
     const db = await openDB();
     const transaction = db.transaction(AUDIO_STORE_NAME, 'readwrite');
     const store = transaction.objectStore(AUDIO_STORE_NAME);
-    
+
     return new Promise((resolve, reject) => {
         const audioRecord = { id, name, file: fileBlob };
         const request = store.put(audioRecord);
@@ -78,15 +62,11 @@ async function saveAudioToDB(id, name, fileBlob) {
     });
 }
 
-/**
- * Obtiene todos los registros de audio de la base de datos.
- * @returns {Promise<Array<{id: string, name: string, file: Blob}>>}
- */
 async function getAllAudiosFromDB() {
     const db = await openDB();
     const transaction = db.transaction(AUDIO_STORE_NAME, 'readonly');
     const store = transaction.objectStore(AUDIO_STORE_NAME);
-    
+
     return new Promise((resolve, reject) => {
         const request = store.getAll();
 
@@ -98,11 +78,6 @@ async function getAllAudiosFromDB() {
     });
 }
 
-/**
- * Elimina un audio de la base de datos por su ID.
- * @param {string} id - El ID del audio a eliminar.
- * @returns {Promise<void>}
- */
 async function deleteAudioFromDB(id) {
     const db = await openDB();
     const transaction = db.transaction(AUDIO_STORE_NAME, 'readwrite');
@@ -118,18 +93,37 @@ async function deleteAudioFromDB(id) {
         };
     });
 }
-// **** FIN DE LA LÓGICA DE INDEXEDDB INTEGRADA ****
 
-
-// --- SOUND LOGIC ---
-let userAudiosCache = [];
-let isCachePopulated = false;
-
+// **MODIFICACIÓN CLAVE**: Esta función ahora gestiona la promesa de carga.
 async function populateAudioCache() {
     if (isCachePopulated) return;
-    userAudiosCache = await getAllAudiosFromDB();
-    isCachePopulated = true;
+    // Si ya hay una promesa de carga en curso, la esperamos.
+    if (audioCachePromise) return audioCachePromise;
+
+    // Creamos una nueva promesa para la carga.
+    audioCachePromise = (async () => {
+        try {
+            userAudiosCache = await getAllAudiosFromDB();
+            isCachePopulated = true;
+            console.log('🔊 Audio cache populated on startup.');
+        } catch (error) {
+            console.error('Failed to populate audio cache:', error);
+            // Asegurarnos de que no reintente infinitamente en caso de error.
+            isCachePopulated = false;
+        } finally {
+            audioCachePromise = null; // Limpiamos la promesa una vez resuelta.
+        }
+    })();
+
+    return audioCachePromise;
 }
+
+// **NUEVA FUNCIÓN EXPORTADA**: Para iniciar la precarga desde init-app.js
+export function startAudioCachePreload() {
+    // No necesitamos `await` aquí, solo queremos que empiece.
+    populateAudioCache();
+}
+
 
 async function saveUserAudio(name, fileBlob) {
     const newAudio = {
@@ -143,7 +137,7 @@ async function saveUserAudio(name, fileBlob) {
     return newAudio;
 }
 
-async function deleteUserAudio(audioId) {
+async function deleteUserAudio(audioId, callback) {
     const audioToDelete = userAudiosCache.find(audio => audio.id === audioId);
     if (!audioToDelete) return;
 
@@ -151,8 +145,12 @@ async function deleteUserAudio(audioId) {
         await deleteAudioFromDB(audioId);
         userAudiosCache = userAudiosCache.filter(audio => audio.id !== audioId);
         replaceDeletedAudioInTools(audioId, 'classic_beep');
+        if (typeof callback === 'function') {
+            callback();
+        }
     });
 }
+
 
 function replaceDeletedAudioInTools(deletedAudioId, defaultSoundId) {
     if (window.alarmManager && typeof window.alarmManager.getAllAlarms === 'function') {
@@ -171,7 +169,7 @@ function replaceDeletedAudioInTools(deletedAudioId, defaultSoundId) {
     }
     if (window.timerManager && typeof window.timerManager.getAllTimers === 'function') {
         const { userTimers, defaultTimers } = window.timerManager.getAllTimers();
-         let changed = false;
+        let changed = false;
         [...userTimers, ...defaultTimers].forEach(timer => {
             if (timer.sound === deletedAudioId) {
                 timer.sound = defaultSoundId;
@@ -240,7 +238,6 @@ export async function playSound(soundId) {
 
     if (soundToPlay && soundToPlay.isCustom) {
         try {
-            // Usa URL.createObjectURL para reproducir el Blob desde IndexedDB
             const audioURL = URL.createObjectURL(soundToPlay.file);
             const audio = new Audio(audioURL);
             audio.loop = true;
@@ -284,22 +281,30 @@ export function stopSound() {
         } else if (activeSoundSource.type === 'file' && activeSoundSource.element) {
             activeSoundSource.element.pause();
             activeSoundSource.element.currentTime = 0;
-            // Revoca la URL del objeto para liberar memoria
             URL.revokeObjectURL(activeSoundSource.url);
         }
     }
     activeSoundSource = null;
     isPlayingSound = false;
 }
-export async function generateSoundList(listElement, actionName, activeSoundId = null) {
-    await populateAudioCache(); // Asegura que el caché esté poblado
-    if (!listElement) return;
-    listElement.innerHTML = '';
-    const getTranslation = window.getTranslation || ((key, category) => key);
-    const availableSounds = getAvailableSounds();
-    const defaultSounds = availableSounds.filter(s => !s.isCustom);
-    const userAudios = availableSounds.filter(s => s.isCustom);
 
+// **MODIFICACIÓN CLAVE**: La función ahora es asíncrona y espera la carga de la caché.
+export async function generateSoundList(uploadElement, listElement, actionName, activeSoundId = null) {
+    // Esperamos a que la caché esté poblada.
+    await populateAudioCache();
+
+    if (!uploadElement || !listElement) {
+        console.error('Sound list generation failed: target elements not found.');
+        return;
+    }
+
+    uploadElement.innerHTML = '';
+    listElement.innerHTML = '';
+
+    const getTranslation = window.getTranslation || ((key) => key);
+
+    const uploadListContainer = document.createElement('div');
+    uploadListContainer.className = 'menu-list';
     const uploadLink = document.createElement('div');
     uploadLink.className = 'menu-link';
     uploadLink.dataset.action = 'upload-audio';
@@ -307,67 +312,139 @@ export async function generateSoundList(listElement, actionName, activeSoundId =
         <div class="menu-link-icon"><span class="material-symbols-rounded">upload_file</span></div>
         <div class="menu-link-text"><span data-translate="upload_audio" data-translate-category="sounds">${getTranslation('upload_audio', 'sounds')}</span></div>
     `;
-    listElement.appendChild(uploadLink);
-    
-    const defaultSoundsHeader = document.createElement('div');
-    defaultSoundsHeader.className = 'menu-content-header';
-    defaultSoundsHeader.innerHTML = `<span>${getTranslation('default_audios', 'sounds')}</span>`;
-    listElement.appendChild(defaultSoundsHeader);
+    uploadListContainer.appendChild(uploadLink);
+    uploadElement.appendChild(uploadListContainer);
 
+    const soundListContainer = document.createElement('div');
+    soundListContainer.className = 'menu-list';
+
+    const availableSounds = getAvailableSounds();
+    const defaultSounds = availableSounds.filter(s => !s.isCustom);
+    const userAudios = availableSounds.filter(s => s.isCustom);
+
+    const defaultSoundsHeader = document.createElement('div');
+    defaultSoundsHeader.className = 'menu-content-header-sm';
+    defaultSoundsHeader.innerHTML = `<span>${getTranslation('default_audios', 'sounds')}</span>`;
+    soundListContainer.appendChild(defaultSoundsHeader);
     defaultSounds.forEach(sound => {
         const menuLink = createSoundMenuItem(sound, actionName, activeSoundId, false);
-        listElement.appendChild(menuLink);
+        soundListContainer.appendChild(menuLink);
     });
 
     if (userAudios.length > 0) {
         const userAudiosHeader = document.createElement('div');
-        userAudiosHeader.className = 'menu-content-header';
+        userAudiosHeader.className = 'menu-content-header-sm';
         userAudiosHeader.innerHTML = `<span>${getTranslation('uploaded_audios', 'sounds')}</span>`;
-        listElement.appendChild(userAudiosHeader);
-
+        soundListContainer.appendChild(userAudiosHeader);
         userAudios.forEach(sound => {
             const menuLink = createSoundMenuItem(sound, actionName, activeSoundId, true);
-            listElement.appendChild(menuLink);
+            soundListContainer.appendChild(menuLink);
         });
     }
+
+    listElement.appendChild(soundListContainer);
 }
+
 function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     const menuLink = document.createElement('div');
     menuLink.className = 'menu-link';
-    menuLink.dataset.action = actionName;
-    menuLink.dataset.sound = sound.id;
+    menuLink.dataset.soundId = sound.id;
     if (sound.id === activeSoundId) {
         menuLink.classList.add('active');
     }
+
     const soundName = isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
     const translationAttrs = isCustom ? '' : `data-translate="${sound.nameKey}" data-translate-category="sounds"`;
-    let deleteButton = '';
+
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'menu-link-icon';
+    iconDiv.innerHTML = `<span class="material-symbols-rounded">${sound.icon}</span>`;
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'menu-link-text';
+    textDiv.dataset.action = actionName;
+    textDiv.innerHTML = `<span ${translationAttrs}>${soundName}</span>`;
+
+    menuLink.appendChild(iconDiv);
+    menuLink.appendChild(textDiv);
+
     if (isCustom) {
-        deleteButton = `
-            <div class="menu-link-icon" data-action="delete-user-audio" data-audio-id="${sound.id}">
-                <span class="material-symbols-rounded">delete</span>
-            </div>
-        `;
+        const testButtonContainer = document.createElement('div');
+        testButtonContainer.className = 'menu-link-icon';
+        
+        const testButton = document.createElement('div');
+        testButton.className = 'interactive-icon sound-test-btn';
+        testButton.dataset.action = 'test-sound';
+        testButton.innerHTML = `<span class="material-symbols-rounded">play_arrow</span>`;
+        testButtonContainer.appendChild(testButton);
+
+        const deleteButtonContainer = document.createElement('div');
+        deleteButtonContainer.className = 'menu-link-icon';
+
+        const deleteButton = document.createElement('div');
+        deleteButton.className = 'interactive-icon';
+        deleteButton.dataset.action = 'delete-user-audio';
+        deleteButton.innerHTML = `<span class="material-symbols-rounded">delete</span>`;
+        deleteButtonContainer.appendChild(deleteButton);
+
+        menuLink.appendChild(deleteButtonContainer);
+        menuLink.appendChild(testButtonContainer);
+
+    } else {
+        menuLink.addEventListener('mouseenter', () => {
+            if (menuLink.querySelector('.menu-link-actions-container')) return;
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'menu-link-icon menu-link-actions-container';
+
+            const testButton = document.createElement('div');
+            testButton.className = 'interactive-icon sound-test-btn';
+            testButton.dataset.action = 'test-sound';
+            
+            const currentlyPlayingId = window.getCurrentlyPlayingSoundId ? window.getCurrentlyPlayingSoundId() : null;
+            const isThisSoundPlaying = currentlyPlayingId === sound.id;
+            const isAnotherSoundPlaying = currentlyPlayingId !== null && !isThisSoundPlaying;
+            
+            const iconName = isThisSoundPlaying ? 'stop' : 'play_arrow';
+            testButton.innerHTML = `<span class="material-symbols-rounded">${iconName}</span>`;
+
+            // FIX: Deshabilitar el botón si otro sonido ya está sonando
+            if (isAnotherSoundPlaying) {
+                testButton.classList.add('disabled-interactive');
+            }
+            
+            actionsDiv.appendChild(testButton);
+            menuLink.appendChild(actionsDiv);
+        });
+
+        menuLink.addEventListener('mouseleave', () => {
+            const actionsDiv = menuLink.querySelector('.menu-link-actions-container');
+            const currentlyPlayingId = window.getCurrentlyPlayingSoundId ? window.getCurrentlyPlayingSoundId() : null;
+            const isThisSoundPlaying = currentlyPlayingId === sound.id;
+
+            if (actionsDiv && !isThisSoundPlaying) {
+                actionsDiv.remove();
+            }
+        });
     }
-    menuLink.innerHTML = `
-        <div class="menu-link-icon"><span class="material-symbols-rounded">${sound.icon}</span></div>
-        <div class="menu-link-text"><span ${translationAttrs}>${soundName}</span></div>
-        ${deleteButton}
-    `;
+
     return menuLink;
 }
 export async function handleAudioUpload(callback) {
     await populateAudioCache();
-    const uploadLimit = PREMIUM_FEATURES ? 10 : 1;
-    const totalSizeLimit = 5 * 1024 * 1024 * 1024; // 5 GB
-    const singleFileSizeLimit = 256 * 1024 * 1024; // 256 MB
+    const uploadLimit = 10;
+    const singleFileSizeLimit = 1024 * 1024 * 1024;
+    const maxSizeInMB = '1 GB';
 
     if (userAudiosCache.length >= uploadLimit) {
-        const messageKey = PREMIUM_FEATURES ? 'limit_reached_generic' : 'limit_reached_audio_free';
-        showDynamicIslandNotification('system', 'premium_required', messageKey, 'notifications', {
-            type: getTranslation('audio', 'sounds'),
-            limit: uploadLimit
-        });
+        const messageKey = 'limit_reached_message_premium';
+        showDynamicIslandNotification(
+            'system',
+            'limit_reached',
+            messageKey,
+            'notifications',
+            { type: getTranslation('audio_singular', 'sounds') }
+        );
         return;
     }
 
@@ -383,19 +460,11 @@ export async function handleAudioUpload(callback) {
             return;
         }
 
-        if (PREMIUM_FEATURES) {
-            const currentTotalSize = userAudiosCache.reduce((sum, audio) => sum + audio.file.size, 0);
-            if (currentTotalSize + file.size > totalSizeLimit) {
-                showDynamicIslandNotification('system', 'error', 'total_size_limit_reached', 'notifications', { maxSize: '5 GB' });
-                return;
-            }
-        } else {
-            if (file.size > singleFileSizeLimit) {
-                showDynamicIslandNotification('system', 'error', 'file_too_large', 'notifications', { maxSize: '256 MB' });
-                return;
-            }
+        if (file.size > singleFileSizeLimit) {
+            showDynamicIslandNotification('system', 'error', 'file_too_large', 'notifications', { maxSize: maxSizeInMB });
+            return;
         }
-        
+
         try {
             const newAudio = await saveUserAudio(file.name, file);
             if (callback && typeof callback === 'function') {
@@ -406,6 +475,39 @@ export async function handleAudioUpload(callback) {
         }
     };
     fileInput.click();
+}
+
+export function createExpandableToolContainer({ type, titleKey, translationCategory, icon, containerClass, badgeClass, gridAttribute, toggleFunction }) {
+    const container = document.createElement('div');
+    container.className = containerClass;
+    container.dataset.container = type;
+
+    container.innerHTML = `
+        <div class="expandable-card-header">
+            <div class="expandable-card-header-left">
+                <div class="expandable-card-header-icon">
+                    <span class="material-symbols-rounded">${icon}</span>
+                </div>
+                <div class="expandable-card-header-title">
+                    <h3 data-translate="${titleKey}" data-translate-category="${translationCategory}">${getTranslation(titleKey, translationCategory)}</h3>
+                </div>
+            </div>
+            <div class="expandable-card-header-right">
+                <span class="${badgeClass}" data-count-for="${type}">0</span>
+                <button class="expandable-card-toggle-btn">
+                    <span class="material-symbols-rounded expand-icon">expand_more</span>
+                </button>
+            </div>
+        </div>
+        <div class="tool-grid" ${gridAttribute}="${type}"></div>
+    `;
+
+    const header = container.querySelector('.expandable-card-header');
+    if (header) {
+        header.addEventListener('click', () => toggleFunction(type));
+    }
+
+    return container;
 }
 
 export function initializeCategorySliderService() {
@@ -1088,6 +1190,36 @@ export function initializeTextStyleManager() {
         document.dispatchEvent(event);
     }
 }
+export function initializeScrollShadow() {
+    const menus = document.querySelectorAll('[data-menu]');
+    const generalContent = document.querySelector('.general-content');
+
+    const setupScrollShadow = (topContainer, scrollableContainer) => {
+        if (topContainer && scrollableContainer) {
+            const handleScroll = () => {
+                if (scrollableContainer.scrollTop > 0) {
+                    topContainer.classList.add('shadow');
+                } else {
+                    topContainer.classList.remove('shadow');
+                }
+            };
+            scrollableContainer.removeEventListener('scroll', handleScroll);
+            scrollableContainer.addEventListener('scroll', handleScroll);
+        }
+    };
+
+    menus.forEach(menu => {
+        const topContainer = menu.querySelector('.menu-section-top, .menu-header');
+        const scrollableContainer = menu.querySelector('.overflow-y');
+        setupScrollShadow(topContainer, scrollableContainer);
+    });
+
+    if (generalContent) {
+        const topContainer = generalContent.querySelector('.general-content-top');
+        const scrollableContainer = generalContent.querySelector('.scrollable-content');
+        setupScrollShadow(topContainer, scrollableContainer);
+    }
+}
 export function initializeFullScreenManager() {
     if (!document.documentElement.requestFullscreen) {
         console.warn('Fullscreen API is not supported in this browser.');
@@ -1096,7 +1228,7 @@ export function initializeFullScreenManager() {
         });
         return;
     }
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
         const fullScreenButton = event.target.closest('[data-action="toggleFullScreen"]');
         if (!fullScreenButton) return;
         event.preventDefault();
@@ -1199,12 +1331,15 @@ export function initializeCardEventListeners() {
     });
 }
 
-// --- CENTRALIZED ACTION HANDLERS ---
-// Estas funciones actúan como el centro de control para las acciones de las tarjetas.
-
-function handleAlarmCardAction(action, alarmId, target) {
+export function handleAlarmCardAction(action, alarmId, target) {
     if (!window.alarmManager) {
         console.error("Alarm manager no está disponible.");
+        return;
+    }
+
+    const alarm = window.alarmManager.findAlarmById(alarmId);
+    if (alarm && alarm.isRinging && action !== 'dismiss-alarm') {
+        console.warn(`Action "${action}" blocked for ringing alarm: ${alarmId}`);
         return;
     }
 
@@ -1222,14 +1357,20 @@ function handleAlarmCardAction(action, alarmId, target) {
             window.alarmManager.handleDeleteAlarm(alarmId);
             break;
         case 'dismiss-alarm':
-             window.alarmManager.dismissAlarm(alarmId);
-             break;
+            window.alarmManager.dismissAlarm(alarmId);
+            break;
     }
 }
 
-function handleTimerCardAction(action, timerId, target) {
+export function handleTimerCardAction(action, timerId, target) {
     if (!window.timerManager) {
         console.error("Timer manager no está disponible.");
+        return;
+    }
+
+    const timer = window.timerManager.findTimerById(timerId);
+    if (timer && timer.isRinging && action !== 'dismiss-timer') {
+        console.warn(`Action "${action}" blocked for ringing timer: ${timerId}`);
         return;
     }
 
@@ -1258,13 +1399,13 @@ function handleTimerCardAction(action, timerId, target) {
     }
 }
 
-function handleWorldClockCardAction(action, clockId, target) {
+export function handleWorldClockCardAction(action, clockId, target) {
     if (!window.worldClockManager) {
         console.error("WorldClock manager no está disponible.");
         return;
     }
 
-    switch(action) {
+    switch (action) {
         case 'pin-clock':
             window.worldClockManager.pinClock(target);
             break;
@@ -1278,4 +1419,4 @@ function handleWorldClockCardAction(action, clockId, target) {
     }
 }
 
-export {deleteUserAudio, handleAlarmCardAction, handleTimerCardAction, handleWorldClockCardAction, getSoundNameById };
+export { deleteUserAudio, getSoundNameById };

@@ -1,8 +1,7 @@
-// /assets/js/tools/worldClock-controller.js
-import { PREMIUM_FEATURES, use24HourFormat, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
-import { prepareWorldClockForEdit } from './menu-interactions.js';
-import { updateZoneInfo } from './zoneinfo-controller.js';
-import { initializeSortable, handleWorldClockCardAction  } from './general-tools.js';
+import { use24HourFormat, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
+import { prepareWorldClockForEdit } from '../general/menu-interactions.js';
+import { updateZoneInfo } from '../config/zoneinfo-controller.js';
+import { initializeSortable, handleWorldClockCardAction } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
@@ -13,20 +12,25 @@ const CLOCKS_STORAGE_KEY = 'world-clocks';
 let userClocks = [];
 let mainDisplayInterval = null;
 
-// --- LÓGICA DE BÚSQUEDA Y RENDERIZADO (SIN CAMBIOS) ---
-
 function renderWorldClockSearchResults(searchTerm) {
-    const resultsWrapper = document.querySelector('.worldclock-search-results-wrapper');
-    const creationWrapper = document.querySelector('.worldclock-creation-wrapper');
+    // ================== INICIO DEL CÓDIGO CORREGIDO ==================
+    const menuElement = document.querySelector('.menu-worldClock[data-menu="worldClock"]');
+    // =================== FIN DEL CÓDIGO CORREGIDO ====================
+    if (!menuElement) return;
+
+    const resultsWrapper = menuElement.querySelector('.search-results-wrapper');
+    const creationWrapper = menuElement.querySelector('.creation-wrapper');
+
     if (!resultsWrapper || !creationWrapper) return;
+
     if (!searchTerm) {
         resultsWrapper.classList.add('disabled');
         creationWrapper.classList.remove('disabled');
         resultsWrapper.innerHTML = '';
         return;
     }
-    const filteredClocks = userClocks.filter(clock => 
-        clock.title.toLowerCase().includes(searchTerm)
+    const filteredClocks = userClocks.filter(clock =>
+        clock.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
     creationWrapper.classList.add('disabled');
     resultsWrapper.classList.remove('disabled');
@@ -57,7 +61,7 @@ function createWorldClockSearchResultItem(clock) {
     item.id = `search-clock-${clock.id}`;
     item.dataset.id = clock.id;
     item.dataset.type = 'world-clock';
-    const time = '--:--:--'; 
+    const time = '--:--:--';
     const editText = getTranslation('edit_clock', 'world_clock_options');
     const deleteText = getTranslation('delete_clock', 'world_clock_options');
     item.innerHTML = `
@@ -140,7 +144,7 @@ function updateDateTime(element, timezone) {
     if (!element) return;
     try {
         const now = new Date();
-         const timeOptions = {
+        const timeOptions = {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
@@ -297,21 +301,24 @@ function getClockCount() {
     return 0;
 }
 function getClockLimit() {
-    return PREMIUM_FEATURES ? 100 : 5;
+    return 50;
 }
 function createAndStartClockCard(title, country, timezone, existingId = null, save = true) {
     const grid = document.querySelector('.world-clocks-grid');
     if (!grid) return;
-    const totalClockLimit = PREMIUM_FEATURES ? 100 : 5;
+    const totalClockLimit = 50;
     const totalCurrentClocks = grid.querySelectorAll('.tool-card').length;
     const hasLocalClock = document.querySelector('.local-clock-card');
     const actualCurrentClocks = hasLocalClock && existingId !== 'local' ? totalCurrentClocks - 1 : totalCurrentClocks;
     if (save && actualCurrentClocks >= totalClockLimit) {
-        showDynamicIslandNotification('system', 'limit_reached', 'limit_reached_generic', 'notifications', {
-            type: getTranslation('world_clock', 'tooltips'),
-            limit: totalClockLimit
-        });
-        return; 
+        showDynamicIslandNotification(
+            'system',
+            'limit_reached',
+            null,
+            'notifications',
+            { type: getTranslation('world_clock', 'tooltips') }
+        );
+        return;
     }
     const ct = window.ct;
     const countryForTimezone = ct.getCountryForTimezone(timezone);
@@ -451,7 +458,7 @@ function initializeLocalClock() {
         locationText.textContent = getTranslation('local_time', 'world_clock_options');
     }
     if (dateText) {
-         const now = new Date();
+        const now = new Date();
         dateText.textContent = now.toLocaleDateString(navigator.language, {
             weekday: 'short',
             month: 'short',
@@ -486,15 +493,15 @@ function initializeSortableGrid() {
     if (!allowCardMovement) return;
     initializeSortable('.world-clocks-grid', {
         animation: 150,
-        filter: '.local-clock-card, .card-menu-container', 
+        filter: '.local-clock-card, .card-menu-container',
         draggable: '.tool-card.world-clock-card',
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
-        onMove: function(evt) {
+        onMove: function (evt) {
             return !evt.related.classList.contains('local-clock-card');
         },
-        onEnd: function() {
+        onEnd: function () {
             const grid = document.querySelector('.world-clocks-grid');
             const newOrder = Array.from(grid.querySelectorAll('.tool-card:not(.local-clock-card)')).map(card => card.id);
             userClocks.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
@@ -509,10 +516,10 @@ function pinClock(button) {
     allPinButtons.forEach(btn => btn.classList.remove('active'));
     const clockId = card.dataset.id;
     const mainCardPinBtn = document.querySelector(`.tool-card[data-id="${clockId}"] .card-pin-btn`);
-    if(mainCardPinBtn) mainCardPinBtn.classList.add('active');
+    if (mainCardPinBtn) mainCardPinBtn.classList.add('active');
     button.classList.add('active');
     const timezone = card.dataset.timezone || userClocks.find(c => c.id === clockId)?.timezone;
-    if(timezone) {
+    if (timezone) {
         updateZoneInfo(timezone);
         updateMainPinnedDisplay(card);
     }
@@ -525,7 +532,7 @@ function deleteClock(clockId) {
 
     showConfirmation('world-clock', clockTitle, () => {
         const isPinned = card.querySelector('.card-pin-btn.active');
-        
+
         if (clockIntervals.has(card)) {
             clearInterval(clockIntervals.get(card));
             clockIntervals.delete(card);
@@ -534,7 +541,7 @@ function deleteClock(clockId) {
         userClocks = userClocks.filter(clock => clock.id !== clockId);
         saveClocksToStorage();
         card.remove();
-        
+
         const searchItem = document.getElementById(`search-clock-${clockId}`);
         if (searchItem) searchItem.remove();
 
@@ -579,55 +586,19 @@ function updateMainPinnedDisplay(card) {
     update();
     mainDisplayInterval = setInterval(update, 1000);
 }
-/**
- * Maneja la acción de editar un reloj.
- * @param {string} clockId - El ID del reloj a editar.
-¡Tienes toda la razón! Mis disculpas por no haber identificado esa parte del problema en mi respuesta anterior. Has dado en el clavo: el problema no es que no se encuentren los datos (mi corrección anterior ayudó con eso), sino un problema de lógica en la interfaz de usuario.
 
-Cuando haces clic en "Editar" desde los resultados de búsqueda, el sistema prepara correctamente los datos para el formulario de edición, pero se salta el paso de ocultar la lista de resultados y mostrar el formulario.
-
-¿Por qué sucede esto?
-La función que controla la visibilidad de estas dos secciones es renderWorldClockSearchResults.
-
-Cuando buscas algo, esta función se ejecuta y le dice a la UI: "oculta el formulario de creación (worldclock-creation-wrapper) y muestra los resultados (worldclock-search-results-wrapper)".
-
-Cuando borras la búsqueda, la función le dice a la UI: "muestra el formulario de creación y oculta los resultados".
-
-El problema es que al hacer clic en "Editar" desde un resultado, nunca se le indica a renderWorldClockSearchResults que la búsqueda ha "terminado" para que pueda volver a mostrar el formulario.
-
-La Solución Definitiva
-Para arreglar esto, necesitamos modificar explícitamente la función handleEditClock en el archivo assets/js/tools/worldClock-controller.js. Le añadiremos la lógica para que, justo después de preparar los datos para la edición, también limpie la búsqueda y fuerce la actualización de la interfaz para mostrar el formulario.
-
-Aquí tienes el código corregido para la función handleEditClock. Reemplaza la versión existente en assets/js/tools/worldClock-controller.js con esta:
-
-JavaScript
-
-// /assets/js/tools/worldClock-controller.js
-
-/**
- * Maneja la acción de editar un reloj, asegurando que la UI
- * se actualice para mostrar el formulario de edición.
- * @param {string} clockId - El ID del reloj a editar.
- */
 function handleEditClock(clockId) {
     const clockData = userClocks.find(clock => clock.id === clockId);
 
     if (clockData) {
-        // 1. Prepara el formulario con los datos del reloj (esto ya funciona bien).
         prepareWorldClockForEdit(clockData);
-
-        // 2. Limpia el campo de búsqueda (opcional pero recomendado).
         const searchInput = document.getElementById('worldclock-search-input');
         if (searchInput) {
             searchInput.value = '';
         }
 
-        // 3. Llama a la función de renderizado con una búsqueda vacía.
-        //    Esta es la corrección clave: obliga a ocultar los resultados
-        //    y mostrar el formulario de creación/edición.
         renderWorldClockSearchResults('');
 
-        // 4. Activa el menú si no estaba abierto.
         if (getCurrentActiveOverlay() !== 'menuWorldClock') {
             activateModule('toggleMenuWorldClock');
         }
@@ -635,6 +606,7 @@ function handleEditClock(clockId) {
         console.error(`No se encontraron datos para el reloj con ID: ${clockId}`);
     }
 }
+
 document.addEventListener('languageChanged', (e) => {
     console.log('🌐 Language changed detected in WorldClock controller:', e.detail);
     setTimeout(() => {
@@ -645,6 +617,7 @@ document.addEventListener('languageChanged', (e) => {
         }
     }, 500);
 });
+
 document.addEventListener('translationsApplied', (e) => {
     setTimeout(() => {
         updateLocalClockTranslation();
@@ -652,7 +625,6 @@ document.addEventListener('translationsApplied', (e) => {
     }, 100);
 });
 
-// --- EXPOSICIÓN DE FUNCIONES EN window.worldClockManager ---
 window.worldClockManager = {
     createAndStartClockCard,
     updateClockCard,
@@ -660,7 +632,7 @@ window.worldClockManager = {
     updateLocalClockTranslation,
     pinClock,
     deleteClock,
-    handleEditClock, // <-- Nueva función expuesta
+    handleEditClock,
     getClockCount,
     getClockLimit
 };
@@ -670,7 +642,7 @@ export function initWorldClock() {
     initializeLocalClock();
     loadClocksFromStorage();
     initializeSortableGrid();
-    
+
     const searchInput = document.getElementById('worldclock-search-input');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => renderWorldClockSearchResults(e.target.value.toLowerCase()));

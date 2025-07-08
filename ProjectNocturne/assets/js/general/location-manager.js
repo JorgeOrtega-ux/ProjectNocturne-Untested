@@ -1,5 +1,3 @@
-// /assets/js/general/location-manager.js
-
 import { getTranslation } from '../general/translations-controller.js';
 
 // --- CONFIGURACIÓN Y ESTADO CENTRALIZADO ---
@@ -7,7 +5,7 @@ const LOCATION_STORAGE_KEY = 'user-location';
 const IPWHO_API_URL = 'https://ipwho.is/';
 
 const TIMING_CONFIG = {
-    LOCATION_CHANGE_DURATION: 750, // Duración para la animación de carga
+    LOCATION_CHANGE_DURATION: 750,
 };
 
 const state = {
@@ -16,14 +14,11 @@ const state = {
     isChanging: false,
     changeTimeout: null,
     pendingCountry: null,
+    isCancellable: false,
     selectedCountry: null,
     countries: [],
 };
 
-
-/**
- * Inicializa el gestor de ubicación.
- */
 async function initLocationManager() {
     if (state.isInitialized) return;
 
@@ -35,13 +30,8 @@ async function initLocationManager() {
         addEventListeners();
         updateLocationDisplay();
         
-        // --- MODIFICACIÓN CLAVE ---
-        // Dispara el evento para notificar que la ubicación inicial está lista.
-        // Esto soluciona la condición de carrera en la carga de la página.
-        console.log('Location initialized, dispatching initial event.');
         const event = new CustomEvent('locationChanged', { detail: { country: state.selectedCountry } });
         document.dispatchEvent(event);
-        // --- FIN DE LA MODIFICACIÓN ---
 
     } catch (error) {
         console.error("❌ Error initializing Location Manager:", error);
@@ -50,22 +40,6 @@ async function initLocationManager() {
     }
 }
 
-
-/**
- * Devuelve el objeto del país seleccionado actualmente.
- * @returns {object|null}
- */
-function getCurrentLocation() {
-    return state.selectedCountry;
-}
-window.getCurrentLocation = getCurrentLocation; // Expuesto globalmente
-
-// --- SISTEMA DE CAMBIO DE UBICACIÓN CON ANIMACIÓN ---
-
-/**
- * Inicia el proceso de cambio de país, incluyendo la UI de carga.
- * @param {object} country - El objeto del país { code, name } a aplicar.
- */
 function applyCountryChange(country) {
     if (state.isChanging || (state.selectedCountry && state.selectedCountry.code === country.code)) {
         return Promise.resolve(false);
@@ -74,6 +48,7 @@ function applyCountryChange(country) {
     const previousCountry = state.selectedCountry;
     state.isChanging = true;
     state.pendingCountry = country;
+    state.isCancellable = true;
 
     console.log(`✈️ Applying country change: ${country.name} (${country.code})`);
     setupCountryLoadingUI(country);
@@ -84,8 +59,11 @@ function applyCountryChange(country) {
                 setCountry(country);
                 completeCountryChange(country);
                 return true;
+            } else {
+                console.log('🚫 Location change was cancelled during process');
+                revertCountryChange(previousCountry);
+                return false;
             }
-            return false;
         })
         .catch(error => {
             console.error('Error changing country:', error);
@@ -96,13 +74,11 @@ function applyCountryChange(country) {
             setTimeout(() => {
                 state.isChanging = false;
                 state.pendingCountry = null;
+                state.isCancellable = false;
             }, 100);
         });
 }
 
-/**
- * Simula un retraso para la operación de cambio.
- */
 function performCountryChange(country) {
     return new Promise((resolve, reject) => {
         state.changeTimeout = setTimeout(() => {
@@ -115,8 +91,6 @@ function performCountryChange(country) {
         }, TIMING_CONFIG.LOCATION_CHANGE_DURATION);
     });
 }
-
-// --- FUNCIONES PARA MANEJAR LA UI DE CARGA ---
 
 function getCountryLinks() {
     return document.querySelectorAll('.menu-control-center[data-menu="location"] .menu-list .menu-link[data-country-code]');
@@ -167,8 +141,6 @@ function revertCountryChange(previousCountry) {
     });
 }
 
-// --- UTILIDADES DE SPINNER ---
-
 function addSpinnerToLink(link) {
     removeSpinnerFromLink(link);
     const loaderDiv = document.createElement('div');
@@ -184,11 +156,6 @@ function removeSpinnerFromLink(link) {
     }
 }
 
-// --- FUNCIONES DE LÓGICA DE UBICACIÓN ---
-
-/**
- * Carga la librería de países y zonas horarias si no está presente.
- */
 function loadCountriesLibrary() {
     return new Promise((resolve, reject) => {
         if (window.ct) {
@@ -210,9 +177,6 @@ function loadCountriesLibrary() {
     });
 }
 
-/**
- * Carga la ubicación guardada desde localStorage.
- */
 function loadStoredLocation() {
     const storedLocation = localStorage.getItem(LOCATION_STORAGE_KEY);
     if (storedLocation) {
@@ -224,9 +188,6 @@ function loadStoredLocation() {
     }
 }
 
-/**
- * Detecta la ubicación del usuario a través de su IP si no hay una guardada.
- */
 async function detectLocationIfNotSet() {
     if (state.selectedCountry || state.isLoading) return;
 
@@ -242,7 +203,6 @@ async function detectLocationIfNotSet() {
             const country = state.countries.find(c => c.id === data.country_code);
             if (country) {
                 console.log(`✅ País detectado: ${country.name} (${country.id})`);
-                // Llama a setCountry que ya dispara el evento
                 setCountry({ code: country.id, name: country.name });
             }
         }
@@ -254,25 +214,17 @@ async function detectLocationIfNotSet() {
     }
 }
 
-/**
- * Establece el país seleccionado, lo guarda y dispara el evento de cambio.
- * @param {object} country - El objeto del país { code, name }.
- */
 function setCountry(country) {
     state.selectedCountry = country;
     localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(country));
     updateLocationDisplay();
     
-    // Dispara un evento personalizado cuando la ubicación ha cambiado.
     const event = new CustomEvent('locationChanged', { detail: { country } });
     document.dispatchEvent(event);
     
     console.log(`País seleccionado: ${country.name} (${country.code})`);
 }
 
-/**
- * Rellena el menú desplegable con la lista de países.
- */
 function populateLocationMenu() {
     const menuList = document.querySelector('.menu-control-center[data-menu="location"] .menu-list');
     if (!menuList) return;
@@ -294,9 +246,6 @@ function populateLocationMenu() {
     highlightSelectedCountryInMenu();
 }
 
-/**
- * Resalta el país actualmente seleccionado en la lista del menú.
- */
 function highlightSelectedCountryInMenu() {
     const menuList = document.querySelector('.menu-control-center[data-menu="location"] .menu-list');
     if (!menuList) return;
@@ -309,9 +258,6 @@ function highlightSelectedCountryInMenu() {
     }
 }
 
-/**
- * Actualiza el texto que muestra la ubicación actual.
- */
 function updateLocationDisplay() {
     const locationLinkSpan = document.querySelector('.menu-link[data-toggle="location"] .menu-link-text span');
     if (locationLinkSpan) {
@@ -325,9 +271,6 @@ function updateLocationDisplay() {
     }
 }
 
-/**
- * Muestra u oculta el estado de carga en el menú.
- */
 function showLoadingState(isLoading) {
     const locationLinkSpan = document.querySelector('.menu-link[data-toggle="location"] .menu-link-text span');
     if (locationLinkSpan) {
@@ -342,10 +285,6 @@ function showLoadingState(isLoading) {
     }
 }
 
-/**
- * Filtra la lista de países según el texto de búsqueda.
- * @param {string} query - El texto a buscar.
- */
 function filterCountryList(query) {
     const normalizedQuery = query.toLowerCase().trim();
     const menuList = document.querySelector('.menu-control-center[data-menu="location"] .menu-list');
@@ -368,26 +307,26 @@ function filterCountryList(query) {
     if (matchesFound === 0 && normalizedQuery) {
         if (!noResultsMsg) {
             noResultsMsg = document.createElement('div');
-            noResultsMsg.className = 'menu-link-text no-results-message';
-            noResultsMsg.style.padding = '12px';
-            noResultsMsg.style.textAlign = 'center';
-            noResultsMsg.style.color = '#888';
+            noResultsMsg.className = 'no-results-message';
             menuList.appendChild(noResultsMsg);
         }
         const noResultsText = getTranslation('no_results', 'search');
         noResultsMsg.textContent = `${noResultsText} "${query}"`;
-        noResultsMsg.style.display = 'block';
     } else {
         if (noResultsMsg) {
-            noResultsMsg.style.display = 'none';
+            noResultsMsg.remove();
         }
     }
 }
 
+function resetLocationSearch() {
+    const searchInput = document.querySelector('#location-search-input');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    filterCountryList('');
+}
 
-/**
- * Añade los event listeners para el menú de ubicación.
- */
 function addEventListeners() {
     const locationMenu = document.querySelector('.menu-control-center[data-menu="location"]');
     if (locationMenu) {
@@ -413,4 +352,32 @@ function addEventListeners() {
     });
 }
 
-export { initLocationManager, getCurrentLocation };
+function resetLocationStates() {
+    if (state.changeTimeout) {
+        clearTimeout(state.changeTimeout);
+        state.changeTimeout = null;
+    }
+    
+    state.isChanging = false;
+    state.pendingCountry = null;
+    state.isCancellable = false;
+}
+
+
+
+function cleanLocationChangeStates() {
+    const previousCountry = state.selectedCountry;
+    resetLocationStates();
+    revertCountryChange(previousCountry);
+}
+
+function isLocationChanging() {
+    return state.isChanging;
+}
+
+function getCurrentLocation() {
+    return state.selectedCountry;
+}
+window.getCurrentLocation = getCurrentLocation;
+
+export { initLocationManager, getCurrentLocation, isLocationChanging, resetLocationStates, cleanLocationChangeStates, resetLocationSearch };

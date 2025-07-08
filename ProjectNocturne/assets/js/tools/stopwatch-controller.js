@@ -1,7 +1,6 @@
 // /assets/js/tools/stopwatch-controller.js
 
 import { getTranslation } from '../general/translations-controller.js';
-import { PREMIUM_FEATURES } from '../general/main.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 
@@ -11,29 +10,28 @@ const stopwatchState = {
     elapsedTime: 0,
     lapNumber: 0,
     laps: [],
-    timerInterval: null
+    timerInterval: null,
+    format: 'ms', // Opciones: 's', 'ds', 'ms', 'sss'
 };
 
-// Elementos del DOM
-let displayElement, startBtn, stopBtn, lapBtn, resetBtn, lapsTableBody, sectionBottom;
+let displayElement, startBtn, stopBtn, lapBtn, resetBtn, lapsTableBody, sectionBottom, changeFormatBtn, exportLapsBtn;
 
-/**
- * Guarda el estado actual del cronómetro en el localStorage.
- */
+export function getLapLimit() {
+    return 1000;
+}
+
 function saveState() {
     const stateToSave = {
         isRunning: stopwatchState.isRunning,
         startTime: stopwatchState.startTime,
         elapsedTime: stopwatchState.elapsedTime,
         laps: stopwatchState.laps,
-        lapNumber: stopwatchState.lapNumber
+        lapNumber: stopwatchState.lapNumber,
+        format: stopwatchState.format,
     };
     localStorage.setItem('stopwatchState', JSON.stringify(stateToSave));
 }
 
-/**
- * Carga el estado del cronómetro desde el localStorage.
- */
 function loadState() {
     const savedState = localStorage.getItem('stopwatchState');
     if (!savedState) return;
@@ -44,6 +42,7 @@ function loadState() {
     stopwatchState.startTime = parsedState.startTime || 0;
     stopwatchState.elapsedTime = parsedState.elapsedTime || 0;
     stopwatchState.isRunning = parsedState.isRunning || false;
+    stopwatchState.format = parsedState.format || 'ms';
 
     if (stopwatchState.isRunning) {
         stopwatchState.elapsedTime = Date.now() - stopwatchState.startTime;
@@ -55,24 +54,68 @@ function loadState() {
     if (stopwatchState.laps.length > 0) {
         lapsTableBody.innerHTML = '';
         stopwatchState.laps.forEach(renderLap);
-        sectionBottom.classList.remove('disabled'); // Corrected line
+        sectionBottom.classList.remove('disabled');
     }
 
     updateButtonStates();
 }
 
 function formatTime(milliseconds) {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
-    const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    const ms = Math.floor((milliseconds % 1000) / 10).toString().padStart(2, '0');
-    return `${hours}:${minutes}:${seconds}.${ms}`;
+    const totalMs = Math.floor(milliseconds);
+    const hours = Math.floor(totalMs / 3600000);
+    const minutes = Math.floor((totalMs % 3600000) / 60000);
+    const seconds = Math.floor((totalMs % 60000) / 1000);
+    const ms = totalMs % 1000;
+
+    let timeString = '';
+
+    if (hours > 0) {
+        timeString += `${hours.toString().padStart(2, '0')}:`;
+    }
+    
+    if (hours > 0 || minutes > 0) {
+        timeString += `${minutes.toString().padStart(2, '0')}:`;
+    }
+
+    timeString += `${seconds.toString().padStart(2, '0')}`;
+
+    switch (stopwatchState.format) {
+        case 's':
+            // No decimal places
+            break;
+        case 'ds':
+            timeString += `.${Math.floor(ms / 100).toString()}`;
+            break;
+        case 'ms':
+            timeString += `.${Math.floor(ms / 10).toString().padStart(2, '0')}`;
+            break;
+        case 'sss':
+            timeString += `.${ms.toString().padStart(3, '0')}`;
+            break;
+        default:
+            timeString += `.${Math.floor(ms / 10).toString().padStart(2, '0')}`;
+            break;
+    }
+
+    return timeString;
 }
 
 function updateDisplay() {
     const currentTime = stopwatchState.isRunning ? (Date.now() - stopwatchState.startTime) : stopwatchState.elapsedTime;
     displayElement.textContent = formatTime(currentTime);
+}
+
+function getUpdateInterval() {
+    switch (stopwatchState.format) {
+        case 's':
+            return 1000;
+        case 'ds':
+            return 100;
+        case 'ms':
+        case 'sss':
+        default:
+            return 10;
+    }
 }
 
 function startStopwatch(isReload = false) {
@@ -85,7 +128,9 @@ function startStopwatch(isReload = false) {
     }
 
     clearInterval(stopwatchState.timerInterval);
-    stopwatchState.timerInterval = setInterval(updateDisplay, 10);
+    const interval = getUpdateInterval();
+    stopwatchState.timerInterval = setInterval(updateDisplay, interval);
+
     updateButtonStates();
     saveState();
     if (!isReload) {
@@ -115,7 +160,7 @@ function resetStopwatch() {
 
     updateDisplay();
     lapsTableBody.innerHTML = '';
-    sectionBottom.classList.add('disabled'); // Corrected line
+    sectionBottom.classList.add('disabled');
     updateButtonStates();
     saveState();
     updateEverythingWidgets();
@@ -124,20 +169,17 @@ function resetStopwatch() {
 function recordLap() {
     if (!stopwatchState.isRunning) return;
 
-    const lapLimit = PREMIUM_FEATURES ? 1000 : 100;
+    const lapLimit = getLapLimit();
 
     if (stopwatchState.lapNumber >= lapLimit) {
-        if (PREMIUM_FEATURES) {
-            console.warn(`Premium lap limit (${lapLimit}) reached.`);
-            updateButtonStates();
-            return;
-        } else {
-            showDynamicIslandNotification('system', 'premium_required', 'limit_reached_generic', 'notifications', {
-                type: getTranslation('stopwatch', 'tooltips'),
-                limit: lapLimit
-            });
-            return;
-        }
+        showDynamicIslandNotification(
+            'system',
+            'limit_reached',
+            null,
+            'notifications',
+            { type: getTranslation('stopwatch', 'tooltips') }
+        );
+        return;
     }
 
     const lapTime = Date.now() - stopwatchState.startTime;
@@ -153,7 +195,7 @@ function recordLap() {
     stopwatchState.laps.push(lapData);
 
     renderLap(lapData);
-    sectionBottom.classList.remove('disabled'); // Corrected line
+    sectionBottom.classList.remove('disabled');
     saveState();
     updateButtonStates();
 }
@@ -170,19 +212,13 @@ function renderLap(lapData) {
 
 function updateButtonStates() {
     const hasTime = stopwatchState.elapsedTime > 0;
-    let isLapDisabled = !stopwatchState.isRunning;
-
-    if (PREMIUM_FEATURES) {
-        const lapLimit = 1000;
-        if (stopwatchState.lapNumber >= lapLimit) {
-            isLapDisabled = true;
-        }
-    }
+    const isLapDisabled = !stopwatchState.isRunning;
 
     startBtn.classList.toggle('disabled-interactive', stopwatchState.isRunning);
     stopBtn.classList.toggle('disabled-interactive', !stopwatchState.isRunning);
     lapBtn.classList.toggle('disabled-interactive', isLapDisabled);
     resetBtn.classList.toggle('disabled-interactive', stopwatchState.isRunning || !hasTime);
+    exportLapsBtn.classList.toggle('disabled-interactive', stopwatchState.laps.length === 0);
 }
 
 function getStopwatchDetails() {
@@ -192,26 +228,74 @@ function getStopwatchDetails() {
     const statusText = getTranslation(statusKey, 'stopwatch');
 
     if (state.elapsedTime === 0 && !state.isRunning) {
-        return getTranslation('paused', 'stopwatch') + ' en 00:00:00.00';
+        return getTranslation('paused', 'stopwatch') + ' en 00.00';
     }
 
     return `${statusText} en ${time}`;
 }
 
-// <-- INICIO DE CAMBIOS -->
-/**
- * Devuelve si el cronómetro está actualmente en funcionamiento.
- * @returns {boolean}
- */
 function isStopwatchRunning() {
     return stopwatchState.isRunning;
 }
 
+function changeFormat() {
+    const formats = ['ds', 'ms', 'sss', 's'];
+    const currentIndex = formats.indexOf(stopwatchState.format);
+    stopwatchState.format = formats[(currentIndex + 1) % formats.length];
+    
+    // Si el cronómetro está corriendo, reiniciamos el intervalo con la nueva frecuencia
+    if (stopwatchState.isRunning) {
+        clearInterval(stopwatchState.timerInterval);
+        const newInterval = getUpdateInterval();
+        stopwatchState.timerInterval = setInterval(updateDisplay, newInterval);
+    }
+    
+    updateDisplay();
+    saveState();
+}
+
+function exportLaps() {
+    if (typeof XLSX === 'undefined') {
+        console.error("La librería XLSX no está cargada. Asegúrate de incluirla en tu HTML.");
+        showDynamicIslandNotification('system', 'error', 'Error al exportar. Intenta de nuevo.', 'notifications');
+        return;
+    }
+
+    const iconContainer = exportLapsBtn.querySelector('.material-symbols-rounded');
+    const originalIconHTML = iconContainer.innerHTML;
+
+    // Mostrar spinner y deshabilitar
+    iconContainer.innerHTML = '<span class="material-symbols-rounded spinning">progress_activity</span>';
+    exportLapsBtn.classList.add('disabled-interactive');
+
+    try {
+        setTimeout(() => { // Simular un pequeño retraso para que el spinner sea visible
+            const wb = XLSX.utils.book_new();
+            const ws_data = [
+                [getTranslation("lap_header", "stopwatch"), getTranslation("time_header", "stopwatch"), getTranslation("total_time_header", "stopwatch")],
+                ...stopwatchState.laps.map(lap => [lap.lap, formatTime(lap.time), formatTime(lap.totalTime)])
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            XLSX.utils.book_append_sheet(wb, ws, "Laps");
+            XLSX.writeFile(wb, "stopwatch_laps.xlsx");
+        }, 500);
+    } catch (error) {
+        console.error("Error al exportar las vueltas:", error);
+        showDynamicIslandNotification('system', 'error', 'Error al exportar.', 'notifications');
+    } finally {
+        setTimeout(() => {
+            // Restaurar botón a su estado original
+            iconContainer.innerHTML = originalIconHTML;
+            exportLapsBtn.classList.remove('disabled-interactive');
+            updateButtonStates(); // Re-evaluar estado del botón
+        }, 1000); // Dar tiempo a que la descarga inicie
+    }
+}
+
 window.stopwatchController = {
     getStopwatchDetails,
-    isStopwatchRunning // Exportamos la nueva función
+    isStopwatchRunning
 };
-// <-- FIN DE CAMBIOS -->
 
 export function initializeStopwatch() {
     const stopwatchSection = document.querySelector('.section-stopwatch');
@@ -224,11 +308,15 @@ export function initializeStopwatch() {
     resetBtn = stopwatchSection.querySelector('[data-action="reset"]');
     lapsTableBody = stopwatchSection.querySelector('.laps-table tbody');
     sectionBottom = stopwatchSection.querySelector('.section-bottom');
+    changeFormatBtn = stopwatchSection.querySelector('[data-action="change-format"]');
+    exportLapsBtn = stopwatchSection.querySelector('[data-action="export-laps"]');
 
     startBtn.addEventListener('click', () => startStopwatch(false));
     stopBtn.addEventListener('click', stopStopwatch);
     lapBtn.addEventListener('click', recordLap);
     resetBtn.addEventListener('click', resetStopwatch);
+    changeFormatBtn.addEventListener('click', changeFormat);
+    exportLapsBtn.addEventListener('click', exportLaps);
 
     loadState();
 }

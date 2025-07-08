@@ -1,4 +1,4 @@
-<div class="menu-alarm disabled body-title" data-menu="Alarm">
+<div class="menu-alarm disabled body-title" data-menu="alarm">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>
@@ -14,8 +14,8 @@
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
-            <div class="alarm-search-results-wrapper disabled"></div>
-            <div class="alarm-creation-wrapper active">
+            <div class="search-results-wrapper disabled"></div>
+            <div class="creation-wrapper active">
                 <div class="menu-section-center overflow-y">
                     <div class="menu-content-wrapper active">
                         <div class="menu-content">
@@ -69,17 +69,13 @@
                                 </div>
                             </div>
                             <div class="menu-content-general">
-                                <div class="custom-select-wrapper">
-                                    <div class="custom-select-content" data-action="toggleAlarmSoundDropdown">
+                                <div class="custom-select-wrapper custom-select-wrapper--row">
+                                    <div class="custom-select-content" data-action="open-sounds-menu" data-context="alarm">
                                         <div class="custom-select-content-left">
                                             <span id="alarm-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span>
                                         </div>
                                         <div class="custom-select-content-right">
-                                            <span class="material-symbols-rounded">expand_more</span>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown-menu-container menu-alarm-sound overflow-y disabled body-title" data-menu="alarmSoundMenu">
-                                        <div class="menu-list">
+                                            <span class="material-symbols-rounded">arrow_right</span>
                                         </div>
                                     </div>
                                     <div class="menu-action-button" data-action="previewAlarmSound">
@@ -90,11 +86,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="menu-section-bottom">
-                    <div class="create-tool" data-action="createAlarm">
-                        <span data-translate="create_alarm" data-translate-category="alarms"></span>
-                    </div>
-                </div>
+            </div>
+        </div>
+        <div class="menu-section-bottom">
+            <div class="create-tool" data-action="createAlarm">
+                <span data-translate="create_alarm" data-translate-category="alarms"></span>
             </div>
         </div>
     </div>

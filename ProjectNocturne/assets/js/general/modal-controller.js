@@ -46,15 +46,19 @@ function createModalDOM(modalType) {
                             <div class="dropdown-menu-container suggestion-type-dropdown disabled">
                                 <div class="menu-list">
                                     <div class="menu-link" data-value="improvement">
+                                        <div class="menu-link-icon"><span class="material-symbols-rounded">trending_up</span></div>
                                         <div class="menu-link-text"><span>${getTranslation('suggestion_type_improvement', 'menu')}</span></div>
                                     </div>
                                     <div class="menu-link" data-value="bug">
+                                        <div class="menu-link-icon"><span class="material-symbols-rounded">bug_report</span></div>
                                         <div class="menu-link-text"><span>${getTranslation('suggestion_type_bug', 'menu')}</span></div>
                                     </div>
                                     <div class="menu-link" data-value="feature_request">
+                                        <div class="menu-link-icon"><span class="material-symbols-rounded">star</span></div>
                                         <div class="menu-link-text"><span>${getTranslation('suggestion_type_feature', 'menu')}</span></div>
                                     </div>
                                     <div class="menu-link" data-value="other">
+                                        <div class="menu-link-icon"><span class="material-symbols-rounded">help_outline</span></div>
                                         <div class="menu-link-text"><span>${getTranslation('suggestion_type_other', 'menu')}</span></div>
                                     </div>
                                 </div>
@@ -69,6 +73,7 @@ function createModalDOM(modalType) {
                          <button type="button" class="cancel-btn body-title">${getTranslation('cancel', 'confirmation')}</button>
                          <button type="submit" class="confirm-btn body-title">${getTranslation('send_suggestion', 'menu')}</button>
                     </div>
+                    <p class="privacy-note">Es posible que se envíe a Google información de la cuenta y del sistema para solucionar problemas y mejorar nuestros servicios.</p>
                 </form>
             </div>
         `;

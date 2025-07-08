@@ -30,12 +30,7 @@
                                 <input type="text" data-delete-item="name">
                             </div>
                         </div>
-                    </div>
-                    <div class="menu-content">
-                        <div class="details-info">
-                            <span data-delete-item="confirmation-message"></span>
-                        </div>
-                    </div>
+                    </div>               
                 </div>
             </div>
         </div>

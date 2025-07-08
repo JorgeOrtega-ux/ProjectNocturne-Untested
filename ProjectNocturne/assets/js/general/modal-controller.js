@@ -4,29 +4,42 @@ import { activateModule, deactivateModule } from './module-manager.js';
 let onConfirmCallback = null;
 let activeModalType = null;
 
+const typeToSingularTranslationKey = {
+    'alarm': 'alarm',
+    'timer': 'timer',
+    'world-clock': 'world_clock',
+    'audio': 'audio_singular'
+};
+
+const typeToCategoryMap = {
+    'alarm': 'tooltips',
+    'timer': 'tooltips',
+    'world-clock': 'tooltips',
+    'audio': 'sounds'
+};
+
 function populateConfirmationModal(data) {
     const modalMenu = document.querySelector('.menu-delete');
     if (!modalMenu) return;
 
     const { type: itemType, name } = data;
 
-    // Elementos a actualizar
-    const headerTitleElement = modalMenu.querySelector('#delete-modal-header-title');
-    const itemTypeLabelElement = modalMenu.querySelector('#delete-modal-item-type-label');
-    const itemNameElement = modalMenu.querySelector('#delete-modal-item-name');
-    const messageElement = modalMenu.querySelector('#delete-modal-confirmation-message');
+    // Elementos a actualizar usando data-attributes
+    const headerTitleElement = modalMenu.querySelector('[data-delete-item="header-title"]');
+    const itemTypeLabelElement = modalMenu.querySelector('[data-delete-item="item-type-label"]');
+    const itemNameElement = modalMenu.querySelector('[data-delete-item="name"]');
+    const messageElement = modalMenu.querySelector('[data-delete-item="confirmation-message"]');
     const confirmButton = modalMenu.querySelector('.confirm-btn');
     const cancelButton = modalMenu.querySelector('.cancel-btn');
 
     // Claves de traducción
     const headerTitleKey = `confirm_delete_title_${itemType}`;
     const messageKey = `confirm_delete_message_${itemType}`;
-    const itemTypeLabelKey = `delete_${itemType}_title_prefix`; // Nueva clave específica
+    const itemTypeLabelKey = `delete_${itemType}_title_prefix`;
 
     // Actualizar Textos
     if (headerTitleElement) headerTitleElement.textContent = getTranslation(headerTitleKey, 'confirmation');
     
-    // Usar la clave de traducción específica para el label
     if (itemTypeLabelElement) {
         itemTypeLabelElement.textContent = getTranslation(itemTypeLabelKey, 'confirmation');
     }
@@ -82,7 +95,6 @@ function setupModalEventListeners() {
         }
     }
 }
-
 
 export function showModal(type, data = {}, onConfirm = null) {
     activeModalType = type;

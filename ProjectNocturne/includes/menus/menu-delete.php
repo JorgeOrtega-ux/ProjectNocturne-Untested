@@ -10,7 +10,7 @@
                         <span class="material-symbols-rounded">delete_forever</span>
                     </div>
                     <div class="search-content-text">
-                        <span id="delete-modal-header-title"></span>
+                        <span data-delete-item="header-title"></span>
                     </div>
                 </div>
             </div>
@@ -22,20 +22,18 @@
                         <div class="menu-content-header">
                             <div class="menu-content-header-primary">
                                 <span class="material-symbols-rounded">label</span>
-                                <span id="delete-modal-item-type-label"></span>
+                                <span data-delete-item="item-type-label"></span>
                             </div>
                         </div>
                         <div class="menu-content-general">
-                            <div class="enter-text-tool">
-                                <input type="text" id="delete-modal-item-name" readonly>
+                            <div class="enter-text-tool disabled-interactive">
+                                <input type="text" data-delete-item="name">
                             </div>
                         </div>
                     </div>
                     <div class="menu-content">
-                        <div class="menu-content-general">
-                            <div class="details-info">
-                                <span id="delete-modal-confirmation-message"></span>
-                            </div>
+                        <div class="details-info">
+                            <span data-delete-item="confirmation-message"></span>
                         </div>
                     </div>
                 </div>

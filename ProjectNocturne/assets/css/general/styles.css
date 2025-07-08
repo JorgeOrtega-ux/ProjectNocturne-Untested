@@ -1367,32 +1367,18 @@ body {
 /* ====== MODAL/CONFIRMATION STYLES ===== */
 /* ====================================== */
 
-.menu-delete h1 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1d1d1f;
-}
+
 .details-info {
     width: 100%;
     height: auto;
     padding: 8px;
+    text-align: left;
     border: 1px solid #00000020;
-    border-radius: 12px;
-}
-.menu-delete span {
-    font-size: 0.95rem;
-    color: #6e6e73;
-    line-height: 1.5;
-}
-
-.menu-delete span strong {
-    font-weight: 600;
-    color: #1d1d1f;
+    border-radius: 8px;
 }
 
 .menu-delete-btns {
-    display: flex
-;
+    display: flex;
     justify-content: flex-end;
     flex-direction: column;
     gap: 8px;

@@ -1390,17 +1390,17 @@ body {
 .menu-delete-btns button {
     flex-grow: 0;
     padding: 0 12px;
-    height: 40px;
+    height: 45px;
     border-radius: 8px;
     border: none;
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease;
 }
 
 .menu-delete-btns button:active {
-    transform: scale(0.98);
+    /* transform: scale(0.98); */ /* Eliminado */
 }
 
 .menu-delete-btns .cancel-btn {
@@ -1414,7 +1414,7 @@ body {
 }
 
 .menu-delete-btns .confirm-btn {
-    background-color: #d32f2f;
+    background-color: #000;
     color: #ffffff;
 }
 
@@ -1577,11 +1577,4 @@ display: flex;
 flex-direction: row;
 gap: 4px;
 padding-right: 8px;
-}.create-tool:active,
-.custom-select-content:active,
-.menu-action-button:active,
-.enter-date-tool-left:active,
-.enter-date-tool-right:active {
-    transform: scale(0.98);
-    transition: transform 0.1s ease;
 }

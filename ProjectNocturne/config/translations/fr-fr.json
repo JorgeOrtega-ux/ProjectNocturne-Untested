@@ -135,6 +135,7 @@
     "suggestion_type_feature": "Demande de Fonctionnalité",
     "suggestion_type_other": "Autre",
     "suggestion_message": "Message",
+    "write_suggestion_message": "Écrire un message",
     "send_suggestion": "Envoyer la Suggestion"
   },
   "search": {

@@ -17,7 +17,6 @@
         <div class="menu-content-scrolleable overflow-y">
             <div class="search-results-wrapper disabled"></div>
             <div class="creation-wrapper active">
-                <!-- Timer Type Selector -->
                 <div class="menu-section-selector">
                     <div class="custom-select-wrapper">
                         <div class="custom-select-content" data-action="toggleTimerTypeDropdown">
@@ -32,7 +31,6 @@
                             </div>
                         </div>
 
-                        <!-- Dropdown -->
                         <div class="dropdown-menu-container menu-timer-type disabled body-title" data-menu="timerTypeMenu">
                             <div class="menu-list">
                                 <div class="menu-link active" data-action="selectTimerTab" data-tab="countdown">
@@ -56,11 +54,9 @@
                     </div>
                 </div>
 
-                <!-- Countdown Tab -->
                 <div class="menu-section-center overflow-y">
                     <div class="menu-content-wrapper active" data-tab-content="countdown">
 
-                        <!-- Title -->
                         <div class="menu-content">
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
@@ -75,7 +71,6 @@
                             </div>
                         </div>
 
-                        <!-- Duration -->
                         <div class="menu-content">
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
@@ -86,7 +81,6 @@
                             <div class="menu-content-general">
                                 <div class="enter-date-content">
 
-                                    <!-- Hours -->
                                     <div class="enter-date-tool">
                                         <div class="enter-date-tool-left" data-action="decreaseTimerHour">
                                             <span class="material-symbols-rounded">arrow_left</span>
@@ -97,7 +91,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Minutes -->
                                     <div class="enter-date-tool">
                                         <div class="enter-date-tool-left" data-action="decreaseTimerMinute">
                                             <span class="material-symbols-rounded">arrow_left</span>
@@ -108,7 +101,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Seconds -->
                                     <div class="enter-date-tool">
                                         <div class="enter-date-tool-left" data-action="decreaseTimerSecond">
                                             <span class="material-symbols-rounded">arrow_left</span>
@@ -122,7 +114,6 @@
                             </div>
                         </div>
 
-                        <!-- Sound -->
                         <div class="menu-content">
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
@@ -148,10 +139,8 @@
                         </div>
                     </div>
 
-                    <!-- Count To Date Tab -->
                     <div class="menu-content-wrapper disabled" data-tab-content="count_to_date">
 
-                        <!-- Title -->
                         <div class="menu-content">
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
@@ -166,7 +155,6 @@
                             </div>
                         </div>
 
-                        <!-- Date & Time -->
                         <div class="menu-content">
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
@@ -177,7 +165,6 @@
                             <div class="menu-content-general">
                                 <div class="date-time-content">
 
-                                    <!-- Date Picker -->
                                     <div class="date-time-selector">
                                         <div class="custom-select-content" data-action="open-calendar-menu">
                                             <div class="custom-select-content-left">
@@ -189,7 +176,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Time Picker -->
                                     <div class="date-time-selector">
                                         <div class="custom-select-content" data-action="open-time-picker-menu">
                                             <div class="custom-select-content-left">
@@ -206,7 +192,6 @@
                             </div>
                         </div>
 
-                        <!-- Sound -->
                         <div class="menu-content">
                             <div class="menu-content-header">
                                 <div class="menu-content-header-primary">
@@ -236,11 +221,10 @@
             </div>
         </div>
 
-        <!-- Bottom Button -->
         <div class="menu-section-bottom">
-            <div class="create-tool" data-action="createTimer">
+            <button class="menu-button menu-button--primary" data-action="createTimer">
                 <span data-translate="create_timer" data-translate-category="timer"></span>
-            </div>
+            </button>
         </div>
     </div>
 </div>

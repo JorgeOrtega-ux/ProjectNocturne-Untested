@@ -41,7 +41,7 @@
                         <div class="menu-content-header">
                             <div class="menu-content-header-primary">
                                 <span class="material-symbols-rounded">inbox</span>
-                                <span data-translate="suggestion_message" data-translate-category="menu"></span>
+                                <span data-translate="write_suggestion_message" data-translate-category="menu"></span>
                             </div>
                         </div>
                         <div class="menu-content-general">
@@ -52,9 +52,9 @@
             </div>
         </div>
         <div class="menu-section-bottom">
-            <div class="menu-delete-btns">
-                <button type="button" class="cancel-btn body-title" data-action="cancel-suggestion" data-translate="cancel" data-translate-category="confirmation"></button>
-                <button type="submit" class="confirm-btn body-title" form="suggestion-form" data-translate="send_suggestion" data-translate-category="menu"></button>
+            <div class="menu-button-group">
+                <button type="button" class="menu-button" data-action="cancel-suggestion" data-translate="cancel" data-translate-category="confirmation"></button>
+                <button type="submit" class="menu-button menu-button--primary" form="suggestion-form" data-translate="send_suggestion" data-translate-category="menu"></button>
             </div>
         </div>
     </div>

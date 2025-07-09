@@ -35,9 +35,9 @@
             </div>
         </div>
         <div class="menu-section-bottom">
-            <div class="menu-delete-btns">
-                <button class="cancel-btn body-title" data-translate="cancel" data-translate-category="confirmation"></button>
-                <button class="confirm-btn body-title" data-translate="delete" data-translate-category="confirmation"></button>
+            <div class="menu-button-group">
+                <button class="menu-button" data-translate="cancel" data-translate-category="confirmation"></button>
+                <button class="menu-button menu-button--danger" data-translate="delete" data-translate-category="confirmation"></button>
             </div>
         </div>
     </div>

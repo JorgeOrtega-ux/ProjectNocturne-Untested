@@ -135,6 +135,7 @@
     "suggestion_type_feature": "Feature Request",
     "suggestion_type_other": "Other",
     "suggestion_message": "Message",
+    "write_suggestion_message": "Write message",
     "send_suggestion": "Send Suggestion"
   },
   "search": {

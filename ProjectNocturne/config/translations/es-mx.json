@@ -134,7 +134,8 @@
     "suggestion_type_bug": "Reportar un Error",
     "suggestion_type_feature": "Solicitud de Característica",
     "suggestion_type_other": "Otro",
-    "suggestion_message": "Mensaje",
+    "suggestion_message": "Escribir mensaje",
+    "write_suggestion_message": "Escribir mensaje",
     "send_suggestion": "Enviar Sugerencia"
   },
   "search": {
